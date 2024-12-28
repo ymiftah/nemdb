@@ -345,6 +345,7 @@ class NEMWEBManager:
                 "UIGF",
             ],
             table_primary_keys=["SETTLEMENTDATE", "DUID"],
+            add_partitions=["DUID"],
         )
         self.DISPATCHPRICE = BySettlementDate(
             source=source,
@@ -562,28 +563,35 @@ class NEMWEBManager:
         date_range = pd.date_range(
             start=date_slice.start, end=date_slice.stop, freq="ME"
         )
-        for date in tqdm(date_range):
-            year = date.year
-            month = date.month
+        logger.info(
+            "Populating database with data from %s to %s", date_range[0], date_range[-1]
+        )
+        with (
+            pl.StringCache()
+        ):  # Ensures consistent Categorical values across all tables
+            for date in tqdm(date_range):
+                year = date.year
+                month = date.month
 
-            self.DISPATCHINTERCONNECTORRES.add_data(year=year, month=month)
-            # self.DISPATCHCASESOLUTION.add_data(year=year, month=month)
-            self.DISPATCHREGIONSUM.add_data(year=year, month=month)
-            self.DISPATCHLOAD.add_data(year=year, month=month)
-            # self.DISPATCHCONSTRAINT.add_data(year=year, month=month)
-            self.DISPATCHPRICE.add_data(year=year, month=month)
+                self.DISPATCHINTERCONNECTORRES.add_data(year=year, month=month)
+                self.DISPATCHPRICE.add_data(year=year, month=month)
+                self.DISPATCHREGIONSUM.add_data(year=year, month=month)
+                self.DISPATCHLOAD.add_data(year=year, month=month)
 
-            # self.INTERCONNECTOR.add_data(year=year, month=month)
-            # self.LOSSFACTORMODEL.add_data(year=year, month=month)
-            # self.LOSSMODEL.add_data(year=year, month=month)
-            # self.DUDETAILSUMMARY.add_data(year=year, month=month)
-            # self.DUDETAIL.add_data(year=year, month=month)
-            # self.INTERCONNECTORCONSTRAINT.add_data(year=year, month=month)
-            # self.GENCONDATA.add_data(year=year, month=month)
-            # self.SPDCONNECTIONPOINTCONSTRAINT.add_data(year=year, month=month)
-            # self.SPDREGIONCONSTRAINT.add_data(year=year, month=month)
-            # self.SPDINTERCONNECTORCONSTRAINT.add_data(year=year, month=month)
-            # self.MNSP_INTERCONNECTOR.add_data(year=year, month=month)
+                # self.DISPATCHCASESOLUTION.add_data(year=year, month=month)
+                # self.DISPATCHCONSTRAINT.add_data(year=year, month=month)
+
+                # self.INTERCONNECTOR.add_data(year=year, month=month)
+                # self.LOSSFACTORMODEL.add_data(year=year, month=month)
+                # self.LOSSMODEL.add_data(year=year, month=month)
+                # self.DUDETAILSUMMARY.add_data(year=year, month=month)
+                # self.DUDETAIL.add_data(year=year, month=month)
+                # self.INTERCONNECTORCONSTRAINT.add_data(year=year, month=month)
+                # self.GENCONDATA.add_data(year=year, month=month)
+                # self.SPDCONNECTIONPOINTCONSTRAINT.add_data(year=year, month=month)
+                # self.SPDREGIONCONSTRAINT.add_data(year=year, month=month)
+                # self.SPDINTERCONNECTORCONSTRAINT.add_data(year=year, month=month)
+                # self.MNSP_INTERCONNECTOR.add_data(year=year, month=month)
 
     @staticmethod
     @lru_cache(maxsize=4)
@@ -714,7 +722,7 @@ def _download_to_df(table_name, table_columns, year, month):
         except ValueError:
             raise _MissingData(
                 (
-                    """Requested data for table: {}, year: {}, month: {} 
+                    """Requested data for table: {}, year: {}, month: {}
                                 not downloaded. Please check your internet connection. Also check
                                 http://nemweb.com.au/#mms-data-model, to see if your requested
                                 data is uploaded."""
@@ -754,7 +762,14 @@ class DataSource:
     retrieving data are added by sub classing.
     """
 
-    def __init__(self, source, table_name, table_columns, table_primary_keys=None):
+    def __init__(
+        self,
+        source,
+        table_name,
+        table_columns,
+        table_primary_keys=None,
+        add_partitions=None,
+    ):
         """Creates a table in sqlite database that the connection is provided for.
 
         Examples
@@ -792,6 +807,9 @@ class DataSource:
         self.table_name = table_name
         self.table_columns = table_columns
         self.table_primary_keys = table_primary_keys
+        self.partitions = (
+            add_partitions + ["year", "month"] if add_partitions else ["year", "month"]
+        )
 
         self.path = Path(source) / table_name
         self.path.mkdir(exist_ok=True)
@@ -800,14 +818,14 @@ class DataSource:
         return getattr(self.ds, name)
 
     def scan(self, *args, **kwargs):
-        return pl.scan_parquet(self.ds.files, *args, **kwargs)
+        return pl.scan_pyarrow_dataset(self.ds, *args, **kwargs)
 
     def read(self, *args, **kwargs):
         return pl.read_parquet(self.ds.files, *args, **kwargs)
 
     @property
     def ds(self):
-        return ds.dataset(self.path, format="parquet")
+        return ds.dataset(self.path, format="parquet", partitioning="hive")
 
     def add_data(self, year, month, **kwargs):
         """ "Download data for the given table and time, replace any existing data.
@@ -874,7 +892,7 @@ class DataSource:
         None
         """
         name = self.table_name
-        partition_cols = ["year", "month"]
+        partition_cols = self.partitions
 
         data = (
             self.fetch_data(year, month)

@@ -1,14 +1,13 @@
 import requests
 import os
 import functools
-import logging
 import polars as pl
 
 from time import sleep
 
 from nemdb import Config
+from nemdb.logger import log as logger
 
-logger = logging.getLogger(__name__)
 
 def cache_response_zip(url):
     base_name = os.path.basename(url)
@@ -16,11 +15,11 @@ def cache_response_zip(url):
     if os.path.exists(path):
         logger.info("reading from cache: %s", path)
         return path
-    logging.info("Requesting file form %s", url)
+    logger.info("Requesting file form %s", url)
     response = requests.get(url)
     if response.status_code != 200:
         raise ValueError(f"Failed to download {url}")
-    logging.info("Writing response to cache: %s", path)
+    logger.info("Writing response to cache: %s", path)
 
     with open(path, "wb") as f:
         f.write(response.content)
