@@ -1,6 +1,9 @@
 import polars as pl
 import zipfile
 
+import pandera as pa
+from nemdb.dnsp.common import LoadSchema
+
 
 def get_url(year: int):
     return {
@@ -8,37 +11,47 @@ def get_url(year: int):
     }.get(year, None)
 
 
+@pa.check_output(LoadSchema)
 def read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
         for file in zip_ref.namelist():
             with zip_ref.open(file) as f:
                 df = (
-                    pl.read_csv(f)
-                    .rename(
-                        {"Zone Substation": "zss", "Date": "date", "Unit": "metric"}
-                    )
-                    .drop("Year")
-                    .filter(pl.col("metric") == "MW")
-                    .unpivot(
-                        index=["zss", "date", "metric"],
-                        value_name="MW",
-                        variable_name="time",
-                    )
-                    .with_columns(
-                        (
-                            pl.col("date")
-                            + " "
-                            + pl.col("time").str.replace("24:", "00:")
+                    (
+                        pl.read_csv(f)
+                        .rename(
+                            {"Zone Substation": "zss", "Date": "date", "Unit": "metric"}
                         )
-                        .str.to_datetime("%Y-%m-%d %H:%M")
-                        .alias("time")
+                        .drop("Year")
+                        .filter(pl.col("metric") == "MW")
+                        .unpivot(
+                            index=["zss", "date", "metric"],
+                            value_name="value",
+                            variable_name="time",
+                        )
+                        .with_columns(
+                            (
+                                pl.col("date")
+                                + " "
+                                + pl.col("time").str.replace("24:", "00:")
+                            )
+                            .str.to_datetime("%Y-%m-%d %H:%M")
+                            .alias("time"),
+                            pl.col("metric").str.to_lowercase(),
+                        )
+                        .select(["zss", "time", "metric", "value"])
                     )
-                    .select(["zss", "time", "MW"])
-                ).cast(
-                    {
-                        "MW": pl.Float32,
-                    }
+                    .cast(
+                        {
+                            "value": pl.Float32,
+                        }
+                    )
+                    .pivot(
+                        index=["zss", "time"],
+                        on="metric",
+                        values="value",
+                    )
                 )
                 dfs.append(df)
     return pl.concat(dfs)

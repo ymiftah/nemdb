@@ -1,6 +1,9 @@
 import zipfile
 import polars as pl
 
+import pandera as pa
+from nemdb.dnsp.common import LoadSchema
+
 
 def get_url(year: int):
     return {
@@ -8,6 +11,7 @@ def get_url(year: int):
     }.get(year, None)
 
 
+@pa.check_output(LoadSchema)
 def read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
@@ -22,8 +26,9 @@ def read_all_zss(file):
                 df.with_columns(
                     pl.lit(zss_name).alias("zss"),
                     pl.col("From").str.to_datetime("%Y-%m-%d %H:%M:%S").alias("time"),
-                    pl.col("MW").cast(pl.Float32),
-                ).select(["zss", "time", "MW"])
+                )
+                .select(["zss", "time", "MW", "MVAr", "MVA"])
+                .rename({"MW": "mw", "MVAr": "mvar", "MVA": "mva"})
             )
     return pl.concat(dfs)
 

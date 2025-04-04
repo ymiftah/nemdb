@@ -1,7 +1,9 @@
 import polars as pl
 import pandas as pd
 
-from nemdb.utils import download_file
+
+import pandera as pa
+from nemdb.dnsp.common import LoadSchema
 
 
 def get_url(year: int):
@@ -11,28 +13,38 @@ def get_url(year: int):
     }.get(year, None)
 
 
+@pa.check_output(LoadSchema)
 def read_all_zss(file):
-    return (
+    df = (
         pl.from_pandas(
             pd.read_csv(file, header=[0, 1], index_col=0)
             .rename_axis(index="time")
             .rename_axis(columns=["zss", "metric"])
-            .xs("MW", axis=1, level="metric")
+            .stack(["zss", "metric"], future_stack=True)
+            .to_frame("value")
             .reset_index()
         )
-        .with_columns(pl.col("time").str.to_datetime("%Y-%m-%d %H:%M:%S"))
-        .unpivot(index="time", variable_name="zss", value_name="MW")
-        .cast(
-            {
-                "MW": pl.Float32,
-            }
+        .with_columns(
+            pl.when(pl.col("zss").str.contains("Unnamed:"))
+            .then(pl.lit(None))
+            .otherwise(pl.col("zss"))
+            .forward_fill()
+            .alias("name")
         )
+        .with_columns(
+            pl.col("time").str.to_datetime("%Y-%m-%d %H:%M:%S"),
+            pl.col("metric").str.to_lowercase(),
+            pl.col("name").str.extract(r" \((\w+)\)$").alias("zss"),
+            pl.col("value").cast(pl.Float32),
+        )
+        .pivot(on="metric", index=["time", "name", "zss"], values="value")
     )
+    return df
 
 
 if __name__ == "__main__":
     path = "/home/simba/Downloads/Tasnetworks-Zone-Substation-Load-Data-2023-24.csv"
-    url = get_url(2023)
-    df = download_file(url, path)
+    # url = get_url(2023)
+    # df = download_file(url, path)
     df = read_all_zss(path)
     print(df)

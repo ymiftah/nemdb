@@ -6,7 +6,8 @@ Data downloaded from https://www.endeavourenergy.com.au/modern-grid/creating-the
 import polars as pl
 import zipfile
 
-from nemdb.utils import download_file
+import pandera as pa
+from nemdb.dnsp.common import LoadSchema
 
 
 def get_url(year: int):
@@ -25,6 +26,7 @@ def list_zss(file):
     return [f.split("/")[1].split(" ZS_")[0] for f in files]
 
 
+@pa.check_output(LoadSchema)
 def read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
@@ -48,9 +50,11 @@ def read_all_zss(file):
 
 
 if __name__ == "__main__":
-    file = download_file(
-        get_url(2024), "/home/simba/Downloads/Endeavour-FY-23-DAPR-Upload-Folder.zip"
-    )
-    files = list_zip_files(file)
-    zss = list_zss(file)
+    # file = download_file(
+    #     get_url(2024), "/home/simba/Downloads/Endeavour-FY-23-DAPR-Upload-Folder.zip"
+    # )
+    file = "/home/simba/Downloads/FY-23-DAPR-Upload-Folder.zip"
+    # files = list_zip_files(file)
+    # zss = list_zss(file)
     df = read_all_zss(file)
+    print(df)

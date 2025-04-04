@@ -3,7 +3,10 @@ import polars as pl
 import pandas as pd
 
 from nemdb import log
-from nemdb.utils import download_file
+
+
+import pandera as pa
+from nemdb.dnsp.common import LoadSchema
 
 
 def get_url(year: int):
@@ -12,6 +15,7 @@ def get_url(year: int):
     }.get(year, None)
 
 
+@pa.check_output(LoadSchema)
 def read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
@@ -39,24 +43,30 @@ def read_all_zss(file):
                     )
             _fix_columns(df)
             df = (
-                df.xs("MW", axis=1, level="metric")
+                df
+                # Some files may have AMP readings we do not need, drop them ignoring errors
+                .drop("Amp", level="metric", axis=1, errors="ignore")
                 .stack(["zss", "connection_point"], future_stack=True)
-                .to_frame("MW")
                 .reset_index()
             )
             load = (
                 pl.from_pandas(df)
+                .lazy()
                 .with_columns(
                     (pl.col("date") + " " + pl.col("time"))
                     .str.to_datetime("%d/%m/%Y %H:%M")
                     .alias("time")
                 )
-                .select(["zss", "time", "MW"])
+                .select(["zss", "time", "MW", "MVar", "MVA"])
+                .rename({"MVar": "mvar", "MVA": "mva", "MW": "mw"})
                 .cast(
                     {
-                        "MW": pl.Float32,
+                        "mw": pl.Float32,
+                        "mvar": pl.Float32,
+                        "mva": pl.Float32,
                     }
                 )
+                .collect()
             )
             dfs.append(load)
     return pl.concat(dfs)
@@ -85,6 +95,6 @@ def _fix_columns(df: pd.DataFrame):
 
 if __name__ == "__main__":
     path = "/home/simba/Downloads/SAPN-Zone-Substation-Load-Data-2023-24.zip"
-    df = download_file(get_url(2024), path)
+    # df = download_file(get_url(2024), path)
     df = read_all_zss(path)
     print(df)

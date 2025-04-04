@@ -5,10 +5,11 @@
 import polars as pl
 import pandas as pd
 
-from nemdb.utils import download_file
-
 
 import requests
+
+import pandera as pa
+from nemdb.dnsp.common import LoadSchema
 
 
 def get_url(year: int):
@@ -52,6 +53,7 @@ def get_url(year: int):
         return r.content
 
 
+@pa.check_output(LoadSchema)
 def read_all_zss(file):
     """
     Read a zip file containing csvs of load data for each zone substation (ZSS)
@@ -67,31 +69,32 @@ def read_all_zss(file):
         A dataframe with columns "zss", "time", and "MW"
     """
     return (
-        pl.from_pandas(pd.read_csv(file, usecols=["Name", "IntervalEnd", "kW"]))
+        pl.from_pandas(pd.read_csv(file, usecols=["Name", "IntervalEnd", "kW", "kVAr"]))
         .lazy()
         .with_columns(
-            pl.col("kW").cast(pl.Float32).truediv(1000).alias("MW"),
+            pl.col("kW").cast(pl.Float32).truediv(1000).alias("mw").cast(pl.Float32),
+            pl.col("kVAr")
+            .cast(pl.Float32)
+            .truediv(1000)
+            .alias("mvar")
+            .cast(pl.Float32),
             pl.col("IntervalEnd")
             .str.to_datetime("%Y-%m-%dT%H:%M:%S.000Z")
             .alias("time"),
         )
         .rename({"Name": "zss"})
-        .select(["zss", "time", "MW"])
+        .select(["zss", "time", "mw", "mvar"])
         .collect()
-        .cast(
-            {
-                "MW": pl.Float32,
-            }
-        )
     )
 
 
 if __name__ == "__main__":
-    content = get_url(2024)
-    print(content)
-    file = download_file(
-        get_url(2024),
-        "/home/simba/Downloads/EE-Zone-Substation-Load-Data-2023-24.zip",
-    )
+    # content = get_url(2024)
+    # print(content)
+    file = "/home/simba/Downloads/EE-Zone-Substation-Load-Data-2023-24.zip"
+    # file = download_file(
+    #     get_url(2024),
+    #     file,
+    # )
     df = read_all_zss(file)
     print(df)
