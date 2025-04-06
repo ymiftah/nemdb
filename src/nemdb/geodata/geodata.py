@@ -7,6 +7,8 @@ from nemdb import log
 
 from . import transformations as tf
 
+METRIC_CRS = "EPSG:7856"
+
 
 @cache_to_parquet(
     Config.CACHE_DIR / "geodata" / "substations.parquet", type_=gpd.GeoDataFrame
@@ -43,7 +45,7 @@ def read_substations():
 @cache_to_parquet(
     Config.CACHE_DIR / "geodata" / "transmission_lines.parquet", type_=gpd.GeoDataFrame
 )
-def read_transmission_lines(clean: bool = False):
+def _read_transmission_lines():
     """
     Reads in transmission line data.
 
@@ -62,11 +64,37 @@ def read_transmission_lines(clean: bool = False):
         log.info("Fetching lines data for state %s", state)
         api_url = "https://services.ga.gov.au/gis/rest/services/National_Electricity_Infrastructure/MapServer/2/query?where=state%20%3D%20'{state}'&outFields=class,name,operationalstatus,state,spatialconfidence,revised,st_length(shape),capacitykv,length_m&outSR=4326&f=geojson"
         tables.append(gpd.read_file(api_url.format(state=state)))
-    lines = pd.concat(tables).reset_index(drop=True)
+    return pd.concat(tables).reset_index(drop=True)
+
+
+@cache_to_parquet(
+    Config.CACHE_DIR / "geodata" / "transmission_lines_clean.parquet",
+    type_=gpd.GeoDataFrame,
+)
+def read_transmission_lines(clean: bool = False):
+    """
+    Reads in transmission line data.
+
+    If clean is set to True, attempts to clean the data by merging nearby lines and simplifying the geometry.
+
+    Parameters
+    ----------
+    clean : bool, optional
+        Whether to attempt to clean the transmission line data. Defaults to False.
+
+    Returns
+    -------
+    GeoDataFrame
+        A GeoDataFrame containing the fetched transmission line data.
+    """
+    gdf = _read_transmission_lines()
     if clean:
         log.info("Attempting to clean transmission lines")
-        lines = tf.clean_transmission_lines(lines)
-    return lines
+        base_crs = gdf.crs
+        gdf = gdf.to_crs(METRIC_CRS)
+        gdf = tf.clean_transmission_lines(gdf)
+        gdf = gdf.to_crs(base_crs)
+    return gdf
 
 
 @cache_to_parquet(

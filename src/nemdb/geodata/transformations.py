@@ -128,7 +128,7 @@ def make_continuous(geometry, tol_dist=100):
         geometries = sorted(geometries, key=lambda g: g.distance(merged))
         try_geom = geometries.pop(0)
         if try_geom.distance(merged) < tol_dist:
-            # the new geom is close enough, we add a link
+            # the new geom is close enough, we add a link and merge
             sl = shortest_line(merged, try_geom)
             merged = linemerge(shp.union_all((merged, sl, try_geom)))
         else:
@@ -137,7 +137,7 @@ def make_continuous(geometry, tol_dist=100):
             merged = try_geom
 
     output.append(merged)
-    return (shp.union_all(output)).simplify(tolerance=tol_dist)
+    return shp.union_all(output).simplify(tolerance=tol_dist)
 
 
 def clean_multilines(mls):
