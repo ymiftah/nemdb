@@ -4,6 +4,8 @@ import zipfile
 import pandera as pa
 from nemdb.dnsp.common import LoadSchema
 
+from nemdb.utils import download_file_to_bytesio
+
 
 def get_url(year: int):
     return {
@@ -12,7 +14,7 @@ def get_url(year: int):
 
 
 @pa.check_output(LoadSchema)
-def read_all_zss(file):
+def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
         for file in zip_ref.namelist():
@@ -55,6 +57,25 @@ def read_all_zss(file):
                 )
                 dfs.append(df)
     return pl.concat(dfs)
+
+
+def read_all_zss(year: int):
+    """
+    Reads a zip file containing csvs of load data for each zone substation (ZSS)
+
+    Parameters
+    ----------
+    year : int
+        The year for which to download the data
+
+    Returns
+    -------
+    pl.DataFrame
+        A dataframe with columns "zss", "time", "mw" and "mva"
+    """
+    file = download_file_to_bytesio(get_url(year))
+    loads = _read_all_zss(file)
+    return loads
 
 
 if __name__ == "__main__":

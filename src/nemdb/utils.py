@@ -9,6 +9,8 @@ from nemdb import log
 
 import os
 
+from io import BytesIO
+
 
 def download_file(url, path, stream=True):
     """
@@ -36,6 +38,18 @@ def download_file(url, path, stream=True):
                 f.write(chunk)
     log.info("Successfully downloaded %s to %s", url, path)
     return path
+
+
+def download_file_to_bytesio(url):
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+
+    bytes_io = BytesIO()
+    for chunk in response.iter_content(chunk_size=4096):
+        bytes_io.write(chunk)
+
+    bytes_io.seek(0)
+    return bytes_io
 
 
 def cache_to_parquet(file_path, *, type_: Any = pl.DataFrame):

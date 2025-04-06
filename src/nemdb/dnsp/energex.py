@@ -3,6 +3,13 @@ import polars as pl
 
 import pandera as pa
 from nemdb.dnsp.common import LoadSchema
+from nemdb.utils import download_file_to_bytesio
+
+
+def read_all_zss(year: int):
+    file = download_file_to_bytesio(get_url(year))
+    loads = _read_all_zss(file)
+    return loads
 
 
 def get_url(year: int):
@@ -12,7 +19,7 @@ def get_url(year: int):
 
 
 @pa.check_output(LoadSchema)
-def read_all_zss(file):
+def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
         for f in zip_ref.namelist():

@@ -10,10 +10,7 @@ from nemdb.dnsp import (
     sapn,
     united_energy,
 )
-from nemdb.utils import download_file
 from nemdb import log
-import tempfile
-import os
 from contextlib import suppress
 
 
@@ -24,12 +21,6 @@ from tqdm import tqdm
 import pyarrow.dataset as ds
 import pandas as pd
 import polars as pl
-
-
-def mktempdir():
-    dir_name = os.path.join(tempfile.gettempdir(), "nemdb")
-    os.makedirs(dir_name, exist_ok=True)
-    return dir_name
 
 
 def read_all_zss(year: int):
@@ -46,20 +37,8 @@ def read_all_zss(year: int):
         "united_energy": united_energy,
     }
     for name, module in modules.items():
-        log.info("Downloading Zone Substation loads from %s for year", name)
         try:
-            url = module.get_url(year)
-        except NotImplementedError as exc:
-            log.error(exc)
-            continue
-        if url is None:
-            raise Exception(f"Network {name} does not have a url for year {year}")
-        tempdir = mktempdir()
-        path = os.path.join(tempdir, f"{name}-Zone-Substation-Load-Data-{year}")
-        try:
-            download_file(url, path)
-            log.info("Reading Zone Substation loads from %s for year", name)
-            df = module.read_all_zss(path)
+            df = module.read_all_zss(year)
             yield name, df
         except Exception:
             log.error("Error downloading Zone Substation loads from %s for year", name)
