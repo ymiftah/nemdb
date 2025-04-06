@@ -1,3 +1,12 @@
+"""
+The code below is largely inspired by Gorman et al., (2022). Nempy: A Python package for modelling the Australian National Electricity Market dispatch procedure.
+Journal of Open Source Software, 7(70), 3596, https://doi.org/10.21105/joss.03596
+
+The NEMWEBManager class is a wrapper around the DataSource class and its interface should be compatible with nempy.
+This offers a compressed parquet based backend for the MMSDM tables instead of the incompressed SQLite tables
+used in nempy.
+"""
+
 from contextlib import suppress
 from typing import Any
 from functools import lru_cache
@@ -237,7 +246,7 @@ class NEMWEBManager:
 
     Parameters
     ----------
-    con : sqlite3.connection
+    source : Path to the parquet data set (accepts cloud storage paths)
 
 
     Attributes
