@@ -1,5 +1,6 @@
 from nemdb.dnsp import (
     ausgrid,
+    cppal,
     essential_energy,
     energex,
     ergon,
@@ -7,6 +8,7 @@ from nemdb.dnsp import (
     jemena,
     tasnetworks,
     sapn,
+    united_energy,
 )
 from nemdb.utils import download_file
 from nemdb import log
@@ -33,13 +35,15 @@ def mktempdir():
 def read_all_zss(year: int):
     modules = {
         "ausgrid": ausgrid,
-        "essential_energy": essential_energy,
+        "cppal": cppal,
+        "endeavour": endeavour,
         "energex": energex,
         "ergon": ergon,
-        "endeavour": endeavour,
+        "essential_energy": essential_energy,
         "jemena": jemena,
-        "tasnetworks": tasnetworks,
         "sapn": sapn,
+        "tasnetworks": tasnetworks,
+        "united_energy": united_energy,
     }
     for name, module in modules.items():
         log.info("Downloading Zone Substation loads from %s for year", name)
