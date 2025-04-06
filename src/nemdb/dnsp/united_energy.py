@@ -56,10 +56,5 @@ def _read_all_zss(file):
 
 
 if __name__ == "__main__":
-    from nemdb.utils import download_file
-
-    url = get_url(2024)
-    path = "/home/simba/Downloads/UE-1-July-2022-to-30-June-2023-1.zip"
-    file = download_file(url, path)
-    df = read_all_zss(file)
+    df = read_all_zss(2024)
     print(df)
