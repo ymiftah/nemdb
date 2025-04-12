@@ -1,3 +1,14 @@
+"""
+Data retrieved from
+
+https://digitalatlas.maps.arcgis.com/home/item.html?id=d5eae2d7c9e54581a5f19d7e95b9883b
+Geoscience Australia, clientservices@ga.gov.au
+© Commonwealth of Australia (Geoscience Australia) 2024.
+https://creativecommons.org/licenses/by/4.0/
+
+"""
+
+
 import geopandas as gpd
 import pandas as pd
 
