@@ -300,6 +300,9 @@ class NEMWEBManager:
             "DISPATCHLOAD",
             "DISPATCHREGIONSUM",
             "DISPATCHPRICE",
+            "MNSP_INTERCONNECTOR",
+            "RESERVE",
+            "ZONE_SUBSTATION",
         ]
         self.ZONE_SUBSTATION = DNSPDataSource(
             config=config,
