@@ -68,7 +68,7 @@ def force_line(geom):
     starting_point = _get_furthest_closest_point(points_on_boundary)
 
     # Now increase number of points to reconstruct a continuous line
-    points = _get_points(shp.segmentize(geom, 500))
+    points = _get_points(shp.segmentize(geom, 100))
     points = sorted(points, key=lambda p: p.distance(starting_point))
     last_point = points[0]
     line = [last_point]

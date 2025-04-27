@@ -11,6 +11,7 @@ https://creativecommons.org/licenses/by/4.0/
 
 import geopandas as gpd
 import pandas as pd
+import shapely as shp
 
 from nemdb.utils import cache_to_parquet
 from nemdb import Config
@@ -73,7 +74,7 @@ def _read_transmission_lines():
         "South%20Australia",
     ]:
         log.info("Fetching lines data for state %s", state)
-        api_url = "https://services.ga.gov.au/gis/rest/services/National_Electricity_Infrastructure/MapServer/2/query?where=state%20%3D%20'{state}'&outFields=class,name,operationalstatus,state,spatialconfidence,revised,st_length(shape),capacitykv,length_m&outSR=4326&f=geojson"
+        api_url = "https://services.ga.gov.au/gis/rest/services/National_Electricity_Infrastructure/MapServer/2/query?where=state%20%3D%20'{state}'&outFields=class,name,operationalstatus,state,spatialconfidence,revised,st_length(shape),capacitykv,ga_guid,length_m&outSR=4326&f=geojson"
         tables.append(gpd.read_file(api_url.format(state=state)))
     return pd.concat(tables).reset_index(drop=True)
 
@@ -100,11 +101,21 @@ def read_transmission_lines(clean: bool = False):
     """
     gdf = _read_transmission_lines()
     if clean:
-        log.info("Attempting to clean transmission lines")
+        log.info(
+            "Attempting to clean transmission lines, this may take a couple minutes."
+        )
         base_crs = gdf.crs
         gdf = gdf.to_crs(METRIC_CRS)
         gdf = tf.clean_transmission_lines(gdf)
         gdf = gdf.to_crs(base_crs)
+
+        n_geoms = gdf.geometry.map(
+            lambda x: len(x.geoms) if type(x) is shp.MultiLineString else 1
+        )
+        n_multilines = len(n_geoms[n_geoms > 1])
+        log.info(
+            "%d transmission lines were not appropriately simplified", n_multilines
+        )
     return gdf
 
 
