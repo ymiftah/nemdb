@@ -8,14 +8,12 @@ used in nempy.
 """
 
 from contextlib import suppress
-from typing import Any
 from functools import lru_cache
 import polars as pl
 import pandas as pd
+import fsspec
 
 from datetime import datetime
-from pathlib import Path
-import pyarrow.dataset as ds
 
 from tqdm import tqdm
 
@@ -23,6 +21,7 @@ from nemdb import log as logger
 from .utils import cache_response_zip
 from .nemweb import read_bids
 
+from nemdb import Config
 from nemdb.dnsp import DNSPDataSource
 
 
@@ -289,8 +288,8 @@ class NEMWEBManager:
 
     """
 
-    def __init__(self, source):
-        self.source = source
+    def __init__(self, config: Config):
+        self.config = config
         self._active_tables = [
             "DISPATCHREGIONSUM",
             "BIDDAYOFFER_D",
@@ -303,7 +302,7 @@ class NEMWEBManager:
             "DISPATCHPRICE",
         ]
         self.ZONE_SUBSTATION = DNSPDataSource(
-            source=source,
+            config=config,
             table_name="ZONE_SUBSTATION",
             add_partitions=["network"],
             table_primary_keys=["zss", "time"],
@@ -315,7 +314,7 @@ class NEMWEBManager:
             ],
         )
         self.GENUNITS = DataSource(
-            source=source,
+            config=config,
             table_name="GENUNITS",
             table_columns=[
                 "GENSETID",
@@ -338,7 +337,7 @@ class NEMWEBManager:
             table_primary_keys=["STATIONID", "LASTCHANGED"],
         )
         self.RESERVE = BySettlementDate(
-            source=source,
+            config=config,
             table_name="RESERVE",
             table_columns=[
                 "SETTLEMENTDATE",
@@ -353,7 +352,7 @@ class NEMWEBManager:
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
         )
         self.DISPATCHREGIONSUM = BySettlementDate(
-            source=source,
+            config=config,
             table_name="DISPATCHREGIONSUM",
             table_columns=[
                 "SETTLEMENTDATE",
@@ -367,7 +366,7 @@ class NEMWEBManager:
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
         )
         self.DISPATCHLOAD = BySettlementDate(
-            source=source,
+            config=config,
             table_name="DISPATCHLOAD",
             table_columns=[
                 "SETTLEMENTDATE",
@@ -408,7 +407,7 @@ class NEMWEBManager:
             add_partitions=["DUID"],
         )
         self.DISPATCHPRICE = BySettlementDate(
-            source=source,
+            config=config,
             table_name="DISPATCHPRICE",
             table_columns=[
                 "SETTLEMENTDATE",
@@ -429,7 +428,7 @@ class NEMWEBManager:
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
         )
         self.DUDETAILSUMMARY = ByStartEnd(
-            source=source,
+            config=config,
             table_name="DUDETAILSUMMARY",
             table_columns=[
                 "DUID",
@@ -450,7 +449,7 @@ class NEMWEBManager:
             table_primary_keys=["END_DATE", "REGIONID", "DUID"],
         )
         self.DUDETAIL = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="DUDETAIL",
             table_columns=[
                 "DUID",
@@ -462,7 +461,7 @@ class NEMWEBManager:
             table_primary_keys=["VERSIONNO", "DUID"],
         )
         self.BIDDAYOFFER_D = BySettlementDate(
-            source=source,
+            config=config,
             table_name="BIDDAYOFFER_D",
             table_columns=[
                 "DUID",
@@ -493,7 +492,7 @@ class NEMWEBManager:
             table_primary_keys=["VERSIONNO", "DUID"],
         )
         self.BIDPEROFFER_D = BySettlementDate(
-            source=source,
+            config=config,
             table_name="BIDPEROFFER_D",
             table_columns=[
                 "DUID",
@@ -527,7 +526,7 @@ class NEMWEBManager:
             low_memory=True,
         )
         self.DISPATCHCONSTRAINT = BySettlementDate(
-            source=source,
+            config=config,
             table_name="DISPATCHCONSTRAINT",
             table_columns=[
                 "SETTLEMENTDATE",
@@ -543,7 +542,7 @@ class NEMWEBManager:
             table_primary_keys=["SETTLEMENTDATE", "CONSTRAINTID"],
         )
         self.GENCONDATA = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="GENCONDATA",
             table_columns=[
                 "GENCONID",
@@ -555,7 +554,7 @@ class NEMWEBManager:
             table_primary_keys=["GENCONID", "EFFECTIVEDATE", "VERSIONNO"],
         )
         self.SPDREGIONCONSTRAINT = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="SPDREGIONCONSTRAINT",
             table_columns=[
                 "REGIONID",
@@ -574,7 +573,7 @@ class NEMWEBManager:
             ],
         )
         self.SPDCONNECTIONPOINTCONSTRAINT = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="SPDCONNECTIONPOINTCONSTRAINT",
             table_columns=[
                 "CONNECTIONPOINTID",
@@ -593,7 +592,7 @@ class NEMWEBManager:
             ],
         )
         self.SPDINTERCONNECTORCONSTRAINT = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="SPDINTERCONNECTORCONSTRAINT",
             table_columns=[
                 "INTERCONNECTORID",
@@ -610,13 +609,13 @@ class NEMWEBManager:
             ],
         )
         self.INTERCONNECTOR = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="INTERCONNECTOR",
             table_columns=["INTERCONNECTORID", "REGIONFROM", "REGIONTO"],
             table_primary_keys=["INTERCONNECTORID"],
         )
         self.INTERCONNECTORCONSTRAINT = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="INTERCONNECTORCONSTRAINT",
             table_columns=[
                 "INTERCONNECTORID",
@@ -632,7 +631,7 @@ class NEMWEBManager:
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
         )
         self.LOSSMODEL = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="LOSSMODEL",
             table_columns=[
                 "INTERCONNECTORID",
@@ -644,7 +643,7 @@ class NEMWEBManager:
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
         )
         self.LOSSFACTORMODEL = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="LOSSFACTORMODEL",
             table_columns=[
                 "INTERCONNECTORID",
@@ -656,13 +655,13 @@ class NEMWEBManager:
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
         )
         self.DISPATCHINTERCONNECTORRES = BySettlementDate(
-            source=source,
+            config=config,
             table_name="DISPATCHINTERCONNECTORRES",
             table_columns=["INTERCONNECTORID", "SETTLEMENTDATE", "MWFLOW", "MWLOSSES"],
             table_primary_keys=["INTERCONNECTORID", "SETTLEMENTDATE"],
         )
         self.MNSP_INTERCONNECTOR = ByEffectiveDateVersionNo(
-            source=source,
+            config=config,
             table_name="MNSP_INTERCONNECTOR",
             table_columns=[
                 "INTERCONNECTORID",
@@ -685,9 +684,10 @@ class NEMWEBManager:
         )
 
     def __repr__(self):
+        source = self.config.CACHE_DIR
         return "\n".join(
             (
-                f"DBManager at {self.source}, with tables:",
+                f"DBManager at {source}, with tables:",
                 *[f"-- {table}" for table in self.tables if table != "source"],
             )
         )
@@ -916,7 +916,7 @@ class DataSource:
 
     def __init__(
         self,
-        source: str,
+        config: Config,
         table_name: str,
         table_columns: list[str],
         table_primary_keys: list[str] = None,
@@ -924,7 +924,7 @@ class DataSource:
         low_memory: bool = False,
     ):
         """Creates a parquet dataset."""
-        self.source = source
+        self.config = config
         self.table_name = table_name
         self.table_columns = table_columns
         self.table_primary_keys = table_primary_keys
@@ -933,17 +933,15 @@ class DataSource:
         )
         self.low_memory = low_memory
 
-        self.path = Path(source) / table_name
-        self.path.mkdir(exist_ok=True)
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self.ds, name)
+        self.path = f"{config.CACHE_DIR}/{table_name}/"
+        self.fs = fsspec.filesystem(config.FILESYSTEM)
+        self.fs.makedirs(f"{config.CACHE_DIR}/{table_name}", exist_ok=True)
 
     def scan(self, *args, **kwargs):
         """scans the parquet dataset with polars"""
         kwargs_ = {"hive_partitioning": True, "allow_missing_columns": True}
         kwargs_.update(kwargs if kwargs is None else {})
-        return pl.scan_parquet(self.ds.files, *args, **kwargs_)
+        return pl.scan_parquet(self.path, *args, **kwargs_)
 
     def read(self, *args, **kwargs):
         """Reads the parquet dataset with polars
@@ -951,12 +949,7 @@ class DataSource:
         NOTE provided for compatibility with nempy, should be avoided as it can read massive data
         in memory.
         """
-        return pl.read_parquet(self.ds.files, *args, **kwargs)
-
-    @property
-    def ds(self):
-        """Returns the pyarrow dataset object"""
-        return ds.dataset(self.path, format="parquet", partitioning="hive")
+        return self.scan(self, *args, **kwargs).collect()
 
     def populate(self, date_slice: slice, force_new: bool = False):
         """Adds data to the parquet dataset from a date range."""

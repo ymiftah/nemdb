@@ -14,11 +14,8 @@ from nemdb import log
 from contextlib import suppress
 
 
-from typing import Any
-
-from pathlib import Path
+import fsspec
 from tqdm import tqdm
-import pyarrow.dataset as ds
 import pandas as pd
 import polars as pl
 
@@ -48,7 +45,7 @@ def read_all_zss(year: int):
 class DNSPDataSource:
     def __init__(
         self,
-        source,
+        config,
         table_name,
         table_columns,
         table_primary_keys=None,
@@ -58,30 +55,30 @@ class DNSPDataSource:
         """
         Creates a parquet dataset
         """
-        self.source = source
+        self.config = config
         self.table_name = table_name
         self.table_columns = table_columns
         self.table_primary_keys = table_primary_keys
         self.partitions = add_partitions + ["year"] if add_partitions else ["year"]
         self.low_memory = False
 
-        self.path = Path(source) / table_name
-        self.path.mkdir(exist_ok=True)
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self.ds, name)
+        self.path = f"{config.CACHE_DIR}/{table_name}"
+        self.fs = fsspec.filesystem(config.FILESYSTEM)
+        self.fs.makedirs(f"{config.CACHE_DIR}/{table_name}", exist_ok=True)
 
     def scan(self, *args, **kwargs):
+        """scans the parquet dataset with polars"""
         kwargs_ = {"hive_partitioning": True, "allow_missing_columns": True}
         kwargs_.update(kwargs if kwargs is None else {})
-        return pl.scan_parquet(self.ds.files, *args, **kwargs_)
+        return pl.scan_parquet(self.path, *args, **kwargs_)
 
     def read(self, *args, **kwargs):
-        return pl.read_parquet(self.ds.files, *args, **kwargs)
+        """Reads the parquet dataset with polars
 
-    @property
-    def ds(self):
-        return ds.dataset(self.path, format="parquet", partitioning="hive")
+        NOTE provided for compatibility with nempy, should be avoided as it can read massive data
+        in memory.
+        """
+        return self.scan(self, *args, **kwargs).collect()
 
     def add_data(self, year, month, **kwargs):
         name = self.table_name
