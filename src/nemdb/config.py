@@ -1,4 +1,5 @@
 from pathlib import Path
+from tempfile import gettempdir
 
 from .logger import log
 
@@ -8,6 +9,7 @@ class Config:
 
     CACHE_DIR = Path.home() / ".nemweb_cache"
     FILESYSTEM = "local"
+    TEMP_DIR = Path(gettempdir()) / ".nemweb_temp"
 
     @classmethod
     def set_cache_dir(cls, cache_dir):

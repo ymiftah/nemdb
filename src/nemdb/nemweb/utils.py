@@ -12,7 +12,7 @@ from nemdb.logger import log as logger
 def cache_response_zip(url):
     """Write in cache the file from the url and return the path to the file."""
     base_name = os.path.basename(url)
-    path = os.path.join(Config.CACHE_DIR, base_name)
+    path = os.path.join(Config.TEMP_DIR, base_name)
     if os.path.exists(path):
         logger.info("reading from cache: %s", path)
         return path
