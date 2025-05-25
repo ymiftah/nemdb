@@ -8,7 +8,6 @@ https://creativecommons.org/licenses/by/4.0/
 
 """
 
-
 import geopandas as gpd
 import pandas as pd
 import shapely as shp
@@ -25,7 +24,7 @@ METRIC_CRS = "EPSG:7856"
 @cache_to_parquet(
     Config.CACHE_DIR / "geodata" / "substations.parquet", type_=gpd.GeoDataFrame
 )
-def read_substations():
+def read_substations() -> gpd.GeoDataFrame:
     """
     Fetches and returns geospatial data of substations.
 
@@ -57,7 +56,7 @@ def read_substations():
 @cache_to_parquet(
     Config.CACHE_DIR / "geodata" / "transmission_lines.parquet", type_=gpd.GeoDataFrame
 )
-def _read_transmission_lines():
+def _read_transmission_lines() -> gpd.GeoDataFrame:
     """
     Reads in transmission line data.
 
@@ -83,7 +82,7 @@ def _read_transmission_lines():
     Config.CACHE_DIR / "geodata" / "transmission_lines_clean.parquet",
     type_=gpd.GeoDataFrame,
 )
-def read_transmission_lines(clean: bool = False):
+def read_transmission_lines(clean: bool = False) -> gpd.GeoDataFrame:
     """
     Reads in transmission line data.
 
@@ -122,7 +121,7 @@ def read_transmission_lines(clean: bool = False):
 @cache_to_parquet(
     Config.CACHE_DIR / "geodata" / "powerstations.parquet", type_=gpd.GeoDataFrame
 )
-def read_major_powerstations():
+def read_major_powerstations() -> gpd.GeoDataFrame:
     tables = []
     for state in [
         "Victoria",

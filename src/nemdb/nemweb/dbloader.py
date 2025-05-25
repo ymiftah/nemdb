@@ -297,6 +297,7 @@ class NEMWEBManager:
             "DUDETAILSUMMARY",
             "DUDETAIL",
             "GENUNITS",
+            "STATION",
             "DISPATCHLOAD",
             "DISPATCHREGIONSUM",
             "DISPATCHPRICE",
@@ -440,6 +441,7 @@ class NEMWEBManager:
                 "DISPATCHTYPE",
                 "CONNECTIONPOINTID",
                 "REGIONID",
+                "STATIONID",
                 "TRANSMISSIONLOSSFACTOR",
                 "DISTRIBUTIONLOSSFACTOR",
                 "SCHEDULE_TYPE",
@@ -462,6 +464,22 @@ class NEMWEBManager:
                 "MAXCAPACITY",
             ],
             table_primary_keys=["VERSIONNO", "DUID"],
+        )
+        self.STATION = DataSource(
+            config=config,
+            table_name="STATION",
+            table_columns=[
+                "STATIONID",
+                "STATIONNAME",
+                "ADDRESS1",
+                "ADDRESS2",
+                "ADDRESS3",
+                "ADDRESS4",
+                "CITY",
+                "STATE",
+                "POSTCODE",
+            ],
+            table_primary_keys=["STATIONID", "LASTCHANGED"],
         )
         self.BIDDAYOFFER_D = BySettlementDate(
             config=config,
