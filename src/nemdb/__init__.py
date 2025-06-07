@@ -9,7 +9,9 @@ from .isp import ISPAssumptions
 
 if Config.FILESYSTEM == "local" and not os.path.exists(Config.CACHE_DIR):
     log.info("Creating cache directory at %s", Config.CACHE_DIR)
-    os.makedirs(Config.CACHE_DIR, exist_ok=True)
+    os.makedirs(Config.TEMP_DIR, exist_ok=True)
+    if Config.FILESYSTEM == "local":
+        os.makedirs(Config.CACHE_DIR, exist_ok=True)
 
 
 __all__ = ["Config", "NEMWEBManager", "ISPAssumptions", "utils"]

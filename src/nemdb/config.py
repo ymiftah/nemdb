@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from tempfile import gettempdir
 
@@ -7,8 +8,8 @@ from .logger import log
 class Config:
     """Global configuration class for the application."""
 
-    CACHE_DIR = Path.home() / ".nemweb_cache"
-    FILESYSTEM = "local"
+    CACHE_DIR = os.getenv("NEMDB_CACHE_DIR", Path.home() / ".nemweb_cache")
+    FILESYSTEM = os.getenv("NEMDB_FILESYSTEM", Path.home() / "local")
     TEMP_DIR = Path(gettempdir()) / ".nemweb_temp"
 
     @classmethod
