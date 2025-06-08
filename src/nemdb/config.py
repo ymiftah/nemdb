@@ -9,7 +9,7 @@ class Config:
     """Global configuration class for the application."""
 
     CACHE_DIR = os.getenv("NEMDB_CACHE_DIR", Path.home() / ".nemweb_cache")
-    FILESYSTEM = os.getenv("NEMDB_FILESYSTEM", Path.home() / "local")
+    FILESYSTEM = os.getenv("NEMDB_FILESYSTEM", "local")
     TEMP_DIR = Path(gettempdir()) / ".nemweb_temp"
 
     @classmethod
