@@ -32,6 +32,10 @@ STRPTIME = "%Y/%m/%d %H:%M:%S"
 DTYPES = {
     "ENTRYTYPE": pl.Categorical,
     "NORMALSTATUS": pl.String,
+    "ADDRESS1": pl.String,
+    "ADDRESS2": pl.String,
+    "ADDRESS3": pl.String,
+    "ADDRESS4": pl.String,
     "PARTICIPANTID": pl.Categorical,
     "DIRECTION": pl.Categorical,
     "DAILYENERGYCONSTRAINT": pl.Float32,
