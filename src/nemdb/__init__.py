@@ -2,7 +2,7 @@ import os
 from .config import Config
 from .logger import log
 
-from . import utils
+from . import utils, main
 from .nemweb import NEMWEBManager
 from .isp import ISPAssumptions
 
@@ -15,4 +15,4 @@ log.info("Creating temp cache directory at %s", Config.TEMP_DIR)
 os.makedirs(Config.TEMP_DIR, exist_ok=True)
 
 
-__all__ = ["Config", "NEMWEBManager", "ISPAssumptions", "utils"]
+__all__ = ["Config", "NEMWEBManager", "ISPAssumptions", "utils", "main"]
