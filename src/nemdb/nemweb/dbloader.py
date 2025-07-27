@@ -36,6 +36,9 @@ DTYPES = {
     "ADDRESS2": pl.String,
     "ADDRESS3": pl.String,
     "ADDRESS4": pl.String,
+    "CITY": pl.String,
+    "STATE": pl.String,
+    "POSTCODE": pl.String,
     "PARTICIPANTID": pl.Categorical,
     "DIRECTION": pl.Categorical,
     "DAILYENERGYCONSTRAINT": pl.Float32,
@@ -945,7 +948,7 @@ class DataSource:
         table_name: str,
         table_columns: list[str],
         table_primary_keys: list[str] = None,
-        add_partitions: bool = None,
+        add_partitions: list[str] = None,
         low_memory: bool = False,
     ):
         """Creates a parquet dataset."""
