@@ -26,8 +26,7 @@ jobs:
         uv pip install -e .[dev]
     - name: Lint with pre-commit
       run: |
-        uv pip install pre-commit
-        pre-commit run --all-files
+        uv run pre-commit run --all-files
     - name: Test with pytest
       run: |
         uv run pytest
