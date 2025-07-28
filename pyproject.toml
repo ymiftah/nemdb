@@ -16,6 +16,7 @@ dependencies = [
     "pandera>=0.23.1",
     "polars>=1.29.0",
     "pre-commit>=4.2.0",
+    "pytest-mock>=3.14.1",
     "requests>=2.32.3",
     "scikit-learn>=1.6.1",
     "structlog>=25.1.0",

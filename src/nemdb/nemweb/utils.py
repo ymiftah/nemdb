@@ -9,8 +9,22 @@ from nemdb import Config
 from nemdb.logger import log as logger
 
 
-def cache_response_zip(url):
-    """Write in cache the file from the url and return the path to the file."""
+def cache_response_zip(url: str) -> str:
+    """Write in cache the file from the url and return the path to the file.
+
+    This function downloads a file from a URL, saves it to a temporary directory,
+    and returns the path to the saved file. If the file already exists in the
+    cache, it returns the path without downloading it again.
+
+    Args:
+        url (str): The URL of the file to download.
+
+    Returns:
+        str: The path to the cached file.
+
+    Raises:
+        ValueError: If the file fails to download.
+    """
     base_name = os.path.basename(url)
     path = os.path.join(Config.TEMP_DIR, base_name)
     if os.path.exists(path):
@@ -28,8 +42,16 @@ def cache_response_zip(url):
     return path
 
 
-def cache_to_parquet(file_path):
-    """Cache the decorated function into a parquet file. (function must return a dataframe)"""
+def cache_to_parquet(file_path: str):
+    """Cache the decorated function into a parquet file.
+
+    This decorator caches the output of a function that returns a DataFrame
+    to a Parquet file. If the file already exists, it reads the DataFrame
+    from the file instead of executing the function.
+
+    Args:
+        file_path (str): The path to the Parquet file.
+    """
 
     def decorator(func):
         @functools.wraps(func)
@@ -51,11 +73,18 @@ def cache_to_parquet(file_path):
 
 
 # Retry decorator
-def retry(tries: int, delay=3, return_on_failure=None):
+def retry(tries: int, delay: int = 3, return_on_failure=None):
     """Retries a function or method until it returns True.
 
-    delay sets the initial delay in seconds. tries must be at least 0, and delay
-    greater than 0.
+    This decorator retries a function a specified number of times with a delay
+    between each attempt.
+
+    Args:
+        tries (int): The number of times to retry the function.
+        delay (int, optional): The delay in seconds between retries.
+            Defaults to 3.
+        return_on_failure (any, optional): The value to return if the
+            function fails after all retries. Defaults to None.
     """
 
     tries = round(tries)

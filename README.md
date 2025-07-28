@@ -1,19 +1,75 @@
 # NEMDB
 
-Utilities to process data from the Australian [National Electricity Market](https://www.aemo.com.au/energy-systems/electricity/national-electricity-market-nem/data-nem/market-data-nemweb)
+[![CI](https://github.com/ymiftah/nemdb/actions/workflows/ci.yml/badge.svg)](https://github.com/ymiftah/nemdb/actions/workflows/ci.yml)
+
+NEMDB is a Python package that provides a set of utilities to process and manage data from the Australian National Electricity Market (NEM). It simplifies the process of fetching, storing, and accessing NEMWEB data, making it easier for researchers, analysts, and developers to work with this valuable dataset.
+
+## Features
+
+-   **Easy Data Fetching**: NEMDB provides a simple command-line interface (CLI) to fetch data from NEMWEB for a specified date range.
+-   **Flexible Storage**: The fetched data can be stored in a local directory or any other location supported by `fsspec`.
+-   **Selective Table Loading**: Users can choose to load all available tables or select specific tables to populate.
+
+## Getting Started
+
+### Prerequisites
+
+-   Python 3.12 or higher
+-   [uv](https://docs.astral.sh/uv/)
+
+### Installation
+
+1.  Clone the repository:
+
+    ```bash
+    git clone https://github.com/ymiftah/nemdb.git
+    ```
+
+2.  Install the package with `uv`:
+
+    ```bash
+    uv pip install -e .
+    ```
+
+## Usage
+
+### Command-Line Interface (CLI)
+
+The primary way to interact with NEMDB is through its CLI. The `populate` command allows you to fetch and store NEMWEB data.
+
+#### Getting Help
+
+To see a list of all available options for the `populate` command, run:
+
+```bash
+uv run populate --help
+```
+
+#### Populating All Tables
+
+To populate all available tables for a specific date range, run the following command:
+
+```bash
+uv run populate --location ./nemweb_data --date_range 2024-01-01->2024-03-31
+```
+
+This command will fetch all NEMWEB data from January 1, 2024, to March 31, 2024, and store it in the `./nemweb_data` directory.
+
+#### Populating a Specific Table
+
+To populate a single table, use the `--table` option. For example, to populate the `unit_scada` table, run:
+
+```bash
+uv run populate --location ./nemweb_data --date_range 2024-01-01->2024-03-31 --table unit_scada
+```
+
+### Available Tables
+
+NEMDB provides access to a wide range of tables from the NEMWEB dataset.
+
+For a full list of available tables, please refer to the [AEMO NEMWEB documentation](https://www.aemo.com.au/energy-systems/electricity/national-electricity-market-nem/data-nem/market-data-nemweb).
 
 
-## Installation
+## License
 
-Install the package with [uv](https://docs.astral.sh/uv/).
-
-
-## CLI
-
-The Command Line Interface (CLI) allows you to fetch market data from the monthly archives.
-
-Get help:
-`uv run populate --help`
-
-Example, population all tables from 2024/01/01 to 2024/03/31:
-`uv run populate --location ./nemweb_data --date_range 2024-01-01->2024-03-31`
+This project is licensed under the terms of the MIT license. See the [LICENSE](LICENSE) file for more details. The data itself is subject to AEMO's [Privacy and Legal Notice](https://aemo.com.au/energy-systems/electricity/national-electricity-market-nem/data-nem/market-data-nemweb)

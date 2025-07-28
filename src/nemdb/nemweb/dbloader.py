@@ -13,7 +13,7 @@ import polars as pl
 import pandas as pd
 import fsspec
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from tqdm import tqdm
 
@@ -211,14 +211,27 @@ DTYPES = {
 
 
 class NEMWEBManager:
-    """Interface for accessing historical inputs for NEM spot market dispatch (NEMDE).
+    """Interface for accessing historical date from NEM spot market dispatch.
 
-    Populates a directory with parquet datasets.
+    This class provides an interface to download, cache, and access historical
+    data from the Australian National Electricity Market (NEM). It manages
+    various data sources and tables, storing them in Parquet format for
+    efficient access.
+
+    Attributes
+    ----------
+    config : Config
+        The configuration object for the NEMWEBManager.
+    tables : list[str]
+        A list of available table names.
 
     Examples
     --------
+    >>> from nemdb import NEMWEBManager, Config
+    >>> nemweb = NEMWEBManager(Config)
+    >>> nemweb.populate(slice("2024-01-01", "2024-01-31"))
+    >>> df = nemweb.DISPATCHREGIONSUM.get_data("2024/01/01 12:00:00")
 
-    >>> historical = NEMWEB(source='gs://nemweb-historical')
 
     Add data from AEMO nemweb data portal. In this case we are adding data from the table DISPATCHREGIONSUM which contains
     a dispatch summary by region, the data comes in monthly chunks.
@@ -734,7 +747,16 @@ class NEMWEBManager:
         return self._active_tables
 
     def populate(self, date_slice: slice, force_new: bool = False):
-        """Fetch data for all active tables and populate the parquet datasets."""
+        """Fetch data for all active tables and populate the parquet datasets.
+
+        This method iterates through all active tables and populates them with
+        data for the given date range.
+
+        Args:
+            date_slice (slice): A slice object representing the date range.
+            force_new (bool, optional): If True, re-downloads and overwrites
+                existing data. Defaults to False.
+        """
         logger.info(
             "Populating database with data from %s to %s",
             date_slice.start,
@@ -757,10 +779,17 @@ class NEMWEBManager:
         """
         return read_bids(year, month, day)
 
-    def get_unit_volume_bids(self, date: str):
-        """Get unit volume bids for a specific date"""
-        date = datetime.strptime(date, "%Y/%m/%d %H:%M:%S")
-        _, volume = self.read_bids(date.year, date.month, date.day)
+    def get_unit_volume_bids(self, date: str) -> pl.DataFrame:
+        """Get unit volume bids for a specific date.
+
+        Args:
+            date (str): The date in "YYYY/MM/DD HH:MM:SS" format.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing unit volume bids.
+        """
+        date_parsed = datetime.strptime(date, "%Y/%m/%d %H:%M:%S")
+        _, volume = self.read_bids(date_parsed.year, date_parsed.month, date_parsed.day)
         return volume.with_columns(
             (pl.col("ROCUP") * 60).alias("RAMPUPRATE"),
             (pl.col("ROCDOWN") * 60).alias("RAMPDOWNRATE"),
@@ -790,9 +819,17 @@ class NEMWEBManager:
             ]
         ]
 
-    def get_unit_price_bids(self, date):
-        date = datetime.strptime(date, "%Y/%m/%d %H:%M:%S")
-        price, _ = self.read_bids(date.year, date.month, date.day)
+    def get_unit_price_bids(self, date: str) -> pl.DataFrame:
+        """Get unit price bids for a specific date.
+
+        Args:
+            date (str): The date in "YYYY/MM/DD HH:MM:SS" format.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing unit price bids.
+        """
+        date_parsed = datetime.strptime(date, "%Y/%m/%d %H:%M:%S")
+        price, _ = self.read_bids(date_parsed.year, date_parsed.month, date_parsed.day)
         return price[
             [
                 "SETTLEMENTDATE",
@@ -841,7 +878,7 @@ def _archive_to_df(
     year: int,
     month: int,
     low_memory: bool = False,
-):
+) -> pl.DataFrame:
     """Downloads a zipped csv file and converts it to a pandas DataFrame, returns the DataFrame.
 
     Examples
@@ -905,7 +942,7 @@ def _archive_to_df(
     data = pd.read_csv(
         archive,
         skiprows=1,
-        usecols=table_dtypes,
+        usecols=list(table_dtypes.keys()),
         # dtype=table_dtypes,
     )
     missing_columns = set(table_columns).difference(available_cols)
@@ -920,7 +957,9 @@ def _archive_to_df(
     data = data.assign(**{col: None for col in missing_columns})
     date_types = [k for k in table_dtypes if table_dtypes[k] in (pl.Date, pl.Datetime)]
     for col in date_types:
-        data[col] = pd.to_datetime(data[col], format=STRPTIME, errors="coerce")
+        data[col] = pd.to_datetime(
+            data[col].to_list(), format=STRPTIME, errors="coerce"
+        )
     # Discard last row of DataFrame
     data = data[:-1]
     return pl.from_dataframe(data).cast({k: DTYPES[k] for k in set(table_columns)})
@@ -938,8 +977,19 @@ class _MissingData(Exception):
 class DataSource:
     """Manages Market Management System (MMS) tables stored as parquet files.
 
-    This class creates the dataset when the object is instantiated. Methods for adding
-    and retrieving data are added by sub classing.
+    This class provides a base for managing MMS tables, including downloading,
+    caching, and accessing data.
+
+    Args:
+        config (Config): The configuration object.
+        table_name (str): The name of the table.
+        table_columns (list[str]): A list of columns in the table.
+        table_primary_keys (list[str], optional): A list of primary key
+            columns. Defaults to None.
+        add_partitions (list[str], optional): A list of additional columns
+            to partition by. Defaults to None.
+        low_memory (bool, optional): If True, uses a low-memory mode for
+            processing data. Defaults to False.
     """
 
     def __init__(
@@ -947,17 +997,21 @@ class DataSource:
         config: Config,
         table_name: str,
         table_columns: list[str],
-        table_primary_keys: list[str] = None,
-        add_partitions: list[str] = None,
+        table_primary_keys: list[str] | None = None,
+        add_partitions: list[str] | None = None,
         low_memory: bool = False,
     ):
         """Creates a parquet dataset."""
         self.config = config
         self.table_name = table_name
         self.table_columns = table_columns
-        self.table_primary_keys = table_primary_keys
+        self.table_primary_keys = (
+            table_primary_keys if table_primary_keys is not None else []
+        )
         self.partitions = (
-            add_partitions + ["year", "month"] if add_partitions else ["year", "month"]
+            add_partitions + ["year", "month"]
+            if add_partitions is not None
+            else ["year", "month"]
         )
         self.low_memory = low_memory
 
@@ -965,22 +1019,36 @@ class DataSource:
         self.fs = fsspec.filesystem(config.FILESYSTEM)
         self.fs.makedirs(f"{config.CACHE_DIR}/{table_name}", exist_ok=True)
 
-    def scan(self, *args, **kwargs):
-        """scans the parquet dataset with polars"""
+    def scan(self, *args, **kwargs) -> pl.LazyFrame:
+        """Scans the parquet dataset with polars.
+
+        Returns:
+            pl.LazyFrame: A LazyFrame representing the scanned dataset.
+        """
         kwargs_ = {"hive_partitioning": True, "allow_missing_columns": True}
         kwargs_.update(kwargs if kwargs is None else {})
         return pl.scan_parquet(self.path, *args, **kwargs_)
 
-    def read(self, *args, **kwargs):
-        """Reads the parquet dataset with polars
+    def read(self, *args, **kwargs) -> pl.DataFrame:
+        """Reads the parquet dataset with polars.
 
-        NOTE provided for compatibility with nempy, should be avoided as it can read massive data
-        in memory.
+        Note:
+            This method is provided for compatibility with nempy, but it should
+            be avoided as it can read massive amounts of data into memory.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing the dataset.
         """
         return self.scan(self, *args, **kwargs).collect()
 
     def populate(self, date_slice: slice, force_new: bool = False):
-        """Adds data to the parquet dataset from a date range."""
+        """Adds data to the parquet dataset from a date range.
+
+        Args:
+            date_slice (slice): A slice object representing the date range.
+            force_new (bool, optional): If True, re-downloads and overwrites
+                existing data. Defaults to False.
+        """
         date_range = pd.date_range(
             start=date_slice.start, end=date_slice.stop, freq="MS"
         )
@@ -1036,7 +1104,7 @@ class DataSource:
         None
         """
         name = self.table_name
-        partition_cols = self.partitions
+        partition_cols: list[str] = self.partitions
 
         if self.low_memory:
             self._add_data_low_memory(year, month, name, **kwargs)
@@ -1112,9 +1180,8 @@ class DataSource:
         reader = pd.read_csv(
             archive,
             skiprows=1,
-            usecols=table_dtypes,
+            usecols=list(table_dtypes.keys()),
             chunksize=1_000_000,
-            # dtype=table_dtypes,
         )
         for j, data in enumerate(reader):
             data = data.assign(**{col: None for col in missing_columns})
@@ -1152,7 +1219,16 @@ class DataSource:
                 **kwargs,
             )
 
-    def fetch_data(self, year, month):
+    def fetch_data(self, year: int, month: int) -> pl.DataFrame:
+        """Fetches data for a specific year and month.
+
+        Args:
+            year (int): The year to fetch data for.
+            month (int): The month to fetch data for.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing the fetched data.
+        """
         logger.info("Fetching data for %s %s / %s", self.table_name, year, month)
         archive = _get_archive(self.table_name, year, month)
         return _archive_to_df(
@@ -1164,44 +1240,100 @@ class DataSource:
 
 
 class BySettlementDate(DataSource):
-    def get_data(self, date_time):
-        date_time = datetime.strptime(date_time, "%Y/%m/%d %H:%M:%S")
-        return self.scan().filter(pl.col("SETTLEMENTDATE") == date_time).collect()
+    """A DataSource filtered by settlement date."""
+
+    def get_data(self, date_time: str) -> pl.DataFrame:
+        """Gets data for a specific settlement date.
+
+        Args:
+            date_time (str): The date and time in "YYYY/MM/DD HH:MM:SS" format.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing the data.
+        """
+        date_time_parsed = datetime.strptime(date_time, "%Y/%m/%d %H:%M:%S")
+        return (
+            self.scan().filter(pl.col("SETTLEMENTDATE") == date_time_parsed).collect()
+        )
 
 
 class ByIntervalDate(DataSource):
-    def get_data(self, date_time):
-        date_time = datetime.strptime(date_time, "%Y/%m/%d %H:%M:%S")
-        return self.scan().filter(pl.col("INTERVAL_DATETIME") == date_time).collect()
+    """A DataSource filtered by interval date."""
+
+    def get_data(self, date_time: str) -> pl.DataFrame:
+        """Gets data for a specific interval date.
+
+        Args:
+            date_time (str): The date and time in "YYYY/MM/DD HH:MM:SS" format.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing the data.
+        """
+        date_time_parsed = datetime.strptime(date_time, "%Y/%m/%d %H:%M:%S")
+        return (
+            self.scan()
+            .filter(pl.col("INTERVAL_DATETIME") == date_time_parsed)
+            .collect()
+        )
 
 
 class BySettlementDay(DataSource):
-    def get_data(self, date_time):
+    """A DataSource filtered by settlement day."""
+
+    def get_data(self, date_time: str) -> pl.DataFrame:
+        """Gets data for a specific settlement day.
+
+        Args:
+            date_time (str): The date in "YYYY/MM/DD" format.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing the data.
+        """
         # Convert to datetime object
-        date_time = datetime.strptime(date_time, "%Y/%m/%d")
+        date_time_parsed = datetime.strptime(date_time, "%Y/%m/%d")
         # Change date_time provided so any time less than 04:05:00 will have the previous days date.
-        date_time = date_time - datetime.timedelta(hours=4, seconds=1)
+        date_time_parsed = date_time_parsed - timedelta(hours=4, seconds=1)
         # Convert to date
-        date_time = date_time.date()
-        return self.scan().filter(pl.col("SETTLEMENTDATE") == date_time).collect()
+        date = date_time_parsed.date()
+        return self.scan().filter(pl.col("SETTLEMENTDATE") == date).collect()
 
 
 class ByStartEnd(DataSource):
-    def get_data(self, date_time):
-        date_time = datetime.strptime(date_time, "%Y/%m/%d")
+    """A DataSource filtered by start and end dates."""
+
+    def get_data(self, date_time: str) -> pl.DataFrame:
+        """Gets data for a specific date within the start and end dates.
+
+        Args:
+            date_time (str): The date in "YYYY/MM/DD" format.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing the data.
+        """
+        date = datetime.strptime(date_time, "%Y/%m/%d")
         return (
             self.scan()
             .filter(
-                (pl.col("START_DATE") <= date_time)
-                & (pl.col("END_DATE").is_null() | (pl.col("END_DATE") >= date_time))
+                (pl.col("START_DATE") <= date)
+                & (pl.col("END_DATE").is_null() | (pl.col("END_DATE") >= date))
             )
             .collect()
         )
 
 
 class ByEffectiveDateVersionNo(DataSource):
-    def get_data(self, date_time):
-        date_time = datetime.strptime(date_time, "%Y/%m/%d")
+    """A DataSource filtered by effective date and version number."""
+
+    def get_data(self, date_time: str) -> pl.DataFrame:
+        """Gets data for a specific date, returning the latest version.
+
+        Args:
+            date_time (str): The date in "YYYY/MM/DD" format.
+
+        Returns:
+            pl.DataFrame: A DataFrame containing the data.
+        """
+        date = datetime.strptime(date_time, "%Y/%m/%d")
         ids = [
             key
             for key in self.table_primary_keys
@@ -1209,7 +1341,7 @@ class ByEffectiveDateVersionNo(DataSource):
         ]
         return (
             self.scan()
-            .filter((pl.col("EFFECTIVEDATE") <= date_time))
+            .filter((pl.col("EFFECTIVEDATE") <= date))
             .sort(self.table_primary_keys)
             .unique(subset=ids, keep="last")
             .collect()
