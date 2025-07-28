@@ -57,10 +57,10 @@ This command will fetch all NEMWEB data from January 1, 2024, to March 31, 2024,
 
 #### Populating a Specific Table
 
-To populate a single table, use the `--table` option. For example, to populate the `unit_scada` table, run:
+To populate a single table, use the `--table` option. For example, to populate the `DISPATCHREGIONSUM` table, run:
 
 ```bash
-uv run populate --location ./nemweb_data --date_range 2024-01-01->2024-03-31 --table unit_scada
+uv run populate --location ./nemweb_data --date_range 2024-01-01->2024-03-31 --table DISPATCHREGIONSUM
 ```
 
 ### Available Tables
