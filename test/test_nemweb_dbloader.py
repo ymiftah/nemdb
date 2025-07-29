@@ -47,7 +47,7 @@ def test_get_unit_volume_bids(mocker, mock_config):
     """Test get_unit_volume_bids method."""
     manager = NEMWEBManager(mock_config)
     manager.read_bids.cache_clear()
-    with mocker.patch(
+    mocker.patch(
         "nemdb.nemweb.dbloader.read_bids",
         return_value=(
             None,
@@ -77,8 +77,8 @@ def test_get_unit_volume_bids(mocker, mock_config):
                 }
             ),
         ),
-    ):
-        df = manager.get_unit_volume_bids("2024/01/01 12:00:00")
+    )
+    df = manager.get_unit_volume_bids("2024/01/01 12:00:00")
     assert "RAMPUPRATE" in df.columns
     assert "RAMPDOWNRATE" in df.columns
 
@@ -87,7 +87,7 @@ def test_get_unit_price_bids(mocker, mock_config):
     """Test get_unit_price_bids method."""
     manager = NEMWEBManager(mock_config)
     manager.read_bids.cache_clear()
-    with mocker.patch(
+    mocker.patch(
         "nemdb.nemweb.dbloader.read_bids",
         return_value=(
             pl.DataFrame(
@@ -109,8 +109,8 @@ def test_get_unit_price_bids(mocker, mock_config):
             ),
             None,
         ),
-    ):
-        df = manager.get_unit_price_bids("2024/01/01 12:00:00")
+    )
+    df = manager.get_unit_price_bids("2024/01/01 12:00:00")
     assert "PRICEBAND1" in df.columns
 
 
