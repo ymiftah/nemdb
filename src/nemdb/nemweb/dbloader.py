@@ -84,6 +84,7 @@ DTYPES = {
     "SS_WIND_AVAILABILITY": pl.Float32,
     "DISPATCHMODE": pl.Int8,
     "AGCSTATUS": pl.Int8,
+    "STATUS": pl.String,
     "INITIALMW": pl.Float32,
     "TOTALCLEARED": pl.Float32,
     "RAMPDOWNRATE": pl.Float32,
@@ -318,6 +319,7 @@ class NEMWEBManager:
             "DUDETAIL",
             "GENUNITS",
             "STATION",
+            "STATIONOPERATINGSTATUS",
             "DISPATCHLOAD",
             "DISPATCHREGIONSUM",
             "DISPATCHPRICE",
@@ -500,6 +502,17 @@ class NEMWEBManager:
                 "POSTCODE",
             ],
             table_primary_keys=["STATIONID", "LASTCHANGED"],
+        )
+        self.STATIONOPERATINGSTATUS = DataSource(
+            config=config,
+            table_name="STATIONOPERATINGSTATUS",
+            table_columns=[
+                "EFFECTIVEDATE",
+                "STATIONID",
+                "VERSIONNO",
+                "STATUS",
+            ],
+            table_primary_keys=["STATIONID", "EFFECTIVEDATE"],
         )
         self.BIDDAYOFFER_D = BySettlementDate(
             config=config,
