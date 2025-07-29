@@ -13,7 +13,6 @@ import pandas as pd
 import shapely as shp
 
 from nemdb.utils import cache_to_parquet
-from nemdb import Config
 from nemdb import log
 
 from . import transformations as tf
@@ -21,9 +20,7 @@ from . import transformations as tf
 METRIC_CRS = "EPSG:7856"
 
 
-@cache_to_parquet(
-    Config.CACHE_DIR / "geodata" / "substations.parquet", type_=gpd.GeoDataFrame
-)
+@cache_to_parquet("geodata/substations.parquet", type_=gpd.GeoDataFrame)
 def read_substations() -> gpd.GeoDataFrame:
     """
     Fetches and returns geospatial data of substations.
