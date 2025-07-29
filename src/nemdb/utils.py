@@ -4,8 +4,9 @@ import functools
 import polars as pl
 import geopandas as gpd
 import pandas as pd
+from pathlib import Path
 
-from nemdb import log
+from nemdb import log, Config
 
 import os
 
@@ -58,13 +59,28 @@ def cache_to_parquet(file_path, *, type_: Any = pl.DataFrame):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            if os.path.exists(file_path):
-                log.info("Reading from cache : %s", file_path)
-                return _dispatch_read(file_path, type_)
+            if Config.FILESYSTEM == "local":
+                # For local filesystem, construct a Path object
+                full_path = Path(Config.CACHE_DIR) / file_path
             else:
+                # For other filesystems (e.g., S3), construct a URI string
+                base_uri = str(Config.CACHE_DIR).rstrip("/")
+                full_path = f"{base_uri}/{file_path}"
+
+            try:
+                log.info("reading from cache: %s", full_path)
+                return _dispatch_read(full_path, type_)
+            except (pl.exceptions.ComputeError, FileNotFoundError):
+                log.info("cache miss: %s", full_path)
+
                 result = func(*args, **kwargs)
-                if not os.path.exists(os.path.dirname(file_path)):
-                    os.makedirs(os.path.dirname(file_path))
+
+                if Config.FILESYSTEM == "local":
+                    # Ensure the parent directory exists for local files
+                    assert isinstance(full_path, Path)
+                    full_path.parent.mkdir(parents=True, exist_ok=True)
+
+                log.info("writing to cache: %s", full_path)
                 _dispatch_write(result, file_path, type_)
                 return result
 

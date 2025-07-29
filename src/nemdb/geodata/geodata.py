@@ -53,9 +53,7 @@ def read_substations() -> gpd.GeoDataFrame:
     ]
 
 
-@cache_to_parquet(
-    Config.CACHE_DIR / "geodata" / "transmission_lines.parquet", type_=gpd.GeoDataFrame
-)
+@cache_to_parquet("geodata/transmission_lines.parquet", type_=gpd.GeoDataFrame)
 def _read_transmission_lines() -> gpd.GeoDataFrame:
     """
     Reads in transmission line data.
@@ -79,7 +77,7 @@ def _read_transmission_lines() -> gpd.GeoDataFrame:
 
 
 @cache_to_parquet(
-    Config.CACHE_DIR / "geodata" / "transmission_lines_clean.parquet",
+    "geodata/transmission_lines_clean.parquet",
     type_=gpd.GeoDataFrame,
 )
 def read_transmission_lines(clean: bool = False) -> gpd.GeoDataFrame:
@@ -118,9 +116,7 @@ def read_transmission_lines(clean: bool = False) -> gpd.GeoDataFrame:
     return gdf
 
 
-@cache_to_parquet(
-    Config.CACHE_DIR / "geodata" / "powerstations.parquet", type_=gpd.GeoDataFrame
-)
+@cache_to_parquet("geodata/powerstations.parquet", type_=gpd.GeoDataFrame)
 def read_major_powerstations() -> gpd.GeoDataFrame:
     tables = []
     for state in [

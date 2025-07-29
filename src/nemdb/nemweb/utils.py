@@ -1,7 +1,5 @@
 import requests
 import os
-import functools
-import polars as pl
 
 from time import sleep
 
@@ -40,36 +38,6 @@ def cache_response_zip(url: str) -> str:
         f.write(response.content)
 
     return path
-
-
-def cache_to_parquet(file_path: str):
-    """Cache the decorated function into a parquet file.
-
-    This decorator caches the output of a function that returns a DataFrame
-    to a Parquet file. If the file already exists, it reads the DataFrame
-    from the file instead of executing the function.
-
-    Args:
-        file_path (str): The path to the Parquet file.
-    """
-
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            if os.path.exists(file_path):
-                return pl.read_parquet(file_path)
-            else:
-                result = func(*args, **kwargs)
-                if not isinstance(result, pl.DataFrame):
-                    result = pl.from_pandas(result)
-                if not os.path.exists(os.path.dirname(file_path)):
-                    os.makedirs(os.path.dirname(file_path))
-                result.write_parquet(file_path)
-                return result
-
-        return wrapper
-
-    return decorator
 
 
 # Retry decorator
