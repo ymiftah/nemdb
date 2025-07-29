@@ -3,7 +3,8 @@ import pytest
 import polars as pl
 from unittest.mock import patch, MagicMock
 
-from nemdb.nemweb.utils import cache_response_zip, cache_to_parquet, retry
+from nemdb.nemweb.utils import cache_response_zip, retry
+from nemdb.utils import cache_to_parquet
 from nemdb import Config
 
 
