@@ -224,6 +224,8 @@ DTYPES = {
     "SEMISCHEDULE_FLAG": pl.String,
     "MAXRATEOFCHANGEUP": pl.Float32,
     "MAXRATEOFCHANGEDOWN": pl.Float32,
+    "MAXMWIN": pl.Float32,
+    "MAXMWOUT": pl.Float32,
     "ADG_ID": pl.String,
     "MAXRATEOFCHANGEUP_LOAD": pl.Float32,
     "MAXRATEOFCHANGEDOWN_LOAD": pl.Float32,
