@@ -341,6 +341,7 @@ class NEMWEBManager:
             "BIDPEROFFER_D",
             "DUDETAILSUMMARY",
             "DUDETAIL",
+            "DUALLOC",
             "GENUNITS",
             "STATION",
             "STATIONOPERATINGSTATUS",
@@ -362,6 +363,11 @@ class NEMWEBManager:
                 "MW",
                 "network",
             ],
+        )
+        self.DUALLOC = DataSource(
+            config=config,
+            table_name="DUALLOC",
+            table_columns=["DUID", "GENSETID", "LASTCHANGED", "VERSIONNO"],
         )
         self.GENUNITS = DataSource(
             config=config,
@@ -1102,9 +1108,9 @@ class DataSource:
             table_primary_keys if table_primary_keys is not None else []
         )
         self.partitions = (
-            add_partitions + ["year", "month"]
+            add_partitions + ["archive_month"]
             if add_partitions is not None
-            else ["year", "month"]
+            else ["archive_month"]
         )
         self.low_memory = low_memory
 
@@ -1207,8 +1213,7 @@ class DataSource:
             data = (
                 self.fetch_data(year, month)
                 .with_columns(
-                    pl.lit(year, pl.Int32).alias("year"),
-                    pl.lit(month, pl.Int8).alias("month"),
+                    pl.date(year, month, 1).alias("archive_month"),
                 )
                 .sort(partition_cols + self.table_primary_keys)
             )
@@ -1288,8 +1293,7 @@ class DataSource:
                 pl.from_dataframe(data)
                 .cast({k: DTYPES[k] for k in set(table_columns)})
                 .with_columns(
-                    pl.lit(year, pl.Int32).alias("year"),
-                    pl.lit(month, pl.Int8).alias("month"),
+                    pl.date(year, month, 1).alias("archive_month"),
                 )
                 .sort(partition_cols + self.table_primary_keys)
             )
