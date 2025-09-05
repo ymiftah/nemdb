@@ -81,7 +81,7 @@ def cache_to_parquet(file_path, *, type_: Any = pl.DataFrame):
                     full_path.parent.mkdir(parents=True, exist_ok=True)
 
                 log.info("writing to cache: %s", full_path)
-                _dispatch_write(result, file_path, type_)
+                _dispatch_write(result, full_path, type_)
                 return result
 
         return wrapper
