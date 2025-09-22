@@ -1,0 +1,11 @@
+site_name: nemdb
+theme:
+  name: material
+repo_url: https://github.com/ymiftah/nemdb
+plugins:
+  - mkdocs-autoapi:
+      autoapi_dir: ./src/nemdb
+  - mkdocstrings
+nav:
+  - Home: index.md
+  - API: api/
