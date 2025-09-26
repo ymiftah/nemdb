@@ -18,7 +18,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v1
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: uv sync --group dev
       - name: Lint with ruff
         run: uv run ruff check .
       - name: Format with ruff
@@ -59,6 +59,6 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v1
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: uv sync --group doc
       - name: Deploy docs
         run: uv run mkdocs gh-deploy --force
