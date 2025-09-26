@@ -45,6 +45,11 @@ build-backend = "hatchling.build"
 default-groups = "all"
 
 [dependency-groups]
+dev = [
+    "ipykernel>=6.30.0",
+    "pytest>=8.4.1",
+    "ruff>=0.13.2",
+]
 doc = [
     "mkdocs>=1.6.1",
     "mkdocs-autoapi>=0.4.1",
