@@ -335,7 +335,7 @@ class NEMWEBManager:
 
     """
 
-    def __init__(self, config: Config):
+    def __init__(self, config: type[Config]):
         self.config = config
         self._active_tables = [
             "DISPATCHREGIONSUM",
@@ -1100,7 +1100,7 @@ class DataSource:
 
     def __init__(
         self,
-        config: Config,
+        config: type[Config],
         table_name: str,
         table_columns: list[str],
         table_primary_keys: list[str] | None = None,

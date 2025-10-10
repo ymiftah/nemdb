@@ -212,7 +212,7 @@ def read_demand_actuals() -> pl.DataFrame:
     return df
 
 
-def read_demand_forecast(date: str = None) -> pl.DataFrame:
+def read_demand_forecast(date: str | None = None) -> pl.DataFrame:
     """Reads the demand forecast for each region
 
     Args:
@@ -282,7 +282,7 @@ def __process_demand(df: pd.DataFrame) -> pl.DataFrame:
         .with_columns(
             pl.col("SETTLEMENTDATE").dt.combine(pl.col("PERIODID")).alias("time")
         )
-        .pivot(values="DEMAND", index="time", columns="REGIONID")
+        .pivot(values="DEMAND", index="time", on="REGIONID")
         .sort("time")
     )
 
@@ -300,6 +300,6 @@ def __process_pv(df: pd.DataFrame) -> pl.DataFrame:
         .with_columns(
             pl.col("SETTLEMENTDATE").dt.combine(pl.col("PERIODID")).alias("time")
         )
-        .pivot(values="DEMAND", index="time", columns="REGIONID")
+        .pivot(values="DEMAND", index="time", on="REGIONID")
         .sort("time")
     )
