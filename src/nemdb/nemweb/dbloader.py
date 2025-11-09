@@ -30,6 +30,9 @@ URL_ALT = "http://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/
 
 STRPTIME = "%Y/%m/%d %H:%M:%S"
 DTYPES = {
+    "DISPATCHABLELOAD": pl.Float32,
+    "AVAILABLELOAD": pl.Float32,
+    "AVAILABLEGENERATION": pl.Float32,
     "ENTRYTYPE": pl.Categorical,
     "NORMALSTATUS": pl.String,
     "ADDRESS1": pl.String,

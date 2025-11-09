@@ -24,9 +24,3 @@ def test_db_dispatch_load(date):
     pds = NEMWEBManager(Config)
     pds.DISPATCHLOAD.add_data(year, month)
     assert pds.DISPATCHLOAD.scan().head().collect().shape[0] > 0
-
-
-def test_scan():
-    pds = NEMWEBManager(Config)
-    # pds.DISPATCHLOAD.scan()
-    assert pds.DISPATCHLOAD.scan().head().collect().shape[0] > 0
