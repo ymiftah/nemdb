@@ -124,7 +124,7 @@ def read_major_powerstations() -> gpd.GeoDataFrame:
         "Australian%20Capital%20Territory",
         "South%20Australia",
     ]:
-        api_url = "https://services.ga.gov.au/gis/rest/services/National_Electricity_Infrastructure/MapServer/1/query?where=state%20%3D%20'{state}'&outFields=*&f=geojson"
+        api_url = "https://services.ga.gov.au/gis/rest/services/National_Electricity_Infrastructure/MapServer/1/query?where=1%3D1&outFields=*&outSR=4326&f=geojson"
         tables.append(gpd.read_file(api_url.format(state=state)))
     return pd.concat(tables).reset_index(drop=True)
 
