@@ -7,39 +7,6 @@ from nemdb import Config
 from nemdb.logger import log as logger
 
 
-def cache_response_zip(url: str) -> str:
-    """Write in cache the file from the url and return the path to the file.
-
-    This function downloads a file from a URL, saves it to a temporary directory,
-    and returns the path to the saved file. If the file already exists in the
-    cache, it returns the path without downloading it again.
-
-    Args:
-        url (str): The URL of the file to download.
-
-    Returns:
-        str: The path to the cached file.
-
-    Raises:
-        ValueError: If the file fails to download.
-    """
-    base_name = os.path.basename(url)
-    path = os.path.join(Config.TEMP_DIR, base_name)
-    if os.path.exists(path):
-        logger.info("reading from cache: %s", path)
-        return path
-    logger.info("Requesting file form %s", url)
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise ValueError(f"Failed to download {url}")
-    logger.info("Writing response to cache: %s", path)
-
-    with open(path, "wb") as f:
-        f.write(response.content)
-
-    return path
-
-
 # Retry decorator
 def retry(tries: int, delay: int = 3, return_on_failure=None):
     """Retries a function or method until it returns True.
@@ -80,3 +47,37 @@ def retry(tries: int, delay: int = 3, return_on_failure=None):
         return f_retry  # true decorator -> decorated function
 
     return deco_retry  # @retry(arg[, ...]) -> true decorator
+
+
+@retry(3)
+def cache_response_zip(url: str) -> str:
+    """Write in cache the file from the url and return the path to the file.
+
+    This function downloads a file from a URL, saves it to a temporary directory,
+    and returns the path to the saved file. If the file already exists in the
+    cache, it returns the path without downloading it again.
+
+    Args:
+        url (str): The URL of the file to download.
+
+    Returns:
+        str: The path to the cached file.
+
+    Raises:
+        ValueError: If the file fails to download.
+    """
+    base_name = os.path.basename(url)
+    path = os.path.join(Config.TEMP_DIR, base_name)
+    if os.path.exists(path):
+        logger.info("reading from cache: %s", path)
+        return path
+    logger.info("Requesting file form %s", url)
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise ValueError(f"Failed to download {url}")
+    logger.info("Writing response to cache: %s", path)
+
+    with open(path, "wb") as f:
+        f.write(response.content)
+
+    return path
