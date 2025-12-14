@@ -637,7 +637,7 @@ class NEMWEBManager:
                 "NORMALSTATUS",
                 "ENTRYTYPE",
             ],
-            table_primary_keys=["SETTLEMENTDATE", "DUID"],
+            table_primary_keys=["SETTLEMENTDATE", "DUID", "VERSIONNO"],
         )
         self.BIDPEROFFER_D = BySettlementDate(
             config=config,
