@@ -670,7 +670,7 @@ class NEMWEBManager:
                 "ENERGYLIMIT",
                 "LASTCHANGED",
             ],
-            table_primary_keys=["SETTLEMENTDATE", "DUID"],
+            table_primary_keys=["SETTLEMENTDATE", "DUID", "INTERVAL_DATETIME"],
             low_memory=True,
         )
         self.DISPATCHCONSTRAINT = BySettlementDate(
