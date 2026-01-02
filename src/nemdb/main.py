@@ -22,7 +22,7 @@ from datetime import datetime
     help='The date to fetch data for: "%Y-%m-%d->%Y-%m-%d"',
 )
 @click.option("--table", prompt="Table", help="Which table to load", default="all")
-@click.option("--force_new", is_flag=True)
+@click.option("--force_new", is_flag=False)
 def populate(location, filesystem, date_range, table, force_new):
     click.echo(f"Fetching data for {date_range} to {location}")
     from_date, to_date = date_range.split("->")
