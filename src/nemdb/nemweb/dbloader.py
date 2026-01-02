@@ -1183,7 +1183,7 @@ class DataSource:
                         )
                         check = (
                             self.scan()
-                            .filter(pl.col("year") == year, pl.col("month") == month)
+                            .filter(pl.col("archive_month") == pl.date(year, month, 1))
                             .head()
                         )
                         data_exists = len(check.collect()) > 0
