@@ -468,7 +468,6 @@ class NEMWEBManager:
                 "UIGF",
             ],
             table_primary_keys=["SETTLEMENTDATE", "DUID"],
-            add_partitions=["DUID"],
         )
         self.DISPATCHPRICE = BySettlementDate(
             config=config,
