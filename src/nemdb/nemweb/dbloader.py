@@ -1133,7 +1133,7 @@ class DataSource:
         Returns:
             pl.LazyFrame: A LazyFrame representing the scanned dataset.
         """
-        kwargs_ = {"hive_partitioning": True, "allow_missing_columns": True}
+        kwargs_ = {"hive_partitioning": True, "missing_columns": "insert"}
         kwargs_.update(kwargs if kwargs is None else {})
         return pl.scan_parquet(self.path, *args, **kwargs_)
 

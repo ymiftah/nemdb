@@ -107,9 +107,10 @@ class DNSPDataSource:
             )
 
     def populate(self, date_slice: slice, force_new: bool = False):
-        date_range = pd.date_range(
-            start=date_slice.start, end=date_slice.stop, freq="MS"
-        )
+        # First create date range hourly
+        date_range = pd.date_range(start=date_slice.start, end=date_slice.stop, freq="h")
+        # Then extend to make sure it covers the appropriate year-months
+        date_range = pd.date_range(start=date_range.min().replace(day=1), end=date_range.max(), freq="MS")
         log.info(
             "Populating database with data from %s to %s", date_range[0], date_range[-1]
         )
