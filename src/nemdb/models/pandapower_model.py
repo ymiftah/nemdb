@@ -1,6 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 import shapely as shp
+import networkx as nx
 
 from sklearn.cluster import DBSCAN
 
@@ -74,17 +75,233 @@ def _get_buses_and_lines():
         .set_geometry("geometry", crs=METRIC_CRS)
     )
 
-    mapping = extremeties.to_crs(GEO_CRS).set_index("geometry")["bus_id"]
+    # Clean up disconnected fragments before creating mapping
+    lines, buses = _cleanup_disconnected_fragments(
+        lines,
+        buses,
+        min_island_size=3,
+        connect_significant=True
+    )
+
+    # Rebuild extremities mapping for filtered buses only
+    kept_bus_ids = set(buses['bus_id'])
+    filtered_extremities = extremeties[extremeties['bus_id'].isin(kept_bus_ids)]
+    mapping = filtered_extremities.to_crs(GEO_CRS).set_index("geometry")["bus_id"]
+
     return lines, buses, mapping
+
+
+def _cleanup_disconnected_fragments(
+    lines: gpd.GeoDataFrame,
+    buses: gpd.GeoDataFrame,
+    min_island_size: int = 3,
+    connect_significant: bool = True,
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    """Remove or connect disconnected network fragments.
+
+    Uses graph connectivity analysis to identify the main network component
+    and handle isolated islands based on size:
+    - Islands < min_island_size buses: Discarded as noise
+    - Islands >= min_island_size buses: Connected to nearest main component
+
+    Args:
+        lines: Transmission lines GeoDataFrame with 'start_point', 'end_point'
+        buses: Buses GeoDataFrame with 'bus_id', 'geometry'
+        min_island_size: Minimum island size to preserve (default: 3)
+        connect_significant: If True, connect large islands; if False, discard all
+
+    Returns:
+        Filtered/augmented (lines, buses) tuple
+    """
+    # Step 1: Build graph from lines (using spatial bus IDs)
+    G = nx.Graph()
+    bus_to_point = buses.set_index('bus_id')['geometry'].to_dict()
+
+    # Create mapping: extremity point → bus_id
+    extremity_to_bus = {}
+    for _, row in lines.iterrows():
+        # Find which bus each line endpoint belongs to
+        start_bus = _find_nearest_bus(row['start_point'], buses)
+        end_bus = _find_nearest_bus(row['end_point'], buses)
+
+        extremity_to_bus[row['start_point']] = start_bus
+        extremity_to_bus[row['end_point']] = end_bus
+
+        if start_bus != end_bus:  # Avoid self-loops
+            G.add_edge(start_bus, end_bus)
+
+    # Step 2: Find connected components
+    components = list(nx.connected_components(G))
+    components.sort(key=len, reverse=True)
+    main_component = components[0]
+
+    print(f"Found {len(components)} network components:")
+    print(f"  - Main component: {len(main_component)} buses")
+
+    # Step 3: Categorize islands
+    trivial_islands = []
+    significant_islands = []
+
+    for comp in components[1:]:
+        if len(comp) < min_island_size:
+            trivial_islands.extend(comp)
+        else:
+            significant_islands.append(comp)
+
+    print(f"  - Trivial islands (<{min_island_size} buses): {len(trivial_islands)} buses")
+    print(f"  - Significant islands (≥{min_island_size} buses): {len(significant_islands)} islands")
+
+    # Step 4: Handle islands based on strategy
+    buses_to_keep = set(main_component)
+    virtual_lines = []
+
+    if connect_significant and significant_islands:
+        print(f"\nConnecting {len(significant_islands)} significant island(s)...")
+        for island in significant_islands:
+            # Find nearest bus pair between island and main component
+            nearest_main_bus, nearest_island_bus, distance = _find_nearest_pair(
+                island, main_component, bus_to_point
+            )
+
+            # Create virtual transmission line
+            virtual_line = _create_virtual_line(
+                nearest_island_bus,
+                nearest_main_bus,
+                bus_to_point,
+                distance
+            )
+            virtual_lines.append(virtual_line)
+            buses_to_keep.update(island)
+
+            print(f"  - Connected island ({len(island)} buses) to main at {distance:.0f}m")
+
+    # Discard trivial islands
+    if trivial_islands:
+        print(f"\nDiscarding {len(trivial_islands)} trivial fragment bus(es)")
+
+    # Step 5: Filter buses and lines
+    filtered_buses = buses[buses['bus_id'].isin(buses_to_keep)].copy()
+
+    # Keep only lines connecting retained buses
+    valid_lines = []
+    for _, row in lines.iterrows():
+        start_bus = extremity_to_bus.get(row['start_point'])
+        end_bus = extremity_to_bus.get(row['end_point'])
+        if start_bus in buses_to_keep and end_bus in buses_to_keep:
+            valid_lines.append(row)
+
+    filtered_lines = gpd.GeoDataFrame(valid_lines, crs=lines.crs) if valid_lines else lines.iloc[0:0]
+
+    # Add virtual lines if any
+    if virtual_lines:
+        virtual_df = gpd.GeoDataFrame(virtual_lines, crs=lines.crs)
+        filtered_lines = pd.concat([filtered_lines, virtual_df], ignore_index=True)
+
+    return filtered_lines, filtered_buses
+
+
+def _find_nearest_bus(point: shp.Point, buses: gpd.GeoDataFrame, eps: float = 500) -> str:
+    """Find which bus a point belongs to (within DBSCAN eps tolerance)."""
+    distances = buses.geometry.distance(point)
+    min_idx = distances.idxmin()
+    if distances[min_idx] <= eps:
+        return buses.loc[min_idx, 'bus_id']
+    # Fallback: return closest even if > eps (shouldn't happen)
+    return buses.loc[min_idx, 'bus_id']
+
+
+def _find_nearest_pair(
+    island: set,
+    main_component: set,
+    bus_to_point: dict
+) -> tuple[str, str, float]:
+    """Find nearest bus pair between island and main component.
+
+    Returns:
+        (main_bus_id, island_bus_id, distance_meters)
+    """
+    min_distance = float('inf')
+    best_main = None
+    best_island = None
+
+    for island_bus in island:
+        island_point = bus_to_point[island_bus]
+        for main_bus in main_component:
+            main_point = bus_to_point[main_bus]
+            distance = island_point.distance(main_point)
+            if distance < min_distance:
+                min_distance = distance
+                best_main = main_bus
+                best_island = island_bus
+
+    return best_main, best_island, min_distance
+
+
+def _create_virtual_line(
+    bus_id_1: str,
+    bus_id_2: str,
+    bus_to_point: dict,
+    distance: float,
+) -> dict:
+    """Create a virtual transmission line connecting two buses.
+
+    Virtual lines have:
+    - LineString geometry connecting the two bus centroids
+    - 'Virtual Interconnector' name
+    - Operational status
+    - Voltage: 330kV default
+    """
+    point1 = bus_to_point[bus_id_1]
+    point2 = bus_to_point[bus_id_2]
+
+    return {
+        'line_id': f'virtual_{bus_id_1}_{bus_id_2}',
+        'name': f'Virtual Interconnector ({bus_id_1} <-> {bus_id_2})',
+        'class': 'Transmission Line',
+        'operationalstatus': 'Operational',
+        'state': 'Virtual',
+        'capacitykv': 330,
+        'geometry': shp.LineString([point1, point2]),
+        'length_km': distance / 1000,
+        'start_point': point1,
+        'end_point': point2,
+    }
 
 
 def _get_lines_pp(lines, mapping):
     rows = []
+    # Create a helper list for fallback nearest-neighbor lookups
+    mapping_list = list(mapping.items())
+
     for _, row in lines.to_crs(GEO_CRS).iterrows():
         start_point = shp.get_point(row.geometry, 0)
         end_point = shp.get_point(row.geometry, -1)
-        from_bus = mapping[start_point]
-        to_bus = mapping[end_point]
+
+        # Look up bus IDs from mapping, with fallback for virtual line endpoints
+        try:
+            from_bus = mapping[start_point]
+        except (KeyError, TypeError):
+            # For virtual lines, find nearest bus
+            min_dist = float('inf')
+            from_bus = None
+            for geom, bus_id in mapping_list:
+                dist = geom.distance(start_point)
+                if dist < min_dist:
+                    min_dist = dist
+                    from_bus = bus_id
+
+        try:
+            to_bus = mapping[end_point]
+        except (KeyError, TypeError):
+            # For virtual lines, find nearest bus
+            min_dist = float('inf')
+            to_bus = None
+            for geom, bus_id in mapping_list:
+                dist = geom.distance(end_point)
+                if dist < min_dist:
+                    min_dist = dist
+                    to_bus = bus_id
+
         rows.append(
             {
                 "name": row["name"],
@@ -595,13 +812,16 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
     Executes all available diagnostic functions to validate the network
     structure and catch common modeling errors.
 
+    Note: Disconnected spatial fragments are filtered during bus/line extraction
+    (_get_buses_and_lines). Any remaining disconnected elements indicate
+    voltage-level isolation issues after transformer assignment.
+
     Args:
         net: A pandapower Network object to validate.
 
     Returns:
         dict with keys for each diagnostic check and their results.
             Results are lists of issues found, empty if no issues detected.
-            Disconnected islands < 3 elements are filtered as "trivial_fragments".
     """
     results = {}
 
@@ -623,20 +843,18 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
             results[name] = f"Error running diagnostic: {str(e)}"
 
     # Special handling for disconnected elements:
-    # Filter out small trivial fragments (< 3 elements) as they are expected
-    # from DBSCAN clustering at 500m granularity (stray buses, isolated gens/loads)
+    # Spatial fragments are now filtered during bus/line extraction (_cleanup_disconnected_fragments).
+    # Any remaining disconnections indicate voltage-level isolation after transformer assignment.
     try:
         disconnected = pp.disconnected_elements(net)
         if disconnected is not None:
-            # Count elements in each island to identify trivial fragments
             results["disconnected_elements"] = disconnected
-            trivial_count = sum(1 for v in disconnected.values() if len(v) < 3) if isinstance(disconnected, dict) else 0
-            if trivial_count > 0:
-                results["trivial_fragments_count"] = trivial_count
+            if isinstance(disconnected, dict) and len(disconnected) > 0:
                 results["note_disconnected"] = (
-                    f"Found {trivial_count} small isolated fragments (< 3 elements). "
-                    "These are expected from DBSCAN clustering at 500m granularity and "
-                    "may represent stray substations, isolated generators, or data artifacts."
+                    f"Found {len(disconnected)} disconnected element(s). "
+                    "Spatial fragments were filtered during bus extraction. "
+                    "Remaining disconnections indicate voltage-level isolation after "
+                    "transformer assignment (may need manual review)."
                 )
         else:
             results["disconnected_elements"] = []
