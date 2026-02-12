@@ -4,7 +4,7 @@ import polars as pl
 from nemdb.isp import isp
 from nemdb.isp.isp import _detect_header_row, _clean_table, _NON_DATA_SHEETS
 
-ISP_2025_FILE = "2025-inputs-and-assumptions-workbook(1).xlsm"
+ISP_2025_FILE = "src/nemdb/artefacts/ISP_2025.xlsm"
 
 
 # ---------------------------------------------------------------------------
