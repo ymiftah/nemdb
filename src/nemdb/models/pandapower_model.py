@@ -2,8 +2,11 @@ import geopandas as gpd
 import pandas as pd
 import shapely as shp
 import networkx as nx
+import logging
 
 from sklearn.cluster import DBSCAN
+
+logger = logging.getLogger(__name__)
 
 from nemdb.geodata.geodata import (
     read_substations,
@@ -135,8 +138,8 @@ def _cleanup_disconnected_fragments(
     components.sort(key=len, reverse=True)
     main_component = components[0]
 
-    print(f"Found {len(components)} network components:")
-    print(f"  - Main component: {len(main_component)} buses")
+    logger.debug(f"Found {len(components)} network components:")
+    logger.debug(f"  - Main component: {len(main_component)} buses")
 
     # Step 3: Categorize islands
     trivial_islands = []
@@ -148,15 +151,15 @@ def _cleanup_disconnected_fragments(
         else:
             significant_islands.append(comp)
 
-    print(f"  - Trivial islands (<{min_island_size} buses): {len(trivial_islands)} buses")
-    print(f"  - Significant islands (≥{min_island_size} buses): {len(significant_islands)} islands")
+    logger.debug(f"  - Trivial islands (<{min_island_size} buses): {len(trivial_islands)} buses")
+    logger.debug(f"  - Significant islands (≥{min_island_size} buses): {len(significant_islands)} islands")
 
     # Step 4: Handle islands based on strategy
     buses_to_keep = set(main_component)
     virtual_lines = []
 
     if connect_significant and significant_islands:
-        print(f"\nConnecting {len(significant_islands)} significant island(s)...")
+        logger.debug(f"\nConnecting {len(significant_islands)} significant island(s)...")
         for island in significant_islands:
             # Find nearest bus pair between island and main component
             nearest_main_bus, nearest_island_bus, distance = _find_nearest_pair(
@@ -173,11 +176,11 @@ def _cleanup_disconnected_fragments(
             virtual_lines.append(virtual_line)
             buses_to_keep.update(island)
 
-            print(f"  - Connected island ({len(island)} buses) to main at {distance:.0f}m")
+            logger.debug(f"  - Connected island ({len(island)} buses) to main at {distance:.0f}m")
 
     # Discard trivial islands
     if trivial_islands:
-        print(f"\nDiscarding {len(trivial_islands)} trivial fragment bus(es)")
+        logger.debug(f"\nDiscarding {len(trivial_islands)} trivial fragment bus(es)")
 
     # Step 5: Filter buses and lines
     filtered_buses = buses[buses['bus_id'].isin(buses_to_keep)].copy()
@@ -784,24 +787,24 @@ def add_external_grids(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapow
                 )
                 added_count += 1
                 bus_vn = net.bus.loc[target_bus_id, "vn_kv"]
-                print(
+                logger.debug(
                     f"✓ Added ext_grid at {sub_name} ({bus_vn} kV) - bus {target_bus_id}"
                 )
             else:
-                print(
+                logger.debug(
                     f"✗ Bus {target_bus_id} not found for {sub_name} "
                     f"(may be in disconnected island)"
                 )
         else:
-            print(f"✗ Could not find load entry for {sub_name}")
+            logger.debug(f"✗ Could not find load entry for {sub_name}")
 
     if added_count == 0:
-        print(
+        logger.debug(
             "WARNING: No external grids were added. "
             "Check that substations exist in the network."
         )
     else:
-        print(f"\n✓ Successfully added {added_count} external grid(s)")
+        logger.debug(f"\n✓ Successfully added {added_count} external grid(s)")
 
     return net
 
@@ -883,4 +886,4 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
 
 if __name__ == "__main__":
     net = create_pandapower_network(use_opennem=True)
-    print(net)
+    logger.debug(net)
