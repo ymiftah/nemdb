@@ -29,13 +29,19 @@ def get_pandapower_model():
     pf_trafos = _get_trafos_pp(pf_buses)
     pf_gens = _get_gens_pp(pf_buses)
     pf_loads = _get_loads_pp(pf_buses)
-    return dict(
+
+    model = dict(
         buses=pf_buses,
         lines=pf_lines,
         trafos=pf_trafos,
         gens=pf_gens,
         loads=pf_loads,
     )
+
+    # Validate and fix connectivity
+    model, diagnostics = _validate_and_fix_connectivity(model)
+
+    return model
 
 
 def _get_buses_and_lines():
@@ -79,7 +85,7 @@ def _get_buses_and_lines():
     )
 
     # Clean up disconnected fragments before creating mapping
-    lines, buses = _cleanup_disconnected_fragments(
+    lines, buses, virtual_extremities_list = _cleanup_disconnected_fragments(
         lines,
         buses,
         min_island_size=3,
@@ -88,8 +94,27 @@ def _get_buses_and_lines():
 
     # Rebuild extremities mapping for filtered buses only
     kept_bus_ids = set(buses['bus_id'])
-    filtered_extremities = extremeties[extremeties['bus_id'].isin(kept_bus_ids)]
-    mapping = filtered_extremities.to_crs(GEO_CRS).set_index("geometry")["bus_id"]
+    filtered_extremities = extremeties[extremeties['bus_id'].isin(kept_bus_ids)].copy()
+
+    # Add virtual line extremities to mapping
+    if virtual_extremities_list:
+        virtual_ext_df = gpd.GeoDataFrame(
+            [{'bus_id': v['bus_id']} for v in virtual_extremities_list],
+            geometry=[v['geometry'] for v in virtual_extremities_list],
+            crs=filtered_extremities.crs
+        )
+        # Drop duplicates (keep first occurrence) to avoid index issues when looking up by geometry
+        virtual_ext_df = virtual_ext_df.drop_duplicates(subset=['geometry'], keep='first')
+        filtered_extremities = pd.concat(
+            [filtered_extremities, virtual_ext_df],
+            ignore_index=True
+        )
+
+    # Convert to GEO_CRS and create mapping
+    filtered_extremities_geo = filtered_extremities.to_crs(GEO_CRS)
+    # Drop any duplicate geometries - keep first occurrence
+    filtered_extremities_geo = filtered_extremities_geo.drop_duplicates(subset=['geometry'], keep='first')
+    mapping = filtered_extremities_geo.set_index("geometry")["bus_id"]
 
     return lines, buses, mapping
 
@@ -99,7 +124,7 @@ def _cleanup_disconnected_fragments(
     buses: gpd.GeoDataFrame,
     min_island_size: int = 3,
     connect_significant: bool = True,
-) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, list[dict]]:
     """Remove or connect disconnected network fragments.
 
     Uses graph connectivity analysis to identify the main network component
@@ -114,7 +139,8 @@ def _cleanup_disconnected_fragments(
         connect_significant: If True, connect large islands; if False, discard all
 
     Returns:
-        Filtered/augmented (lines, buses) tuple
+        Tuple of (filtered_lines, filtered_buses, virtual_extremities_list)
+        where virtual_extremities_list is a list of dicts with 'geometry' and 'bus_id' keys
     """
     # Step 1: Build graph from lines (using spatial bus IDs)
     G = nx.Graph()
@@ -200,7 +226,16 @@ def _cleanup_disconnected_fragments(
         virtual_df = gpd.GeoDataFrame(virtual_lines, crs=lines.crs)
         filtered_lines = pd.concat([filtered_lines, virtual_df], ignore_index=True)
 
-    return filtered_lines, filtered_buses
+    # Create extremities list for virtual line endpoints
+    virtual_extremities = []
+    for vline in virtual_lines:
+        # Extract bus_ids from the virtual line endpoints
+        start_bus = _find_nearest_bus(vline['start_point'], buses)
+        end_bus = _find_nearest_bus(vline['end_point'], buses)
+        virtual_extremities.append({'geometry': vline['start_point'], 'bus_id': start_bus})
+        virtual_extremities.append({'geometry': vline['end_point'], 'bus_id': end_bus})
+
+    return filtered_lines, filtered_buses, virtual_extremities
 
 
 def _find_nearest_bus(point: shp.Point, buses: gpd.GeoDataFrame, eps: float = 500) -> str:
@@ -490,6 +525,87 @@ def _get_loads_pp(pf_buses: pd.DataFrame):
     return pf_subs
 
 
+def _validate_and_fix_connectivity(model: dict, max_iterations: int = 5) -> tuple[dict, dict]:
+    """Validate and fix connectivity at the voltage-specific bus level.
+
+    Builds a graph from lines and transformers (including voltage suffixes)
+    and removes any remaining disconnected elements.
+
+    Args:
+        model: Model dict with 'buses', 'lines', 'trafos', 'gens', 'loads'
+        max_iterations: Maximum iterations for fixing connectivity
+
+    Returns:
+        (fixed_model, diagnostics) tuple
+    """
+    diagnostics = {
+        'iterations': 0,
+        'removed_buses': 0,
+        'removed_gens': 0,
+        'removed_loads': 0,
+    }
+
+    for iteration in range(max_iterations):
+        diagnostics['iterations'] = iteration + 1
+
+        # Build graph from voltage-specific bus connections
+        G = nx.Graph()
+        for _, row in model['lines'].iterrows():
+            if pd.notna(row['from_bus']) and pd.notna(row['to_bus']):
+                G.add_edge(row['from_bus'], row['to_bus'])
+
+        for _, row in model['trafos'].iterrows():
+            if pd.notna(row['hv_bus']) and pd.notna(row['lv_bus']):
+                G.add_edge(row['hv_bus'], row['lv_bus'])
+
+        if len(G.nodes) == 0:
+            logger.error("Network graph is empty")
+            break
+
+        components = list(nx.connected_components(G))
+        if len(components) == 1:
+            logger.debug(f"Network fully connected after {iteration} iteration(s)")
+            break
+
+        components.sort(key=len, reverse=True)
+        main_component = components[0]
+
+        all_bus_ids = set(model['buses']['bus_id'])
+        disconnected_buses = all_bus_ids - main_component
+
+        if not disconnected_buses:
+            break
+
+        logger.debug(f"Iteration {iteration + 1}: Found {len(components)} components, "
+                    f"{len(disconnected_buses)} disconnected buses")
+
+        # Remove disconnected buses and their infrastructure
+        model['buses'] = model['buses'][~model['buses']['bus_id'].isin(disconnected_buses)]
+
+        removed_gens = model['gens'][model['gens']['bus_id'].isin(disconnected_buses)]
+        removed_loads = model['loads'][model['loads']['bus_id'].isin(disconnected_buses)]
+
+        model['gens'] = model['gens'][~model['gens']['bus_id'].isin(disconnected_buses)]
+        model['loads'] = model['loads'][~model['loads']['bus_id'].isin(disconnected_buses)]
+
+        diagnostics['removed_buses'] += len(disconnected_buses)
+        diagnostics['removed_gens'] += len(removed_gens)
+        diagnostics['removed_loads'] += len(removed_loads)
+
+        if len(removed_gens) > 0:
+            logger.debug(f"  Removed {len(removed_gens)} generators: {removed_gens['name'].tolist()[:5]}")
+        if len(removed_loads) > 0:
+            logger.debug(f"  Removed {len(removed_loads)} loads: {removed_loads['name'].tolist()[:5]}")
+
+    if diagnostics['removed_buses'] > 0:
+        logger.warning(
+            f"Removed {diagnostics['removed_buses']} disconnected buses, "
+            f"{diagnostics['removed_gens']} generators, {diagnostics['removed_loads']} loads"
+        )
+
+    return model, diagnostics
+
+
 def _get_gens_from_opennem(
     pf_buses: pd.DataFrame, matched_facilities: gpd.GeoDataFrame
 ) -> pd.DataFrame:
@@ -570,13 +686,19 @@ def get_pandapower_model_with_opennem(
     pf_trafos = _get_trafos_pp(pf_buses)
     pf_gens = _get_gens_from_opennem(pf_buses, matched_facilities)
     pf_loads = _get_loads_pp(pf_buses)
-    return dict(
+
+    model = dict(
         buses=pf_buses,
         lines=pf_lines,
         trafos=pf_trafos,
         gens=pf_gens,
         loads=pf_loads,
     )
+
+    # Validate and fix connectivity
+    model, diagnostics = _validate_and_fix_connectivity(model)
+
+    return model
 
 
 # Approximate line parameters per voltage class (GA data lacks impedance).
@@ -733,6 +855,46 @@ def create_pandapower_network(use_opennem: bool = False, model: dict | None = No
 
     # Add external grids at major substations
     net = add_external_grids(net)
+
+    # Final connectivity check
+    disconnected = pp.disconnected_elements(net)
+
+    # Handle different return formats from pp.disconnected_elements()
+    disconnected_components = []
+    if disconnected:
+        if isinstance(disconnected, list) and len(disconnected) > 0:
+            # List format: list of dicts with element types and indices
+            disconnected_components = disconnected
+        elif isinstance(disconnected, dict):
+            # Dict format: element types with lists of indices
+            has_elements = any(len(v) > 0 for v in disconnected.values() if isinstance(v, list))
+            if has_elements:
+                disconnected_components = [disconnected]
+
+    if disconnected_components:
+        # Remove disconnected buses and their associated infrastructure
+        removed_count = 0
+        for component in disconnected_components:
+            if isinstance(component, dict) and 'buses' in component:
+                bus_indices = component['buses']
+                if isinstance(bus_indices, list) and len(bus_indices) > 0:
+                    # Remove buses (which cascade-removes lines, generators, loads)
+                    pp.drop_buses(net, bus_indices)
+                    removed_count += len(bus_indices)
+                    logger.debug(f"Removed {len(bus_indices)} disconnected buses: {bus_indices}")
+
+        if removed_count > 0:
+            logger.warning(f"Removed {removed_count} disconnected buses from final network")
+            # Final check after removal
+            disconnected_after = pp.disconnected_elements(net)
+            if not disconnected_after or (isinstance(disconnected_after, list) and len(disconnected_after) == 0):
+                logger.debug("All disconnected elements removed successfully")
+        else:
+            error_msg = f"Network has {len(disconnected_components)} disconnected component(s)"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+    else:
+        logger.debug("Final validation: All elements connected")
 
     return net
 
