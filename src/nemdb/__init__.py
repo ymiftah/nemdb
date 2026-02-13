@@ -1,11 +1,10 @@
 import os
+
 from .config import Config
 from .logger import log
-
-from . import utils, main
 from .nemweb import NEMWEBManager
+from . import utils, main
 from .isp import ISPAssumptions
-
 
 if Config.FILESYSTEM == "local":
     log.info("Creating cache directory at %s", Config.CACHE_DIR)
