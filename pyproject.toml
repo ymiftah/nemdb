@@ -36,7 +36,9 @@ dev = [
     "ipykernel>=6.30.0",
     "pre-commit>=4.3.0",
     "pytest>=8.4.1",
+    "pytest-cov>=6.0",
     "pytest-mock>=3.15.1",
+    "pyright>=1.1.383",
     "ruff>=0.14.6",
 ]
 doc = [
@@ -52,3 +54,27 @@ grid = [
 viz = [
     "plotly>=6.5.2",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "C4", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["nemdb"]
+
+[tool.pyright]
+include = ["src", "tests"]
+exclude = [".venv"]
+typeCheckingMode = "standard"
+reportMissingTypeStubs = false
+reportGeneralTypeIssues = true
+reportOptionalMemberAccess = true
+reportOptionalOperand = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=nemdb --cov-report=term-missing:skip-covered"
+testpaths = ["tests"]
