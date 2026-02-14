@@ -1,23 +1,23 @@
+from contextlib import suppress
+
+import fsspec
+import pandas as pd
+import polars as pl
+from tqdm import tqdm
+
+from nemdb import log
 from nemdb.dnsp import (
     ausgrid,
     cppal,
-    essential_energy,
+    endeavour,
     energex,
     ergon,
-    endeavour,
+    essential_energy,
     jemena,
-    tasnetworks,
     sapn,
+    tasnetworks,
     united_energy,
 )
-from nemdb import log
-from contextlib import suppress
-
-
-import fsspec
-from tqdm import tqdm
-import pandas as pd
-import polars as pl
 
 
 def read_all_zss(year: int):
@@ -59,7 +59,7 @@ class DNSPDataSource:
         self.table_name = table_name
         self.table_columns = table_columns
         self.table_primary_keys = table_primary_keys
-        self.partitions = add_partitions + ["year"] if add_partitions else ["year"]
+        self.partitions = [*add_partitions, "year"] if add_partitions else ["year"]
         self.low_memory = False
 
         self.path = f"{config.CACHE_DIR}/{table_name}"
@@ -108,16 +108,12 @@ class DNSPDataSource:
 
     def populate(self, date_slice: slice, force_new: bool = False):
         # First create date range hourly
-        date_range = pd.date_range(
-            start=date_slice.start, end=date_slice.stop, freq="h"
-        )
+        date_range = pd.date_range(start=date_slice.start, end=date_slice.stop, freq="h")
         # Then extend to make sure it covers the appropriate year-months
         date_range = pd.date_range(
             start=date_range.min().replace(day=1), end=date_range.max(), freq="MS"
         )
-        log.info(
-            "Populating database with data from %s to %s", date_range[0], date_range[-1]
-        )
+        log.info("Populating database with data from %s to %s", date_range[0], date_range[-1])
         years = date_range.year.unique()
         for year in tqdm(years):
             # Check if data already exists in tables before adding

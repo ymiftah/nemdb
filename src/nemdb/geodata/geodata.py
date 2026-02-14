@@ -12,8 +12,8 @@ import geopandas as gpd
 import pandas as pd
 import shapely as shp
 
-from nemdb.utils import cache_to_parquet
 from nemdb import log
+from nemdb.utils import cache_to_parquet
 
 from . import transformations as tf
 
@@ -95,21 +95,15 @@ def read_transmission_lines(clean: bool = False) -> gpd.GeoDataFrame:
     """
     gdf = _read_transmission_lines()
     if clean:
-        log.info(
-            "Attempting to clean transmission lines, this may take a couple minutes."
-        )
+        log.info("Attempting to clean transmission lines, this may take a couple minutes.")
         base_crs = gdf.crs
         gdf = gdf.to_crs(METRIC_CRS)
         gdf = tf.clean_transmission_lines(gdf)
         gdf = gdf.to_crs(base_crs)
 
-        n_geoms = gdf.geometry.map(
-            lambda x: len(x.geoms) if type(x) is shp.MultiLineString else 1
-        )
+        n_geoms = gdf.geometry.map(lambda x: len(x.geoms) if type(x) is shp.MultiLineString else 1)
         n_multilines = len(n_geoms[n_geoms > 1])
-        log.info(
-            "%d transmission lines were not appropriately simplified", n_multilines
-        )
+        log.info("%d transmission lines were not appropriately simplified", n_multilines)
     return gdf
 
 

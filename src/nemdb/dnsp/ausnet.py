@@ -1,9 +1,8 @@
 import polars as pl
 
-from nemdb.dnsp.common import LoadSchema
-
-from nemdb.utils import download_file_to_bytesio
 from nemdb import log
+from nemdb.dnsp.common import LoadSchema
+from nemdb.utils import download_file_to_bytesio
 
 """List of ZSS from the regulatory information notice 2024.
 https://www.aer.gov.au/documents/ausnet-services-d-2023-24-category-analysis-rin-templates

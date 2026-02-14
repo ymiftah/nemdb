@@ -2,13 +2,11 @@
 "https://www.essentialenergy.com.au/ext/schools/EE-Zone-Substation-Load-Data-2023-24.zip"
 """
 
-import polars as pl
 import pandas as pd
-
-
+import pandera as pa
+import polars as pl
 import requests
 
-import pandera as pa
 from nemdb.dnsp.common import LoadSchema
 from nemdb.utils import download_file_to_bytesio
 
@@ -80,14 +78,8 @@ def _read_all_zss(file):
         .lazy()
         .with_columns(
             pl.col("kW").cast(pl.Float32).truediv(1000).alias("mw").cast(pl.Float32),
-            pl.col("kVAr")
-            .cast(pl.Float32)
-            .truediv(1000)
-            .alias("mvar")
-            .cast(pl.Float32),
-            pl.col("IntervalEnd")
-            .str.to_datetime("%Y-%m-%dT%H:%M:%S.000Z")
-            .alias("time"),
+            pl.col("kVAr").cast(pl.Float32).truediv(1000).alias("mvar").cast(pl.Float32),
+            pl.col("IntervalEnd").str.to_datetime("%Y-%m-%dT%H:%M:%S.000Z").alias("time"),
         )
         .rename({"Name": "zss"})
         .select(["zss", "time", "mw", "mvar"])

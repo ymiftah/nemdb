@@ -1,11 +1,10 @@
 import zipfile
-import polars as pl
+
 import pandas as pd
+import pandera as pa
+import polars as pl
 
 from nemdb import log
-
-
-import pandera as pa
 from nemdb.dnsp.common import LoadSchema
 from nemdb.utils import download_file_to_bytesio
 
@@ -17,9 +16,7 @@ def read_all_zss(year: int):
 
 
 def get_url(year: int):
-    return {
-        2024: "https://www.sapowernetworks.com.au/public/download.jsp?id=331119"
-    }.get(year, None)
+    return {2024: "https://www.sapowernetworks.com.au/public/download.jsp?id=331119"}.get(year)
 
 
 @pa.check_output(LoadSchema)
@@ -42,9 +39,7 @@ def _read_all_zss(file):
                     )
                     f.seek(0)  # return to start of file
                     df = (
-                        pd.read_csv(
-                            f, header=[1, 2, 3], index_col=[0, 1], on_bad_lines="skip"
-                        )
+                        pd.read_csv(f, header=[1, 2, 3], index_col=[0, 1], on_bad_lines="skip")
                         .rename_axis(index=["date", "time"])
                         .rename_axis(columns=["zss", "connection_point", "metric"])
                     )

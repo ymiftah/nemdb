@@ -1,16 +1,15 @@
-from functools import lru_cache
-import requests
 import tempfile
 import zipfile
+from functools import lru_cache
 from io import BytesIO
 
-from bs4 import BeautifulSoup
-import tqdm
-
-import polars as pl
 import pandas as pd
+import polars as pl
+import requests
+import tqdm
+from bs4 import BeautifulSoup
 
-from .utils import retry, cache_response_zip
+from .utils import cache_response_zip, retry
 
 NEMWEB_ARCHIVE = "https://nemweb.com.au/Reports/Archive/"
 MMSDM = "https://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_DVD_{data}"
@@ -19,11 +18,9 @@ BIDMOVE = "https://nemweb.com.au/Reports/Current/Bidmove_Complete/"
 
 def read_bids(year, month, day):
     """Returns price and volume bids for the given day."""
-    file = "PUBLIC_BIDMOVE_COMPLETE_{year}{month:02d}{day:02d}".format(
-        year=year, month=month, day=day
-    )
+    file = f"PUBLIC_BIDMOVE_COMPLETE_{year}{month:02d}{day:02d}"
     files = __read_files_available(BIDMOVE, format=".zip")
-    file = [f for f in files if file in f][0]
+    file = next(f for f in files if file in f)
     file = cache_response_zip(file)
     with zipfile.ZipFile(file, "r") as z, z.open(z.namelist()[0]) as f:
         first = True
@@ -173,11 +170,7 @@ def read_archived_rooftop_pv() -> pl.DataFrame:
         with tempfile.TemporaryDirectory() as temp_dir:
             zip_file.extractall(temp_dir)
             for inner_zip_name in zip_file.namelist():
-                dfs.append(
-                    __process_pv(
-                        pd.read_csv(f"{temp_dir}/{inner_zip_name}", skiprows=1)
-                    )
-                )
+                dfs.append(__process_pv(pd.read_csv(f"{temp_dir}/{inner_zip_name}", skiprows=1)))
     return pl.concat(dfs, how="diagonal")
 
 
@@ -195,9 +188,7 @@ def read_archived_demand_actuals() -> pl.DataFrame:
             zip_file.extractall(temp_dir)
             for inner_zip_name in zip_file.namelist():
                 dfs.append(
-                    __process_demand(
-                        pd.read_csv(f"{temp_dir}/{inner_zip_name}", skiprows=1)
-                    )
+                    __process_demand(pd.read_csv(f"{temp_dir}/{inner_zip_name}", skiprows=1))
                 )
     return pl.concat(dfs, how="diagonal")
 
@@ -223,10 +214,7 @@ def read_demand_forecast(date: str | None = None) -> pl.DataFrame:
     """
     url = "https://nemweb.com.au/Reports/Current/Operational_Demand/Forecast_HH/"
     files = __read_files_available(url)
-    if date is None:
-        files = files[-1:]  # open the last one
-    else:
-        files = [f for f in files if date in f]  # TODO proper regex
+    files = files[-1:] if date is None else [f for f in files if date in f]  # TODO proper regex
     # TODO maybe use dask, but careful with 403
     df = pd.concat(__fetch(f) for f in files)
     # process in polars
@@ -279,9 +267,7 @@ def __process_demand(df: pd.DataFrame) -> pl.DataFrame:
             pl.col("SETTLEMENTDATE").str.to_datetime("%Y/%m/%d %H:%M:%S"),
             (pl.col("PERIODID") * 30 * 60 * 1e9).cast(pl.Time, strict=False),
         )
-        .with_columns(
-            pl.col("SETTLEMENTDATE").dt.combine(pl.col("PERIODID")).alias("time")
-        )
+        .with_columns(pl.col("SETTLEMENTDATE").dt.combine(pl.col("PERIODID")).alias("time"))
         .pivot(values="DEMAND", index="time", on="REGIONID")
         .sort("time")
     )
@@ -297,9 +283,7 @@ def __process_pv(df: pd.DataFrame) -> pl.DataFrame:
             pl.col("SETTLEMENTDATE").str.to_datetime("%Y/%m/%d %H:%M:%S"),
             (pl.col("PERIODID") * 30 * 60 * 1e9).cast(pl.Time, strict=False),
         )
-        .with_columns(
-            pl.col("SETTLEMENTDATE").dt.combine(pl.col("PERIODID")).alias("time")
-        )
+        .with_columns(pl.col("SETTLEMENTDATE").dt.combine(pl.col("PERIODID")).alias("time"))
         .pivot(values="DEMAND", index="time", on="REGIONID")
         .sort("time")
     )

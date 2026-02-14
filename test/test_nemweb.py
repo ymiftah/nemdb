@@ -1,5 +1,6 @@
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
 
 from nemdb import Config
 from nemdb.nemweb.dbloader import NEMWEBManager

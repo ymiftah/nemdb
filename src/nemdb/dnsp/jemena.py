@@ -1,9 +1,9 @@
 import zipfile
-import polars as pl
 
 import pandera as pa
-from nemdb.dnsp.common import LoadSchema
+import polars as pl
 
+from nemdb.dnsp.common import LoadSchema
 from nemdb.utils import download_file_to_bytesio
 
 
@@ -16,7 +16,7 @@ def read_all_zss(year: int):
 def get_url(year: int):
     return {
         2024: "https://daprprd.blob.core.windows.net/historial-loadtrace-data/zone%20substations.zip"
-    }.get(year, None)
+    }.get(year)
 
 
 @pa.check_output(LoadSchema)
@@ -52,7 +52,5 @@ if __name__ == "__main__":
     #     get_url(2024),
     #     "/home/simba/Downloads/Jemena-Network-Substation-Load-Data-2023-24.zip",
     # )
-    df = read_all_zss(
-        "/home/simba/Downloads/Jemena-Network-Substation-Load-Data-2023-24.zip"
-    )
+    df = read_all_zss("/home/simba/Downloads/Jemena-Network-Substation-Load-Data-2023-24.zip")
     print(df)
