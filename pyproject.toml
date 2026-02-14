@@ -46,3 +46,6 @@ grid = [
     "pandapower>=3.2.0",
     "scikit-learn>=1.7.2",
 ]
+viz = [
+    "plotly>=6.5.2",
+]
