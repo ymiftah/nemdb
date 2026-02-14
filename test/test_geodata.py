@@ -1,7 +1,7 @@
 import pytest
-from nemdb.geodata import transformations
-
 import shapely as shp
+
+from nemdb.geodata import transformations
 
 
 @pytest.mark.parametrize(

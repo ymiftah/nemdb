@@ -1,16 +1,13 @@
+import asyncio
+
 import geopandas as gpd
 import pandas as pd
 import polars as pl
 
-
-import asyncio
-
 from nemdb.geodata.geodata import read_major_powerstations, read_substations
 from nemdb.opennem.opennemapi import read_facilities
 
-
 METRIC_CRS = "EPSG:7856"
-
 
 
 def facilities_to_gdf(facilities: pl.DataFrame) -> gpd.GeoDataFrame:
@@ -168,19 +165,15 @@ def match_facilities_to_gis(
     fac_gdf = facilities_to_gdf(agg)
 
     # Pass 1: match against powerstations
-    ps_targets = powerstations[["name", "geometry"]].rename(
-        columns={"name": "gis_name"}
+    ps_targets = powerstations[["name", "geometry"]].rename(columns={"name": "gis_name"})
+    matched_ps = find_nearest_gis_feature(fac_gdf, ps_targets, distance_col="distance_m")
+    matched_ps = matched_ps.rename(
+        columns={"gis_name": "ps_gis_name", "distance_m": "ps_distance_m"}
     )
-    matched_ps = find_nearest_gis_feature(
-        fac_gdf, ps_targets, distance_col="distance_m"
-    )
-    matched_ps = matched_ps.rename(columns={"gis_name": "ps_gis_name", "distance_m": "ps_distance_m"})
 
     # Pass 2: match against substations
     sub_targets = substations[["name", "geometry"]].rename(columns={"name": "gis_name"})
-    matched_sub = find_nearest_gis_feature(
-        fac_gdf, sub_targets, distance_col="distance_m"
-    )
+    matched_sub = find_nearest_gis_feature(fac_gdf, sub_targets, distance_col="distance_m")
     matched_sub = matched_sub.rename(columns={"gis_name": "sub_gis_name"})
     matched_sub = matched_sub.rename(columns={"distance_m": "sub_distance_m"})
 
@@ -199,14 +192,10 @@ def match_facilities_to_gis(
 
     ps_closer = fac_gdf["ps_distance_m"] <= fac_gdf["sub_distance_m"]
 
-    fac_gdf["gis_name"] = fac_gdf["ps_gis_name"].where(
-        ps_closer, fac_gdf["sub_gis_name"]
-    )
+    fac_gdf["gis_name"] = fac_gdf["ps_gis_name"].where(ps_closer, fac_gdf["sub_gis_name"])
     fac_gdf["match_type"] = "powerstation"
     fac_gdf.loc[~ps_closer, "match_type"] = "substation"
-    fac_gdf["distance_m"] = fac_gdf["ps_distance_m"].where(
-        ps_closer, fac_gdf["sub_distance_m"]
-    )
+    fac_gdf["distance_m"] = fac_gdf["ps_distance_m"].where(ps_closer, fac_gdf["sub_distance_m"])
 
     fac_gdf = fac_gdf.drop(
         columns=["ps_gis_name", "ps_distance_m", "sub_gis_name", "sub_distance_m"]

@@ -1,11 +1,10 @@
-import click
-
-
+from datetime import datetime
 from pathlib import Path
+
+import click
 
 from nemdb import Config
 from nemdb.nemweb import NEMWEBManager
-from datetime import datetime
 
 
 @click.command()
@@ -40,7 +39,7 @@ def populate(location, filesystem, date_range, table, force_new):
 
 
 if __name__ == "__main__":
-    from_date, to_date = "2025-01-01->2025-01-02".split("->")
+    from_date, to_date = ["2025-01-01", "2025-01-02"]
     force_new = False
     dbs = NEMWEBManager(Config)
     dbs.populate(slice(from_date, to_date), force_new=force_new)

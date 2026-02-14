@@ -1,5 +1,6 @@
-import re
 import os
+import re
+
 import polars as pl
 
 from nemdb import Config
@@ -32,8 +33,8 @@ def _read_rename(file, method):
 
 DIR = os.path.join(Config.CACHE_DIR, "DER_REGISTER")
 files = os.listdir(DIR)
-csv_files = list(f"{DIR}/{f}" for f in files if re.search(".csv$", f))
-xlsx_files = list(f"{DIR}/{f}" for f in files if re.search(".xlsx$", f))
+csv_files = [f"{DIR}/{f}" for f in files if re.search(".csv$", f)]
+xlsx_files = [f"{DIR}/{f}" for f in files if re.search(".xlsx$", f)]
 
 df_xlsx = pl.concat(
     (

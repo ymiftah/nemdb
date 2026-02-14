@@ -1,7 +1,7 @@
-import requests
 import os
-
 from time import sleep
+
+import requests
 
 from nemdb import Config
 from nemdb.logger import log as logger
@@ -22,7 +22,7 @@ def retry(tries: int, delay: int = 3, return_on_failure=None):
             function fails after all retries. Defaults to None.
     """
 
-    tries = round(tries)
+    tries = tries
     if tries < 0:
         raise ValueError("tries must be 0 or greater")
 

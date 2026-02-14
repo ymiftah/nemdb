@@ -1,8 +1,8 @@
-import pytest
 import polars as pl
+import pytest
 
 from nemdb.isp import isp
-from nemdb.isp.isp import _detect_header_row, _clean_table, _NON_DATA_SHEETS
+from nemdb.isp.isp import _NON_DATA_SHEETS, _clean_table, _detect_header_row
 
 ISP_2025_FILE = "src/nemdb/artefacts/ISP_2025.xlsm"
 
@@ -260,7 +260,9 @@ class TestSummary:
         summary = isp_2025.summary()
         worksheets = summary["Worksheet"].to_list()
         assert "Scenarios" in worksheets
-        assert "Build costs" not in worksheets  # column name is "Build costs" in sheet but "Build Costs" in summary
+        assert (
+            "Build costs" not in worksheets
+        )  # column name is "Build costs" in sheet but "Build Costs" in summary
         # Check a few known entries
         assert any("Coal" in w for w in worksheets if w is not None)
         assert any("Retirement" in w for w in worksheets if w is not None)
@@ -274,9 +276,7 @@ class TestSummary:
         """Summary should stop before the 'Supporting Materials' section."""
         summary = isp_2025.summary()
         worksheets = summary["Worksheet"].to_list()
-        assert not any(
-            "Supporting Materials" in str(w) for w in worksheets if w is not None
-        )
+        assert not any("Supporting Materials" in str(w) for w in worksheets if w is not None)
 
     def test_summary_row_count(self, isp_2025):
         summary = isp_2025.summary()

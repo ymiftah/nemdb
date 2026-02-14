@@ -1,6 +1,7 @@
-import pytest
-import pandapower as pp
 import networkx as nx
+import pandapower as pp
+import pytest
+
 from nemdb.models.pandapower_model import (
     create_pandapower_network,
     get_pandapower_model,
@@ -16,10 +17,7 @@ def test_no_disconnected_elements_ga():
     # disconnected_elements returns None if no issues, or dict with element counts
     if disconnected is not None:
         # Filter out empty entries
-        has_disconnected = any(
-            isinstance(v, list) and len(v) > 0
-            for v in disconnected.values()
-        )
+        has_disconnected = any(isinstance(v, list) and len(v) > 0 for v in disconnected.values())
         assert not has_disconnected, f"Found disconnected elements: {disconnected}"
 
 
@@ -31,10 +29,7 @@ def test_no_disconnected_elements_opennem():
     # disconnected_elements returns None if no issues, or dict with element counts
     if disconnected is not None:
         # Filter out empty entries
-        has_disconnected = any(
-            isinstance(v, list) and len(v) > 0
-            for v in disconnected.values()
-        )
+        has_disconnected = any(isinstance(v, list) and len(v) > 0 for v in disconnected.values())
         assert not has_disconnected, f"Found disconnected elements: {disconnected}"
 
 
@@ -45,16 +40,17 @@ def test_all_generators_connected_ga():
     # Build connectivity graph
     G = nx.Graph()
     for _, row in net.line.iterrows():
-        G.add_edge(row['from_bus'], row['to_bus'])
+        G.add_edge(row["from_bus"], row["to_bus"])
     for _, row in net.trafo.iterrows():
-        G.add_edge(row['hv_bus'], row['lv_bus'])
+        G.add_edge(row["hv_bus"], row["lv_bus"])
 
     if len(G.nodes) > 0:
         main_component = max(nx.connected_components(G), key=len)
 
         for _, gen in net.gen.iterrows():
-            assert gen['bus'] in main_component, \
+            assert gen["bus"] in main_component, (
                 f"Generator {gen.get('name', 'unknown')} on bus {gen['bus']} is disconnected"
+            )
 
 
 def test_all_generators_connected_opennem():
@@ -64,16 +60,17 @@ def test_all_generators_connected_opennem():
     # Build connectivity graph
     G = nx.Graph()
     for _, row in net.line.iterrows():
-        G.add_edge(row['from_bus'], row['to_bus'])
+        G.add_edge(row["from_bus"], row["to_bus"])
     for _, row in net.trafo.iterrows():
-        G.add_edge(row['hv_bus'], row['lv_bus'])
+        G.add_edge(row["hv_bus"], row["lv_bus"])
 
     if len(G.nodes) > 0:
         main_component = max(nx.connected_components(G), key=len)
 
         for _, gen in net.gen.iterrows():
-            assert gen['bus'] in main_component, \
+            assert gen["bus"] in main_component, (
                 f"Generator {gen.get('name', 'unknown')} on bus {gen['bus']} is disconnected"
+            )
 
 
 def test_all_loads_connected():
@@ -82,16 +79,17 @@ def test_all_loads_connected():
 
     G = nx.Graph()
     for _, row in net.line.iterrows():
-        G.add_edge(row['from_bus'], row['to_bus'])
+        G.add_edge(row["from_bus"], row["to_bus"])
     for _, row in net.trafo.iterrows():
-        G.add_edge(row['hv_bus'], row['lv_bus'])
+        G.add_edge(row["hv_bus"], row["lv_bus"])
 
     if len(G.nodes) > 0:
         main_component = max(nx.connected_components(G), key=len)
 
         for _, load in net.load.iterrows():
-            assert load['bus'] in main_component, \
+            assert load["bus"] in main_component, (
                 f"Load {load.get('name', 'unknown')} on bus {load['bus']} is disconnected"
+            )
 
 
 def test_model_validation_runs_ga():
@@ -99,15 +97,15 @@ def test_model_validation_runs_ga():
     model = get_pandapower_model()
 
     # Model should have all required keys
-    assert 'buses' in model
-    assert 'lines' in model
-    assert 'trafos' in model
-    assert 'gens' in model
-    assert 'loads' in model
+    assert "buses" in model
+    assert "lines" in model
+    assert "trafos" in model
+    assert "gens" in model
+    assert "loads" in model
 
     # All should be non-empty
-    assert len(model['buses']) > 0
-    assert len(model['lines']) > 0
+    assert len(model["buses"]) > 0
+    assert len(model["lines"]) > 0
 
 
 def test_model_validation_runs_opennem():
@@ -115,15 +113,15 @@ def test_model_validation_runs_opennem():
     model = get_pandapower_model_with_opennem()
 
     # Model should have all required keys
-    assert 'buses' in model
-    assert 'lines' in model
-    assert 'trafos' in model
-    assert 'gens' in model
-    assert 'loads' in model
+    assert "buses" in model
+    assert "lines" in model
+    assert "trafos" in model
+    assert "gens" in model
+    assert "loads" in model
 
     # All should be non-empty
-    assert len(model['buses']) > 0
-    assert len(model['lines']) > 0
+    assert len(model["buses"]) > 0
+    assert len(model["lines"]) > 0
 
 
 def test_network_has_external_grids():
@@ -140,27 +138,33 @@ def test_network_structure_integrity():
 
     # All lines should reference valid buses
     for _, line in net.line.iterrows():
-        assert line['from_bus'] in net.bus.index, \
+        assert line["from_bus"] in net.bus.index, (
             f"Line {line['name']} references non-existent from_bus {line['from_bus']}"
-        assert line['to_bus'] in net.bus.index, \
+        )
+        assert line["to_bus"] in net.bus.index, (
             f"Line {line['name']} references non-existent to_bus {line['to_bus']}"
+        )
 
     # All trafos should reference valid buses
     for _, trafo in net.trafo.iterrows():
-        assert trafo['hv_bus'] in net.bus.index, \
+        assert trafo["hv_bus"] in net.bus.index, (
             f"Trafo {trafo['name']} references non-existent hv_bus {trafo['hv_bus']}"
-        assert trafo['lv_bus'] in net.bus.index, \
+        )
+        assert trafo["lv_bus"] in net.bus.index, (
             f"Trafo {trafo['name']} references non-existent lv_bus {trafo['lv_bus']}"
+        )
 
     # All generators should reference valid buses
     for _, gen in net.gen.iterrows():
-        assert gen['bus'] in net.bus.index, \
+        assert gen["bus"] in net.bus.index, (
             f"Generator {gen['name']} references non-existent bus {gen['bus']}"
+        )
 
     # All loads should reference valid buses
     for _, load in net.load.iterrows():
-        assert load['bus'] in net.bus.index, \
+        assert load["bus"] in net.bus.index, (
             f"Load {load['name']} references non-existent bus {load['bus']}"
+        )
 
 
 if __name__ == "__main__":

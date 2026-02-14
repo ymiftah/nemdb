@@ -1,21 +1,19 @@
-import geopandas as gpd
-import pandas as pd
-import shapely as shp
-import networkx as nx
 import logging
 
+import geopandas as gpd
+import networkx as nx
+import pandapower as pp
+import pandas as pd
+import shapely as shp
 from sklearn.cluster import DBSCAN
 
-logger = logging.getLogger(__name__)
-
 from nemdb.geodata.geodata import (
+    read_major_powerstations,
     read_substations,
     read_transmission_lines,
-    read_major_powerstations,
 )
 
-import pandapower as pp
-
+logger = logging.getLogger(__name__)
 
 METRIC_CRS = "EPSG:7856"
 GEO_CRS = "EPSG:4326"
@@ -30,16 +28,16 @@ def get_pandapower_model():
     pf_gens = _get_gens_pp(pf_buses)
     pf_loads = _get_loads_pp(pf_buses)
 
-    model = dict(
-        buses=pf_buses,
-        lines=pf_lines,
-        trafos=pf_trafos,
-        gens=pf_gens,
-        loads=pf_loads,
-    )
+    model = {
+        "buses": pf_buses,
+        "lines": pf_lines,
+        "trafos": pf_trafos,
+        "gens": pf_gens,
+        "loads": pf_loads,
+    }
 
     # Validate and fix connectivity
-    model, diagnostics = _validate_and_fix_connectivity(model)
+    model, _diagnostics = _validate_and_fix_connectivity(model)
 
     return model
 
@@ -86,34 +84,30 @@ def _get_buses_and_lines():
 
     # Clean up disconnected fragments before creating mapping
     lines, buses, virtual_extremities_list = _cleanup_disconnected_fragments(
-        lines,
-        buses,
-        min_island_size=3,
-        connect_significant=True
+        lines, buses, min_island_size=3, connect_significant=True
     )
 
     # Rebuild extremities mapping for filtered buses only
-    kept_bus_ids = set(buses['bus_id'])
-    filtered_extremities = extremeties[extremeties['bus_id'].isin(kept_bus_ids)].copy()
+    kept_bus_ids = set(buses["bus_id"])
+    filtered_extremities = extremeties[extremeties["bus_id"].isin(kept_bus_ids)].copy()
 
     # Add virtual line extremities to mapping
     if virtual_extremities_list:
         virtual_ext_df = gpd.GeoDataFrame(
-            [{'bus_id': v['bus_id']} for v in virtual_extremities_list],
-            geometry=[v['geometry'] for v in virtual_extremities_list],
-            crs=filtered_extremities.crs
+            [{"bus_id": v["bus_id"]} for v in virtual_extremities_list],
+            geometry=[v["geometry"] for v in virtual_extremities_list],
+            crs=filtered_extremities.crs,
         )
         # Drop duplicates (keep first occurrence) to avoid index issues when looking up by geometry
-        virtual_ext_df = virtual_ext_df.drop_duplicates(subset=['geometry'], keep='first')
-        filtered_extremities = pd.concat(
-            [filtered_extremities, virtual_ext_df],
-            ignore_index=True
-        )
+        virtual_ext_df = virtual_ext_df.drop_duplicates(subset=["geometry"], keep="first")
+        filtered_extremities = pd.concat([filtered_extremities, virtual_ext_df], ignore_index=True)
 
     # Convert to GEO_CRS and create mapping
     filtered_extremities_geo = filtered_extremities.to_crs(GEO_CRS)
     # Drop any duplicate geometries - keep first occurrence
-    filtered_extremities_geo = filtered_extremities_geo.drop_duplicates(subset=['geometry'], keep='first')
+    filtered_extremities_geo = filtered_extremities_geo.drop_duplicates(
+        subset=["geometry"], keep="first"
+    )
     mapping = filtered_extremities_geo.set_index("geometry")["bus_id"]
 
     return lines, buses, mapping
@@ -144,17 +138,17 @@ def _cleanup_disconnected_fragments(
     """
     # Step 1: Build graph from lines (using spatial bus IDs)
     G = nx.Graph()
-    bus_to_point = buses.set_index('bus_id')['geometry'].to_dict()
+    bus_to_point = buses.set_index("bus_id")["geometry"].to_dict()
 
     # Create mapping: extremity point → bus_id
     extremity_to_bus = {}
     for _, row in lines.iterrows():
         # Find which bus each line endpoint belongs to
-        start_bus = _find_nearest_bus(row['start_point'], buses)
-        end_bus = _find_nearest_bus(row['end_point'], buses)
+        start_bus = _find_nearest_bus(row["start_point"], buses)
+        end_bus = _find_nearest_bus(row["end_point"], buses)
 
-        extremity_to_bus[row['start_point']] = start_bus
-        extremity_to_bus[row['end_point']] = end_bus
+        extremity_to_bus[row["start_point"]] = start_bus
+        extremity_to_bus[row["end_point"]] = end_bus
 
         if start_bus != end_bus:  # Avoid self-loops
             G.add_edge(start_bus, end_bus)
@@ -178,7 +172,9 @@ def _cleanup_disconnected_fragments(
             significant_islands.append(comp)
 
     logger.debug(f"  - Trivial islands (<{min_island_size} buses): {len(trivial_islands)} buses")
-    logger.debug(f"  - Significant islands (≥{min_island_size} buses): {len(significant_islands)} islands")
+    logger.debug(
+        f"  - Significant islands (≥{min_island_size} buses): {len(significant_islands)} islands"
+    )
 
     # Step 4: Handle islands based on strategy
     buses_to_keep = set(main_component)
@@ -194,10 +190,7 @@ def _cleanup_disconnected_fragments(
 
             # Create virtual transmission line
             virtual_line = _create_virtual_line(
-                nearest_island_bus,
-                nearest_main_bus,
-                bus_to_point,
-                distance
+                nearest_island_bus, nearest_main_bus, bus_to_point, distance
             )
             virtual_lines.append(virtual_line)
             buses_to_keep.update(island)
@@ -209,17 +202,19 @@ def _cleanup_disconnected_fragments(
         logger.debug(f"\nDiscarding {len(trivial_islands)} trivial fragment bus(es)")
 
     # Step 5: Filter buses and lines
-    filtered_buses = buses[buses['bus_id'].isin(buses_to_keep)].copy()
+    filtered_buses = buses[buses["bus_id"].isin(buses_to_keep)].copy()
 
     # Keep only lines connecting retained buses
     valid_lines = []
     for _, row in lines.iterrows():
-        start_bus = extremity_to_bus.get(row['start_point'])
-        end_bus = extremity_to_bus.get(row['end_point'])
+        start_bus = extremity_to_bus.get(row["start_point"])
+        end_bus = extremity_to_bus.get(row["end_point"])
         if start_bus in buses_to_keep and end_bus in buses_to_keep:
             valid_lines.append(row)
 
-    filtered_lines = gpd.GeoDataFrame(valid_lines, crs=lines.crs) if valid_lines else lines.iloc[0:0]
+    filtered_lines = (
+        gpd.GeoDataFrame(valid_lines, crs=lines.crs) if valid_lines else lines.iloc[0:0]
+    )
 
     # Add virtual lines if any
     if virtual_lines:
@@ -230,10 +225,10 @@ def _cleanup_disconnected_fragments(
     virtual_extremities = []
     for vline in virtual_lines:
         # Extract bus_ids from the virtual line endpoints
-        start_bus = _find_nearest_bus(vline['start_point'], buses)
-        end_bus = _find_nearest_bus(vline['end_point'], buses)
-        virtual_extremities.append({'geometry': vline['start_point'], 'bus_id': start_bus})
-        virtual_extremities.append({'geometry': vline['end_point'], 'bus_id': end_bus})
+        start_bus = _find_nearest_bus(vline["start_point"], buses)
+        end_bus = _find_nearest_bus(vline["end_point"], buses)
+        virtual_extremities.append({"geometry": vline["start_point"], "bus_id": start_bus})
+        virtual_extremities.append({"geometry": vline["end_point"], "bus_id": end_bus})
 
     return filtered_lines, filtered_buses, virtual_extremities
 
@@ -243,22 +238,20 @@ def _find_nearest_bus(point: shp.Point, buses: gpd.GeoDataFrame, eps: float = 50
     distances = buses.geometry.distance(point)
     min_idx = distances.idxmin()
     if distances[min_idx] <= eps:
-        return buses.loc[min_idx, 'bus_id']
+        return buses.loc[min_idx, "bus_id"]
     # Fallback: return closest even if > eps (shouldn't happen)
-    return buses.loc[min_idx, 'bus_id']
+    return buses.loc[min_idx, "bus_id"]
 
 
 def _find_nearest_pair(
-    island: set,
-    main_component: set,
-    bus_to_point: dict
+    island: set, main_component: set, bus_to_point: dict
 ) -> tuple[str, str, float]:
     """Find nearest bus pair between island and main component.
 
     Returns:
         (main_bus_id, island_bus_id, distance_meters)
     """
-    min_distance = float('inf')
+    min_distance = float("inf")
     best_main = None
     best_island = None
 
@@ -293,17 +286,68 @@ def _create_virtual_line(
     point2 = bus_to_point[bus_id_2]
 
     return {
-        'line_id': f'virtual_{bus_id_1}_{bus_id_2}',
-        'name': f'Virtual Interconnector ({bus_id_1} <-> {bus_id_2})',
-        'class': 'Transmission Line',
-        'operationalstatus': 'Operational',
-        'state': 'Virtual',
-        'capacitykv': 330,
-        'geometry': shp.LineString([point1, point2]),
-        'length_km': distance / 1000,
-        'start_point': point1,
-        'end_point': point2,
+        "line_id": f"virtual_{bus_id_1}_{bus_id_2}",
+        "name": f"Virtual Interconnector ({bus_id_1} <-> {bus_id_2})",
+        "class": "Transmission Line",
+        "operationalstatus": "Operational",
+        "state": "Virtual",
+        "capacitykv": 330,
+        "geometry": shp.LineString([point1, point2]),
+        "length_km": distance / 1000,
+        "start_point": point1,
+        "end_point": point2,
     }
+
+
+def _lookup_bus_with_tolerance(point: shp.Point, mapping, mapping_list, tolerance: float = 1e-6) -> str:
+    """Look up bus ID for a point with tolerance for floating-point precision.
+
+    First tries exact match, then searches within tolerance distance,
+    finally falls back to nearest neighbor.
+
+    Args:
+        point: Shapely Point in GEO_CRS
+        mapping: Pandas Series with geometry index and bus_id values
+        mapping_list: Pre-computed list of (geometry, bus_id) tuples
+        tolerance: Distance tolerance for near-exact matches (default: 1e-6 degrees ≈ 0.1m)
+
+    Returns:
+        Bus ID string
+    """
+    # Try exact match first
+    try:
+        return mapping[point]
+    except (KeyError, TypeError):
+        pass
+
+    # Search for close matches within tolerance
+    candidates = []
+    for geom, bus_id in mapping_list:
+        dist = geom.distance(point)
+        if dist < tolerance:
+            candidates.append((dist, bus_id))
+
+    if candidates:
+        # Return the closest candidate within tolerance
+        candidates.sort()
+        return candidates[0][1]
+
+    # Fallback: find absolute nearest
+    min_dist = float("inf")
+    nearest_bus = None
+    for geom, bus_id in mapping_list:
+        dist = geom.distance(point)
+        if dist < min_dist:
+            min_dist = dist
+            nearest_bus = bus_id
+
+    if min_dist > 0.01:  # More than 0.01 degrees away - log warning
+        logger.warning(
+            f"Point ({point.x:.6f}, {point.y:.6f}) far from nearest bus {nearest_bus} "
+            f"(distance: {min_dist:.6f} degrees)"
+        )
+
+    return nearest_bus
 
 
 def _get_lines_pp(lines, mapping):
@@ -316,29 +360,9 @@ def _get_lines_pp(lines, mapping):
         end_point = shp.get_point(row.geometry, -1)
 
         # Look up bus IDs from mapping, with fallback for virtual line endpoints
-        try:
-            from_bus = mapping[start_point]
-        except (KeyError, TypeError):
-            # For virtual lines, find nearest bus
-            min_dist = float('inf')
-            from_bus = None
-            for geom, bus_id in mapping_list:
-                dist = geom.distance(start_point)
-                if dist < min_dist:
-                    min_dist = dist
-                    from_bus = bus_id
-
-        try:
-            to_bus = mapping[end_point]
-        except (KeyError, TypeError):
-            # For virtual lines, find nearest bus
-            min_dist = float('inf')
-            to_bus = None
-            for geom, bus_id in mapping_list:
-                dist = geom.distance(end_point)
-                if dist < min_dist:
-                    min_dist = dist
-                    to_bus = bus_id
+        # Try exact match first, then fallback to nearest with tolerance
+        from_bus = _lookup_bus_with_tolerance(start_point, mapping, mapping_list)
+        to_bus = _lookup_bus_with_tolerance(end_point, mapping, mapping_list)
 
         rows.append(
             {
@@ -389,7 +413,7 @@ def _get_trafos_pp(pf_buses):
         .str.rsplit("_", n=1, expand=True)
         .set_axis(["bus_id", "vn_kv"], axis=1)
         .groupby("bus_id")
-        .agg(lambda s: sorted(list(s.str.replace("kv", "").astype(int))))
+        .agg(lambda s: sorted(s.str.replace("kv", "").astype(int)))
     )
     gdf = gdf[gdf["vn_kv"].map(len) > 1].reset_index()
 
@@ -539,24 +563,24 @@ def _validate_and_fix_connectivity(model: dict, max_iterations: int = 5) -> tupl
         (fixed_model, diagnostics) tuple
     """
     diagnostics = {
-        'iterations': 0,
-        'removed_buses': 0,
-        'removed_gens': 0,
-        'removed_loads': 0,
+        "iterations": 0,
+        "removed_buses": 0,
+        "removed_gens": 0,
+        "removed_loads": 0,
     }
 
     for iteration in range(max_iterations):
-        diagnostics['iterations'] = iteration + 1
+        diagnostics["iterations"] = iteration + 1
 
         # Build graph from voltage-specific bus connections
         G = nx.Graph()
-        for _, row in model['lines'].iterrows():
-            if pd.notna(row['from_bus']) and pd.notna(row['to_bus']):
-                G.add_edge(row['from_bus'], row['to_bus'])
+        for _, row in model["lines"].iterrows():
+            if pd.notna(row["from_bus"]) and pd.notna(row["to_bus"]):
+                G.add_edge(row["from_bus"], row["to_bus"])
 
-        for _, row in model['trafos'].iterrows():
-            if pd.notna(row['hv_bus']) and pd.notna(row['lv_bus']):
-                G.add_edge(row['hv_bus'], row['lv_bus'])
+        for _, row in model["trafos"].iterrows():
+            if pd.notna(row["hv_bus"]) and pd.notna(row["lv_bus"]):
+                G.add_edge(row["hv_bus"], row["lv_bus"])
 
         if len(G.nodes) == 0:
             logger.error("Network graph is empty")
@@ -570,34 +594,40 @@ def _validate_and_fix_connectivity(model: dict, max_iterations: int = 5) -> tupl
         components.sort(key=len, reverse=True)
         main_component = components[0]
 
-        all_bus_ids = set(model['buses']['bus_id'])
+        all_bus_ids = set(model["buses"]["bus_id"])
         disconnected_buses = all_bus_ids - main_component
 
         if not disconnected_buses:
             break
 
-        logger.debug(f"Iteration {iteration + 1}: Found {len(components)} components, "
-                    f"{len(disconnected_buses)} disconnected buses")
+        logger.debug(
+            f"Iteration {iteration + 1}: Found {len(components)} components, "
+            f"{len(disconnected_buses)} disconnected buses"
+        )
 
         # Remove disconnected buses and their infrastructure
-        model['buses'] = model['buses'][~model['buses']['bus_id'].isin(disconnected_buses)]
+        model["buses"] = model["buses"][~model["buses"]["bus_id"].isin(disconnected_buses)]
 
-        removed_gens = model['gens'][model['gens']['bus_id'].isin(disconnected_buses)]
-        removed_loads = model['loads'][model['loads']['bus_id'].isin(disconnected_buses)]
+        removed_gens = model["gens"][model["gens"]["bus_id"].isin(disconnected_buses)]
+        removed_loads = model["loads"][model["loads"]["bus_id"].isin(disconnected_buses)]
 
-        model['gens'] = model['gens'][~model['gens']['bus_id'].isin(disconnected_buses)]
-        model['loads'] = model['loads'][~model['loads']['bus_id'].isin(disconnected_buses)]
+        model["gens"] = model["gens"][~model["gens"]["bus_id"].isin(disconnected_buses)]
+        model["loads"] = model["loads"][~model["loads"]["bus_id"].isin(disconnected_buses)]
 
-        diagnostics['removed_buses'] += len(disconnected_buses)
-        diagnostics['removed_gens'] += len(removed_gens)
-        diagnostics['removed_loads'] += len(removed_loads)
+        diagnostics["removed_buses"] += len(disconnected_buses)
+        diagnostics["removed_gens"] += len(removed_gens)
+        diagnostics["removed_loads"] += len(removed_loads)
 
         if len(removed_gens) > 0:
-            logger.debug(f"  Removed {len(removed_gens)} generators: {removed_gens['name'].tolist()[:5]}")
+            logger.debug(
+                f"  Removed {len(removed_gens)} generators: {removed_gens['name'].tolist()[:5]}"
+            )
         if len(removed_loads) > 0:
-            logger.debug(f"  Removed {len(removed_loads)} loads: {removed_loads['name'].tolist()[:5]}")
+            logger.debug(
+                f"  Removed {len(removed_loads)} loads: {removed_loads['name'].tolist()[:5]}"
+            )
 
-    if diagnostics['removed_buses'] > 0:
+    if diagnostics["removed_buses"] > 0:
         logger.warning(
             f"Removed {diagnostics['removed_buses']} disconnected buses, "
             f"{diagnostics['removed_gens']} generators, {diagnostics['removed_loads']} loads"
@@ -687,16 +717,16 @@ def get_pandapower_model_with_opennem(
     pf_gens = _get_gens_from_opennem(pf_buses, matched_facilities)
     pf_loads = _get_loads_pp(pf_buses)
 
-    model = dict(
-        buses=pf_buses,
-        lines=pf_lines,
-        trafos=pf_trafos,
-        gens=pf_gens,
-        loads=pf_loads,
-    )
+    model = {
+        "buses": pf_buses,
+        "lines": pf_lines,
+        "trafos": pf_trafos,
+        "gens": pf_gens,
+        "loads": pf_loads,
+    }
 
     # Validate and fix connectivity
-    model, diagnostics = _validate_and_fix_connectivity(model)
+    model, _diagnostics = _validate_and_fix_connectivity(model)
 
     return model
 
@@ -766,11 +796,7 @@ def create_pandapower_network(use_opennem: bool = False, model: dict | None = No
         A ``pandapower.auxiliary.pandapowerNet`` network object.
     """
     if model is None:
-        model = (
-            get_pandapower_model_with_opennem()
-            if use_opennem
-            else get_pandapower_model()
-        )
+        model = get_pandapower_model_with_opennem() if use_opennem else get_pandapower_model()
 
     net = pp.create_empty_network(name="NEM")
 
@@ -835,7 +861,9 @@ def create_pandapower_network(use_opennem: bool = False, model: dict | None = No
             bus=bus_idx,
             p_mw=row["p_mw"],
             max_p_mw=row["max_p_mw"],
-            name=row.get("code", row["name"]),  # Use 'code' if available (OpenNEM), else 'name' (GA data)
+            name=row.get(
+                "code", row["name"]
+            ),  # Use 'code' if available (OpenNEM), else 'name' (GA data)
             type=row["type"],
             in_service=row["in_service"],
         )
@@ -875,8 +903,8 @@ def create_pandapower_network(use_opennem: bool = False, model: dict | None = No
         # Remove disconnected buses and their associated infrastructure
         removed_count = 0
         for component in disconnected_components:
-            if isinstance(component, dict) and 'buses' in component:
-                bus_indices = component['buses']
+            if isinstance(component, dict) and "buses" in component:
+                bus_indices = component["buses"]
                 if isinstance(bus_indices, list) and len(bus_indices) > 0:
                     # Remove buses (which cascade-removes lines, generators, loads)
                     pp.drop_buses(net, bus_indices)
@@ -887,7 +915,9 @@ def create_pandapower_network(use_opennem: bool = False, model: dict | None = No
             logger.warning(f"Removed {removed_count} disconnected buses from final network")
             # Final check after removal
             disconnected_after = pp.disconnected_elements(net)
-            if not disconnected_after or (isinstance(disconnected_after, list) and len(disconnected_after) == 0):
+            if not disconnected_after or (
+                isinstance(disconnected_after, list) and len(disconnected_after) == 0
+            ):
                 logger.debug("All disconnected elements removed successfully")
         else:
             error_msg = f"Network has {len(disconnected_components)} disconnected component(s)"
@@ -928,9 +958,7 @@ def add_external_grids(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapow
     added_count = 0
     for sub_name, voltage_kv in ext_grid_specs:
         # Find the load entry for this substation
-        matching_loads = net.load[
-            (net.load["name"].str.contains(sub_name, case=False, na=False))
-        ]
+        matching_loads = net.load[(net.load["name"].str.contains(sub_name, case=False, na=False))]
 
         if len(matching_loads) > 0:
             # Get the bus_id from the load
@@ -949,9 +977,7 @@ def add_external_grids(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapow
                 )
                 added_count += 1
                 bus_vn = net.bus.loc[target_bus_id, "vn_kv"]
-                logger.debug(
-                    f"✓ Added ext_grid at {sub_name} ({bus_vn} kV) - bus {target_bus_id}"
-                )
+                logger.debug(f"✓ Added ext_grid at {sub_name} ({bus_vn} kV) - bus {target_bus_id}")
             else:
                 logger.debug(
                     f"✗ Bus {target_bus_id} not found for {sub_name} "
@@ -962,8 +988,7 @@ def add_external_grids(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapow
 
     if added_count == 0:
         logger.debug(
-            "WARNING: No external grids were added. "
-            "Check that substations exist in the network."
+            "WARNING: No external grids were added. Check that substations exist in the network."
         )
     else:
         logger.debug(f"\n✓ Successfully added {added_count} external grid(s)")
@@ -1005,7 +1030,7 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
             errors = check_func(net)
             results[name] = errors
         except Exception as e:
-            results[name] = f"Error running diagnostic: {str(e)}"
+            results[name] = f"Error running diagnostic: {e!s}"
 
     # Special handling for disconnected elements:
     # Spatial fragments are now filtered during bus/line extraction (_cleanup_disconnected_fragments).
@@ -1024,7 +1049,7 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
         else:
             results["disconnected_elements"] = []
     except Exception as e:
-        results["disconnected_elements"] = f"Error running diagnostic: {str(e)}"
+        results["disconnected_elements"] = f"Error running diagnostic: {e!s}"
 
     # Checks that require parameters - use sensible defaults
     try:
@@ -1034,14 +1059,14 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
         )
         results["implausible_impedance_values"] = errors
     except Exception as e:
-        results["implausible_impedance_values"] = f"Error running diagnostic: {str(e)}"
+        results["implausible_impedance_values"] = f"Error running diagnostic: {e!s}"
 
     try:
         # Nominal voltages mismatch with 5% tolerance
         errors = pp.nominal_voltages_dont_match(net, nom_voltage_tolerance=0.05)
         results["nominal_voltages_mismatch"] = errors
     except Exception as e:
-        results["nominal_voltages_mismatch"] = f"Error running diagnostic: {str(e)}"
+        results["nominal_voltages_mismatch"] = f"Error running diagnostic: {e!s}"
 
     return results
 

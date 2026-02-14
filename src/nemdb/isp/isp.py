@@ -1,9 +1,9 @@
-import polars as pl
-import fastexcel
-
 import os
-import nemdb
 
+import fastexcel
+import polars as pl
+
+import nemdb
 
 ISP_FILE = os.path.join(*nemdb.__path__, "artefacts", "ISP_2024.xlsx")
 ISP_2025_FILE = os.path.join(*nemdb.__path__, "artefacts", "ISP_2025.xlsm")
@@ -12,9 +12,7 @@ ISP_2025_FILE = os.path.join(*nemdb.__path__, "artefacts", "ISP_2025.xlsm")
 _NON_DATA_SHEETS = {"Disclaimer", "Change Log", "Assumptions Summary"}
 
 
-def _detect_header_row(
-    df: pl.DataFrame, threshold: float = 0.4, max_scan: int = 50
-) -> int:
+def _detect_header_row(df: pl.DataFrame, threshold: float = 0.4, max_scan: int = 50) -> int:
     """Detect the column-header row in a raw DataFrame loaded with header_row=None.
 
     Finds the first row where at least 3 of the first 4 columns are non-null
@@ -39,17 +37,11 @@ def _detect_header_row(
 
     for i in range(min(max_scan, len(df))):
         row = df.row(i)
-        non_null_total = sum(
-            1 for v in row if v is not None and str(v).strip() != ""
-        )
+        non_null_total = sum(1 for v in row if v is not None and str(v).strip() != "")
         if non_null_total < min_non_null:
             continue
         first_n = min(4, ncols)
-        first_non_null = sum(
-            1
-            for v in row[:first_n]
-            if v is not None and str(v).strip() != ""
-        )
+        first_non_null = sum(1 for v in row[:first_n] if v is not None and str(v).strip() != "")
         if first_non_null >= min(3, first_n):
             return i
     return 0
@@ -125,9 +117,7 @@ class ISPAssumptions(fastexcel.ExcelReader):
         """
         return self.load_sheet_by_name(table_name).to_polars()
 
-    def read_clean_table(
-        self, table_name: str, *, header_row: int | None = None
-    ) -> pl.DataFrame:
+    def read_clean_table(self, table_name: str, *, header_row: int | None = None) -> pl.DataFrame:
         """
         Reads a table with automatic header detection and cleaning.
 
@@ -166,9 +156,7 @@ class ISPAssumptions(fastexcel.ExcelReader):
             DataFrame with columns: Worksheet, Assumptions Grouping,
             Description, Source.
         """
-        raw = self.load_sheet_by_name(
-            "Assumptions Summary", header_row=None
-        ).to_polars()
+        raw = self.load_sheet_by_name("Assumptions Summary", header_row=None).to_polars()
 
         # Find the "Worksheet Descriptions" section and extract the table
         cols = ["Worksheet", "Assumptions Grouping", "Description", "Source"]
