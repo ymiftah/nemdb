@@ -50,7 +50,5 @@ def _read_all_zss(file):
 
 if __name__ == "__main__":
     path = "/home/simba/Downloads/Tasnetworks-Zone-Substation-Load-Data-2023-24.csv"
-    # url = get_url(2023)
-    # df = download_file(url, path)
     df = read_all_zss(path)
     print(df)

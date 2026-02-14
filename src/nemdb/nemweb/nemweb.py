@@ -20,7 +20,7 @@ def read_bids(year, month, day):
     """Returns price and volume bids for the given day."""
     file = f"PUBLIC_BIDMOVE_COMPLETE_{year}{month:02d}{day:02d}"
     files = __read_files_available(BIDMOVE, format=".zip")
-    file = [f for f in files if file in f][0]
+    file = next(f for f in files if file in f)
     file = cache_response_zip(file)
     with zipfile.ZipFile(file, "r") as z, z.open(z.namelist()[0]) as f:
         first = True
@@ -33,7 +33,6 @@ def read_bids(year, month, day):
             if first and line_.startswith("I"):
                 first = False
             elif line_.startswith("I"):
-                # continue
                 out.seek(0)
                 dfs.append(pl.read_csv(out))
                 out.truncate(0)
@@ -131,18 +130,6 @@ def read_bidduiddetails(year: int, month: int) -> pl.DataFrame:
     return df
 
 
-# def read_biddayoffer(year: int, month: int) -> pl.DataFrame:
-#     data = f"BIDDAYOFFER_{year}{month:02d}010000.zip"
-#     url = MMSDM.format(year=year, month=month, data=data)
-#     df = pl.from_pandas(
-#         pd.read_csv(
-#             url,
-#             skiprows=1,
-#         )
-#     ).filter(pl.col("I") == "D")
-#     return df
-
-
 def read_dudetails(year: int, month: int) -> pl.DataFrame:
     data = f"DUDETAIL_{year}{month:02d}010000.zip"
     url = MMSDM.format(year=year, month=month, data=data)
@@ -214,10 +201,7 @@ def read_demand_forecast(date: str | None = None) -> pl.DataFrame:
     """
     url = "https://nemweb.com.au/Reports/Current/Operational_Demand/Forecast_HH/"
     files = __read_files_available(url)
-    if date is None:
-        files = files[-1:]  # open the last one
-    else:
-        files = [f for f in files if date in f]  # TODO proper regex
+    files = files[-1:] if date is None else [f for f in files if date in f]
     # TODO maybe use dask, but careful with 403
     df = pd.concat(__fetch(f) for f in files)
     # process in polars

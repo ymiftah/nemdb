@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -25,21 +24,20 @@ def test_cache_response_zip_new_file(temp_dir):
         mock_get.return_value.status_code = 200
         mock_get.return_value.content = content
         path = cache_response_zip(url)
-        assert os.path.exists(path)
-        with open(path, "rb") as f:
-            assert f.read() == content
+        path_obj = Path(path)
+        assert path_obj.exists()
+        assert path_obj.read_bytes() == content
 
 
 def test_cache_response_zip_existing_file(temp_dir):
     """Test caching an existing file."""
     url = "http://example.com/test.zip"
-    path = os.path.join(temp_dir, "test.zip")
-    with open(path, "wb") as f:
-        f.write(b"existing content")
+    path = Path(temp_dir) / "test.zip"
+    path.write_bytes(b"existing content")
     with patch("requests.get") as mock_get:
         new_path = cache_response_zip(url)
         mock_get.assert_not_called()
-        assert new_path == path
+        assert new_path == str(path)
 
 
 def test_cache_response_zip_failed_download(temp_dir):
@@ -53,20 +51,20 @@ def test_cache_response_zip_failed_download(temp_dir):
 
 def test_cache_to_parquet_new_file(temp_dir):
     """Test caching a new parquet file."""
-    file_path = os.path.join(temp_dir, "test.parquet")
+    file_path = Path(temp_dir) / "test.parquet"
 
     @cache_to_parquet(file_path)
     def sample_df():
         return pl.DataFrame({"a": [1, 2], "b": [3, 4]})
 
     df = sample_df()
-    assert os.path.exists(file_path)
+    assert file_path.exists()
     assert df.equals(pl.read_parquet(file_path))
 
 
 def test_cache_to_parquet_existing_file(temp_dir):
     """Test caching an existing parquet file."""
-    file_path = os.path.join(temp_dir, "test.parquet")
+    file_path = Path(temp_dir) / "test.parquet"
     existing_df = pl.DataFrame({"a": [5, 6], "b": [7, 8]})
     existing_df.write_parquet(file_path)
 

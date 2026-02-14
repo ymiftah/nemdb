@@ -841,7 +841,7 @@ class NEMWEBManager:
 
     @property
     def tables(self):
-        return list(v for v in vars(self) if v != "source")
+        return [v for v in vars(self) if v != "source"]
 
     def active_tables(self):
         """
@@ -964,13 +964,13 @@ def _get_archive(table_name, year, month):
         url = URL_ALT.format(table=table_name, year=year, month=month)
         try:
             r = cache_response_zip(url)
-        except ValueError:
+        except ValueError as err:
             raise _MissingData(
                 f"""Requested data for table: {table_name}, year: {year}, month: {month}
                                 not downloaded. Please check your internet connection. Also check
                                 http://nemweb.com.au/#mms-data-model, to see if your requested
                                 data is uploaded."""
-            )
+            ) from err
     return r
 
 
@@ -979,7 +979,7 @@ def _archive_to_df(
     table_columns: list[str],
     year: int,
     month: int,
-    low_memory: bool = False,
+    _low_memory: bool = False,
 ) -> pl.DataFrame:
     """Downloads a zipped csv file and converts it to a pandas DataFrame, returns the DataFrame.
 
@@ -1043,7 +1043,6 @@ def _archive_to_df(
         archive,
         skiprows=1,
         usecols=list(table_dtypes.keys()),
-        # dtype=table_dtypes,
     )
     missing_columns = set(table_columns).difference(available_cols)
     if len(missing_columns):
@@ -1105,7 +1104,7 @@ class DataSource:
         self.table_columns = table_columns
         self.table_primary_keys = table_primary_keys if table_primary_keys is not None else []
         self.partitions = (
-            add_partitions + ["archive_month"] if add_partitions is not None else ["archive_month"]
+            [*add_partitions, "archive_month"] if add_partitions is not None else ["archive_month"]
         )
         self.low_memory = low_memory
 
@@ -1260,14 +1259,14 @@ class DataSource:
             usecols=list(table_dtypes.keys()),
             chunksize=1_000_000,
         )
-        for j, data in enumerate(reader):
-            data = data.assign(**dict.fromkeys(missing_columns))
+        for j, raw_chunk in enumerate(reader):
+            chunk = raw_chunk.assign(**dict.fromkeys(missing_columns))
             date_types = [k for k in table_dtypes if table_dtypes[k] in (pl.Date, pl.Datetime)]
             for col in date_types:
-                data[col] = pd.to_datetime(data[col], format=STRPTIME, errors="coerce")
+                chunk[col] = pd.to_datetime(chunk[col], format=STRPTIME, errors="coerce")
 
             data = (
-                pl.from_dataframe(data)
+                pl.from_dataframe(chunk)
                 .cast({k: DTYPES[k] for k in set(table_columns)})
                 .with_columns(
                     pl.date(year, month, 1).alias("archive_month"),
@@ -1305,7 +1304,7 @@ class DataSource:
         """
         logger.info("Fetching data for %s %s / %s", self.table_name, year, month)
         archive = _get_archive(self.table_name, year, month)
-        return _archive_to_df(archive, self.table_columns, year, month, low_memory=self.low_memory)
+        return _archive_to_df(archive, self.table_columns, year, month, _low_memory=self.low_memory)
 
     def get_data(self):
         return self.read()

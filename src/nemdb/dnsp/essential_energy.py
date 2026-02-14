@@ -35,15 +35,6 @@ def get_url(year: int):
     with requests.Session() as s:
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0",
-            # "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-            # "Accept-Encoding": "gzip, deflate",
-            # "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6",
-            # "Connection": "keep-alive",
-            # "DNT": "1",
-            # "Host": "www.essentialenergy.com.au",
-            # "Referer": ,
-            # "Upgrade-Insecure-Requests": "1",
-            # "Cookie": "JSESSIONID=5F0C8AF27E4C1E0EDEE55F7B9E8AA5C4; _ga=GA1.3.1433753942.1593115043; _gid=GA1.3.1353433574.1593115043; _gat_UA-1053426-4=1",
         }
         resp1 = requests.get(
             "https://www.essentialenergy.com.au/our-network/network-projects/zone-substation-reports",
@@ -88,12 +79,6 @@ def _read_all_zss(file):
 
 
 if __name__ == "__main__":
-    # content = get_url(2024)
-    # print(content)
     file = "/home/simba/Downloads/EE-Zone-Substation-Load-Data-2023-24.zip"
-    # file = download_file(
-    #     get_url(2024),
-    #     file,
-    # )
     df = read_all_zss(file)
     print(df)

@@ -56,11 +56,6 @@ def _read_all_zss(file):
 
 
 if __name__ == "__main__":
-    # file = download_file(
-    #     get_url(2024), "/home/simba/Downloads/Endeavour-FY-23-DAPR-Upload-Folder.zip"
-    # )
     file = "/home/simba/Downloads/FY-23-DAPR-Upload-Folder.zip"
-    # files = list_zip_files(file)
-    # zss = list_zss(file)
     df = read_all_zss(file)
     print(df)

@@ -36,11 +36,11 @@ def _read_all_zss(file):
     """
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
-        for file in zip_ref.namelist():
-            if not file.endswith(".csv"):
+        for filename in zip_ref.namelist():
+            if not filename.endswith(".csv"):
                 continue
-            zss_name = file.split("/")[1].split("_20")[0].split("UE/")[0]
-            with zip_ref.open(file) as f:
+            zss_name = filename.split("/")[1].split("_20")[0].split("UE/")[0]
+            with zip_ref.open(filename) as f:
                 df = (
                     pl.read_csv(f)
                     .select(pl.all().name.to_lowercase())

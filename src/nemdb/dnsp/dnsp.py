@@ -50,7 +50,7 @@ class DNSPDataSource:
         table_columns,
         table_primary_keys=None,
         add_partitions=None,
-        low_memory=False,
+        _low_memory=False,
     ):
         """
         Creates a parquet dataset
@@ -59,7 +59,7 @@ class DNSPDataSource:
         self.table_name = table_name
         self.table_columns = table_columns
         self.table_primary_keys = table_primary_keys
-        self.partitions = add_partitions + ["year"] if add_partitions else ["year"]
+        self.partitions = [*add_partitions, "year"] if add_partitions else ["year"]
         self.low_memory = False
 
         self.path = f"{config.CACHE_DIR}/{table_name}"
@@ -80,7 +80,7 @@ class DNSPDataSource:
         """
         return self.scan(self, *args, **kwargs).collect()
 
-    def add_data(self, year, month, **kwargs):
+    def add_data(self, year, _month, **kwargs):
         name = self.table_name
         partition_cols = self.partitions
         for network, df in read_all_zss(year):
@@ -138,5 +138,5 @@ class DNSPDataSource:
 
 
 if __name__ == "__main__":
-    for df in read_all_zss(2024):
+    for _df in read_all_zss(2024):
         pass

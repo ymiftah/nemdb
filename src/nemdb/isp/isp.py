@@ -1,11 +1,11 @@
-import os
+from pathlib import Path
 
 import fastexcel
 import polars as pl
 
 import nemdb
 
-ISP_FILE = os.path.join(*nemdb.__path__, "artefacts", "ISP_2024.xlsx")
+ISP_FILE = str(Path(*nemdb.__path__) / "artefacts" / "ISP_2024.xlsx")
 
 
 class ISPAssumptions(fastexcel.ExcelReader):

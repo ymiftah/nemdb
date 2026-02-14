@@ -17,8 +17,8 @@ def get_url(year: int):
 def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
-        for file in zip_ref.namelist():
-            with zip_ref.open(file) as f:
+        for filename in zip_ref.namelist():
+            with zip_ref.open(filename) as f:
                 df = (
                     (
                         pl.read_csv(f)
@@ -74,6 +74,5 @@ def read_all_zss(year: int):
 
 if __name__ == "__main__":
     path = "/home/simba/Downloads/ausgrid-Zone-Substation-Load-Data-2023-24.zip"
-    # df = download_file(URLS[2024], path)
     df = read_all_zss(path)
     print(df)

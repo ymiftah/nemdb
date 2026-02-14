@@ -23,8 +23,8 @@ def get_url(year: int):
 def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
-        for file in zip_ref.namelist():
-            with zip_ref.open(file) as f:
+        for filename in zip_ref.namelist():
+            with zip_ref.open(filename) as f:
                 try:
                     df = (
                         pd.read_csv(f, header=[1, 2, 3], index_col=[0, 1])
@@ -35,7 +35,7 @@ def _read_all_zss(file):
                     log.error(
                         "Error %s while reading file %s, retrying ignoring bad lines",
                         exc,
-                        file,
+                        filename,
                     )
                     f.seek(0)  # return to start of file
                     df = (
@@ -97,6 +97,5 @@ def _fix_columns(df: pd.DataFrame):
 
 if __name__ == "__main__":
     path = "/home/simba/Downloads/SAPN-Zone-Substation-Load-Data-2023-24.zip"
-    # df = download_file(get_url(2024), path)
     df = read_all_zss(path)
     print(df)

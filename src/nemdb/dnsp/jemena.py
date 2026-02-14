@@ -25,8 +25,8 @@ def _read_all_zss(file):
     with zipfile.ZipFile(file, "r") as zip_ref:
         for f in zip_ref.namelist():
             zss_name = f.split(" Zone Substation")[0]
-            with zip_ref.open(f) as file:
-                df = pl.read_excel(file.read())
+            with zip_ref.open(f) as file_content:
+                df = pl.read_excel(file_content.read())
             idx, names = _get_start_index(df)
             df = df[idx + 1 :]
             df.columns = names
@@ -48,9 +48,5 @@ def _get_start_index(df):
 
 
 if __name__ == "__main__":
-    # df = download_file(
-    #     get_url(2024),
-    #     "/home/simba/Downloads/Jemena-Network-Substation-Load-Data-2023-24.zip",
-    # )
     df = read_all_zss("/home/simba/Downloads/Jemena-Network-Substation-Load-Data-2023-24.zip")
     print(df)
