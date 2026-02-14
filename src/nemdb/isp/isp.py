@@ -1,9 +1,9 @@
-import polars as pl
-import fastexcel
-
 import os
-import nemdb
 
+import fastexcel
+import polars as pl
+
+import nemdb
 
 ISP_FILE = os.path.join(*nemdb.__path__, "artefacts", "ISP_2024.xlsx")
 

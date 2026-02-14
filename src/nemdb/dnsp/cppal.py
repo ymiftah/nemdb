@@ -1,9 +1,9 @@
 import zipfile
-import polars as pl
 
 import pandera as pa
-from nemdb.dnsp.common import LoadSchema
+import polars as pl
 
+from nemdb.dnsp.common import LoadSchema
 from nemdb.utils import download_file_to_bytesio
 
 

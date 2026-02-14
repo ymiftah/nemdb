@@ -1,11 +1,11 @@
 from functools import partial
 from itertools import chain
 
-import pandas as pd
 import geopandas as gpd
+import pandas as pd
 import shapely as shp
-from shapely.ops import linemerge
 from shapely import shortest_line
+from shapely.ops import linemerge
 
 
 def _get_furthest_closest_point(list_points):
@@ -16,8 +16,7 @@ def _get_furthest_closest_point(list_points):
         return list_points[0]
 
     dist_dict = {
-        p: min(p.distance(not_p) for not_p in list_points if p != not_p)
-        for p in list_points
+        p: min(p.distance(not_p) for not_p in list_points if p != not_p) for p in list_points
     }
     point = pd.Series(dist_dict).idxmax()
     return point
@@ -172,7 +171,5 @@ def clean_transmission_lines(lines: gpd.GeoDataFrame):
     Returns:
         A new GeoDataFrame with the same columns as the input, but with the "geometry" column cleaned as described above.
     """
-    lines["geometry"] = (
-        lines["geometry"].line_merge().map(make_continuous).map(clean_multilines)
-    )
+    lines["geometry"] = lines["geometry"].line_merge().map(make_continuous).map(clean_multilines)
     return lines

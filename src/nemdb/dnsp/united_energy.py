@@ -1,8 +1,8 @@
 import zipfile
-import polars as pl
-
 
 import pandera as pa
+import polars as pl
+
 from nemdb.dnsp.common import LoadSchema
 from nemdb.utils import download_file_to_bytesio
 
@@ -16,7 +16,7 @@ def read_all_zss(year: int):
 def get_url(year: int):
     return {
         2024: "https://media.unitedenergy.com.au/reports/UE-1-July-2022-to-30-June-2023-1.zip"
-    }.get(year, None)
+    }.get(year)
 
 
 @pa.check_output(LoadSchema)

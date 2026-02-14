@@ -1,7 +1,7 @@
-import requests
 import os
-
 from time import sleep
+
+import requests
 
 from nemdb import Config
 from nemdb.logger import log as logger

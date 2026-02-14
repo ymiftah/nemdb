@@ -13,3 +13,29 @@ wheels/
 *.Identifier
 
 .env
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Type checking
+.mypy_cache/
+.pytype/
+.pyre/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+site/

@@ -1,22 +1,23 @@
-import pytest
 from datetime import datetime
-import polars as pl
-import pandas as pd
+from pathlib import Path
 
+import pandas as pd
+import polars as pl
+import pytest
+
+from nemdb import Config
 from nemdb.nemweb.dbloader import (
-    NEMWEBManager,
-    DataSource,
-    BySettlementDate,
+    ByEffectiveDateVersionNo,
     ByIntervalDate,
+    BySettlementDate,
     BySettlementDay,
     ByStartEnd,
-    ByEffectiveDateVersionNo,
-    _get_archive,
+    DataSource,
+    NEMWEBManager,
     _archive_to_df,
+    _get_archive,
     _MissingData,
 )
-from nemdb import Config
-from pathlib import Path
 
 
 @pytest.fixture
@@ -116,9 +117,7 @@ def test_get_unit_price_bids(mocker, mock_config):
 
 def test_get_archive_success(mocker):
     """Test _get_archive on success."""
-    mocker.patch(
-        "nemdb.nemweb.dbloader.cache_response_zip", return_value="path/to/file.zip"
-    )
+    mocker.patch("nemdb.nemweb.dbloader.cache_response_zip", return_value="path/to/file.zip")
     path = _get_archive("TABLE", 2024, 1)
     assert path == "path/to/file.zip"
 
@@ -206,14 +205,10 @@ def test_by_start_end(mocker, mock_config):
 
 def test_by_effective_date_version_no(mocker, mock_config):
     """Test ByEffectiveDateVersionNo get_data method."""
-    ds = ByEffectiveDateVersionNo(
-        mock_config, "TABLE", ["EFFECTIVEDATE", "VERSIONNO", "a"], ["a"]
-    )
+    ds = ByEffectiveDateVersionNo(mock_config, "TABLE", ["EFFECTIVEDATE", "VERSIONNO", "a"], ["a"])
     mock_scan = mocker.patch.object(ds, "scan")
     (
         mock_scan.return_value.filter.return_value.sort.return_value.unique.return_value.collect.return_value
-    ) = pl.DataFrame(
-        {"EFFECTIVEDATE": [datetime(2024, 1, 1)], "VERSIONNO": [1], "a": [1]}
-    )
+    ) = pl.DataFrame({"EFFECTIVEDATE": [datetime(2024, 1, 1)], "VERSIONNO": [1], "a": [1]})
     df = ds.get_data("2024/01/15")
     assert df.shape == (1, 3)

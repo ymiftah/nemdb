@@ -1,15 +1,13 @@
 import geopandas as gpd
 import pandas as pd
 import shapely as shp
-
 from sklearn.cluster import DBSCAN
 
 from nemdb.geodata.geodata import (
+    read_major_powerstations,
     read_substations,
     read_transmission_lines,
-    read_major_powerstations,
 )
-
 
 METRIC_CRS = "EPSG:7856"
 GEO_CRS = "EPSG:4326"

@@ -1,15 +1,14 @@
-from joblib import Memory
 import datetime
 
 import polars as pl
-
+from joblib import Memory
 from openelectricity import AsyncOEClient
 from openelectricity.types import (
     DataInterval,
-    NetworkCode,
     DataMetric,
     DataPrimaryGrouping,
     DataSecondaryGrouping,
+    NetworkCode,
 )
 
 from nemdb.config import Config

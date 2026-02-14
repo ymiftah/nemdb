@@ -1,0 +1,11 @@
+# Default owner for everything in the repo
+* @ymiftah
+
+# Project configuration
+/pyproject.toml @ymiftah
+
+# CI/CD workflows
+/.github/workflows/ @ymiftah
+
+# Configuration module
+/src/nemdb/config.py @ymiftah

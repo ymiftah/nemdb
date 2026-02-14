@@ -1,6 +1,9 @@
 # NEMDB
 
 [![CI](https://github.com/ymiftah/nemdb/actions/workflows/ci.yml/badge.svg)](https://github.com/ymiftah/nemdb/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ymiftah/nemdb/branch/main/graph/badge.svg)](https://codecov.io/gh/ymiftah/nemdb)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 
 NEMDB is a Python package that provides a set of utilities to process and manage data from the Australian National Electricity Market (NEM). It simplifies the process of fetching, storing, and accessing NEMWEB data, making it easier for researchers, analysts, and developers to work with this valuable dataset.
 
@@ -14,7 +17,7 @@ NEMDB is a Python package that provides a set of utilities to process and manage
 
 ### Prerequisites
 
--   Python 3.12 or higher
+-   Python 3.13 or higher
 -   [uv](https://docs.astral.sh/uv/)
 
 ### Installation
