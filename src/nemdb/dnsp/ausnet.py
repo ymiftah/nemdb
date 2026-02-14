@@ -1,9 +1,8 @@
 import polars as pl
 
-from nemdb.dnsp.common import LoadSchema
-
-from nemdb.utils import download_file_to_bytesio
 from nemdb import log
+from nemdb.dnsp.common import LoadSchema
+from nemdb.utils import download_file_to_bytesio
 
 """List of ZSS from the regulatory information notice 2024.
 https://www.aer.gov.au/documents/ausnet-services-d-2023-24-category-analysis-rin-templates
@@ -70,7 +69,7 @@ def get_url(zss):
     return f"https://dapr.ausnetservices.com.au/export_all_load_trace_data.php?station={zss}"
 
 
-def read_all_zss(year: int):
+def read_all_zss(_year: int):
     frames = []
     for zss in ALL_ZSS:
         log.info("Downloading Zone Substation loads from %s for year.", zss)
@@ -123,9 +122,5 @@ def _read_zss(file):
 
 
 if __name__ == "__main__":
-    # zss = "WO"
-    # url = get_url(zss)
-    # path = f"/home/simba/Downloads/ausnet-{zss}-Zone-Substation-Load-Data-2023-24.zip"
-    # bytesio = download_file_to_bytesio(url)
     df = read_all_zss(2024)
     print(df)

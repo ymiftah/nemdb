@@ -1,16 +1,14 @@
-import requests
-from typing import Any
 import functools
-import polars as pl
+from io import BytesIO
+from pathlib import Path
+from typing import Any
+
 import geopandas as gpd
 import pandas as pd
-from pathlib import Path
+import polars as pl
+import requests
 
-from nemdb import log, Config
-
-import os
-
-from io import BytesIO
+from nemdb import Config, log
 
 
 def download_file(url, path, stream=True):
@@ -29,14 +27,14 @@ def download_file(url, path, stream=True):
     str
         The path where the file has been saved.
     """
-    if os.path.exists(path):
+    path_obj = Path(path)
+    if path_obj.exists():
         log.info("File already exists at %s", path)
         return path
     log.info("Downloading %s to %s", url, path)
-    with requests.get(url, stream=stream) as r:
-        with open(path, "wb") as f:
-            for chunk in r.iter_content(1024):
-                f.write(chunk)
+    with requests.get(url, stream=stream) as r, path_obj.open("wb") as f:
+        for chunk in r.iter_content(1024):
+            f.write(chunk)
     log.info("Successfully downloaded %s to %s", url, path)
     return path
 
@@ -101,7 +99,5 @@ def _dispatch_read(file_path, type_):
 def _dispatch_write(df, file_path, type_):
     if type_ == pl.DataFrame:
         return df.write_parquet(file_path)
-    elif type_ == gpd.GeoDataFrame:
-        return df.to_parquet(file_path)
-    elif type_ == pd.DataFrame:
+    elif type_ in (gpd.GeoDataFrame, pd.DataFrame):
         return df.to_parquet(file_path)

@@ -1,18 +1,19 @@
-import os
+from pathlib import Path
+
 from .config import Config
-from .logger import log
-
-from . import utils, main
-from .nemweb import NEMWEBManager
 from .isp import ISPAssumptions
+from .logger import log
+from .nemweb import NEMWEBManager
 
+# These imports must come after Config to avoid circular imports
+from . import main, utils
 
 if Config.FILESYSTEM == "local":
     log.info("Creating cache directory at %s", Config.CACHE_DIR)
-    os.makedirs(Config.CACHE_DIR, exist_ok=True)
+    Path(Config.CACHE_DIR).mkdir(parents=True, exist_ok=True)
 
 log.info("Creating temp cache directory at %s", Config.TEMP_DIR)
-os.makedirs(Config.TEMP_DIR, exist_ok=True)
+Path(Config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
 
 
-__all__ = ["Config", "NEMWEBManager", "ISPAssumptions", "utils", "main"]
+__all__ = ["Config", "ISPAssumptions", "NEMWEBManager", "main", "utils"]

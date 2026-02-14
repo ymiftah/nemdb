@@ -1,5 +1,6 @@
 import re
-import os
+from pathlib import Path
+
 import polars as pl
 
 from nemdb import Config
@@ -30,15 +31,14 @@ def _read_rename(file, method):
     return df
 
 
-DIR = os.path.join(Config.CACHE_DIR, "DER_REGISTER")
-files = os.listdir(DIR)
-csv_files = list(f"{DIR}/{f}" for f in files if re.search(".csv$", f))
-xlsx_files = list(f"{DIR}/{f}" for f in files if re.search(".xlsx$", f))
+DIR = Path(Config.CACHE_DIR) / "DER_REGISTER"
+csv_files = [str(f) for f in DIR.iterdir() if f.suffix == ".csv"]
+xlsx_files = [str(f) for f in DIR.iterdir() if f.suffix == ".xlsx"]
 
 df_xlsx = pl.concat(
     (
         _read_rename(f, pl.read_excel).with_columns(
-            date=pl.lit(re.sub(" DERR[ -]data.xlsx", "", os.path.basename(f)))
+            date=pl.lit(re.sub(" DERR[ -]data.xlsx", "", Path(f).name))
         )
         for f in xlsx_files
     ),
@@ -47,7 +47,7 @@ df_xlsx = pl.concat(
 df_csv = pl.concat(
     (
         _read_rename(f, pl.read_csv).with_columns(
-            date=pl.lit(re.sub(" DERR[ -]data.csv", "", os.path.basename(f)))
+            date=pl.lit(re.sub(" DERR[ -]data.csv", "", Path(f).name))
         )
         for f in csv_files
     ),

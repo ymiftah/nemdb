@@ -1,8 +1,7 @@
-import polars as pl
 import pandas as pd
-
-
 import pandera as pa
+import polars as pl
+
 from nemdb.dnsp.common import LoadSchema
 from nemdb.utils import download_file_to_bytesio
 
@@ -17,7 +16,7 @@ def get_url(year: int):
     return {
         2023: "https://www.tasnetworks.com.au/Documents/Manual-documents/Planning-and-upgrades/Substation-Load-Information/2023-Zone-Substation-Report",
         2024: "https://www.tasnetworks.com.au/Documents/Manual-documents/Planning-and-upgrades/Substation-Load-Information/2023-Zone-Substation-Report",
-    }.get(year, None)
+    }.get(year)
 
 
 @pa.check_output(LoadSchema)
@@ -51,7 +50,5 @@ def _read_all_zss(file):
 
 if __name__ == "__main__":
     path = "/home/simba/Downloads/Tasnetworks-Zone-Substation-Load-Data-2023-24.csv"
-    # url = get_url(2023)
-    # df = download_file(url, path)
     df = read_all_zss(path)
     print(df)

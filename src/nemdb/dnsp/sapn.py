@@ -1,11 +1,10 @@
 import zipfile
-import polars as pl
+
 import pandas as pd
+import pandera as pa
+import polars as pl
 
 from nemdb import log
-
-
-import pandera as pa
 from nemdb.dnsp.common import LoadSchema
 from nemdb.utils import download_file_to_bytesio
 
@@ -17,17 +16,15 @@ def read_all_zss(year: int):
 
 
 def get_url(year: int):
-    return {
-        2024: "https://www.sapowernetworks.com.au/public/download.jsp?id=331119"
-    }.get(year, None)
+    return {2024: "https://www.sapowernetworks.com.au/public/download.jsp?id=331119"}.get(year)
 
 
 @pa.check_output(LoadSchema)
 def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
-        for file in zip_ref.namelist():
-            with zip_ref.open(file) as f:
+        for filename in zip_ref.namelist():
+            with zip_ref.open(filename) as f:
                 try:
                     df = (
                         pd.read_csv(f, header=[1, 2, 3], index_col=[0, 1])
@@ -38,13 +35,11 @@ def _read_all_zss(file):
                     log.error(
                         "Error %s while reading file %s, retrying ignoring bad lines",
                         exc,
-                        file,
+                        filename,
                     )
                     f.seek(0)  # return to start of file
                     df = (
-                        pd.read_csv(
-                            f, header=[1, 2, 3], index_col=[0, 1], on_bad_lines="skip"
-                        )
+                        pd.read_csv(f, header=[1, 2, 3], index_col=[0, 1], on_bad_lines="skip")
                         .rename_axis(index=["date", "time"])
                         .rename_axis(columns=["zss", "connection_point", "metric"])
                     )
@@ -102,6 +97,5 @@ def _fix_columns(df: pd.DataFrame):
 
 if __name__ == "__main__":
     path = "/home/simba/Downloads/SAPN-Zone-Substation-Load-Data-2023-24.zip"
-    # df = download_file(get_url(2024), path)
     df = read_all_zss(path)
     print(df)

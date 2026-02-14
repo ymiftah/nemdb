@@ -1,15 +1,13 @@
 import geopandas as gpd
 import pandas as pd
 import shapely as shp
-
 from sklearn.cluster import DBSCAN
 
 from nemdb.geodata.geodata import (
+    read_major_powerstations,
     read_substations,
     read_transmission_lines,
-    read_major_powerstations,
 )
-
 
 METRIC_CRS = "EPSG:7856"
 GEO_CRS = "EPSG:4326"
@@ -23,13 +21,13 @@ def get_pandapower_model():
     pf_trafos = _get_trafos_pp(pf_buses)
     pf_gens = _get_gens_pp(pf_buses)
     pf_loads = _get_loads_pp(pf_buses)
-    return dict(
-        buses=pf_buses,
-        lines=pf_lines,
-        trafos=pf_trafos,
-        gens=pf_gens,
-        loads=pf_loads,
-    )
+    return {
+        "buses": pf_buses,
+        "lines": pf_lines,
+        "trafos": pf_trafos,
+        "gens": pf_gens,
+        "loads": pf_loads,
+    }
 
 
 def _get_buses_and_lines():
@@ -132,14 +130,14 @@ def _get_trafos_pp(pf_buses):
         .str.rsplit("_", n=1, expand=True)
         .set_axis(["bus_id", "vn_kv"], axis=1)
         .groupby("bus_id")
-        .agg(lambda s: sorted(list(s.str.replace("kv", "").astype(int))))
+        .agg(lambda s: sorted(s.str.replace("kv", "").astype(int)))
     )
     gdf = gdf[gdf["vn_kv"].map(len) > 1].reset_index()
 
     trafos = []
     for _, row in gdf.iterrows():
         bus = row["bus_id"]
-        for lv, hv in zip(row["vn_kv"][:-1], row["vn_kv"][1:]):
+        for lv, hv in zip(row["vn_kv"][:-1], row["vn_kv"][1:], strict=False):
             trafos.append(
                 {
                     "name": "trafo" + f"_{bus}_{lv}kv_to_{bus}_{hv}kv",

@@ -8,22 +8,20 @@ used in nempy.
 """
 
 from contextlib import suppress
-from functools import lru_cache
-import polars as pl
-import pandas as pd
-import fsspec
-
 from datetime import datetime, timedelta
+from functools import lru_cache
 
+import fsspec
+import pandas as pd
+import polars as pl
 from tqdm import tqdm
 
-from nemdb import log as logger
-from .utils import cache_response_zip
-from .nemweb import read_bids
-
 from nemdb import Config
+from nemdb import log as logger
 from nemdb.dnsp import DNSPDataSource
 
+from .nemweb import read_bids
+from .utils import cache_response_zip
 
 URL = "http://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_DVD_{table}_{year}{month:02d}010000.zip"
 URL_ALT = "http://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_ARCHIVE%23{table}%23FILE01%23{year}{month:02d}010000.zip"
@@ -843,7 +841,7 @@ class NEMWEBManager:
 
     @property
     def tables(self):
-        return list(v for v in vars(self) if v != "source")
+        return [v for v in vars(self) if v != "source"]
 
     def active_tables(self):
         """
@@ -870,9 +868,7 @@ class NEMWEBManager:
             date_slice.start,
             date_slice.stop,
         )
-        with (
-            pl.StringCache()
-        ):  # Ensures consistent Categorical values across all tables
+        with pl.StringCache():  # Ensures consistent Categorical values across all tables
             for table in tqdm(self.active_tables()):
                 table_: DataSource = getattr(self, table)
                 table_.populate(date_slice, force_new=force_new)
@@ -968,15 +964,13 @@ def _get_archive(table_name, year, month):
         url = URL_ALT.format(table=table_name, year=year, month=month)
         try:
             r = cache_response_zip(url)
-        except ValueError:
+        except ValueError as err:
             raise _MissingData(
-                (
-                    """Requested data for table: {}, year: {}, month: {}
+                f"""Requested data for table: {table_name}, year: {year}, month: {month}
                                 not downloaded. Please check your internet connection. Also check
                                 http://nemweb.com.au/#mms-data-model, to see if your requested
                                 data is uploaded."""
-                ).format(table_name, year, month)
-            )
+            ) from err
     return r
 
 
@@ -985,7 +979,7 @@ def _archive_to_df(
     table_columns: list[str],
     year: int,
     month: int,
-    low_memory: bool = False,
+    _low_memory: bool = False,
 ) -> pl.DataFrame:
     """Downloads a zipped csv file and converts it to a pandas DataFrame, returns the DataFrame.
 
@@ -1043,15 +1037,12 @@ def _archive_to_df(
     """
     # Read the file into a DataFrame.
     available_cols = read_header(archive)
-    table_dtypes = {
-        k: DTYPES[k] for k in set(table_columns).intersection(available_cols)
-    }
+    table_dtypes = {k: DTYPES[k] for k in set(table_columns).intersection(available_cols)}
 
     data = pd.read_csv(
         archive,
         skiprows=1,
         usecols=list(table_dtypes.keys()),
-        # dtype=table_dtypes,
     )
     missing_columns = set(table_columns).difference(available_cols)
     if len(missing_columns):
@@ -1062,12 +1053,10 @@ def _archive_to_df(
             year,
             month,
         )
-    data = data.assign(**{col: None for col in missing_columns})
+    data = data.assign(**dict.fromkeys(missing_columns))
     date_types = [k for k in table_dtypes if table_dtypes[k] in (pl.Date, pl.Datetime)]
     for col in date_types:
-        data[col] = pd.to_datetime(
-            data[col].to_list(), format=STRPTIME, errors="coerce"
-        )
+        data[col] = pd.to_datetime(data[col].to_list(), format=STRPTIME, errors="coerce")
     # Discard last row of DataFrame
     data = data[:-1]
     return pl.from_dataframe(data).cast({k: DTYPES[k] for k in set(table_columns)})
@@ -1113,13 +1102,9 @@ class DataSource:
         self.config = config
         self.table_name = table_name
         self.table_columns = table_columns
-        self.table_primary_keys = (
-            table_primary_keys if table_primary_keys is not None else []
-        )
+        self.table_primary_keys = table_primary_keys if table_primary_keys is not None else []
         self.partitions = (
-            add_partitions + ["archive_month"]
-            if add_partitions is not None
-            else ["archive_month"]
+            [*add_partitions, "archive_month"] if add_partitions is not None else ["archive_month"]
         )
         self.low_memory = low_memory
 
@@ -1157,24 +1142,16 @@ class DataSource:
             force_new (bool, optional): If True, re-downloads and overwrites
                 existing data. Defaults to False.
         """
-        date_range = pd.date_range(
-            start=date_slice.start, end=date_slice.stop, freq="MS"
-        )
-        logger.info(
-            "Populating database with data from %s to %s", date_range[0], date_range[-1]
-        )
-        with (
-            pl.StringCache()
-        ):  # Ensures consistent Categorical values across all tables
+        date_range = pd.date_range(start=date_slice.start, end=date_slice.stop, freq="MS")
+        logger.info("Populating database with data from %s to %s", date_range[0], date_range[-1])
+        with pl.StringCache():  # Ensures consistent Categorical values across all tables
             for date in tqdm(date_range):
                 year = date.year
                 month = date.month
                 # Check if data already exists in tables before adding
                 data_exists = False
                 if not force_new:
-                    with suppress(
-                        pl.exceptions.ComputeError, FileNotFoundError, Exception
-                    ):
+                    with suppress(pl.exceptions.ComputeError, FileNotFoundError, Exception):
                         logger.info(
                             "Checking if data already exists for %s %s / %s",
                             self.table_name,
@@ -1227,9 +1204,7 @@ class DataSource:
                 .sort(partition_cols + self.table_primary_keys)
             )
         except _MissingData:
-            logger.error(
-                "No data available for %s %s / %s", self.table_name, year, month
-            )
+            logger.error("No data available for %s %s / %s", self.table_name, year, month)
             return
 
         logger.debug(
@@ -1259,21 +1234,15 @@ class DataSource:
             )
             return None
         except _MissingData:
-            logger.error(
-                "No data available for %s %s / %s", self.table_name, year, month
-            )
+            logger.error("No data available for %s %s / %s", self.table_name, year, month)
             return
 
-    def _archive_to_df_low_memory(
-        self, archive, name, table_columns, year, month, path, **kwargs
-    ):
+    def _archive_to_df_low_memory(self, archive, name, table_columns, year, month, path, **kwargs):
         partition_cols = self.partitions
 
         # Read the file into a DataFrame.
         available_cols = read_header(archive)
-        table_dtypes = {
-            k: DTYPES[k] for k in set(table_columns).intersection(available_cols)
-        }
+        table_dtypes = {k: DTYPES[k] for k in set(table_columns).intersection(available_cols)}
         missing_columns = set(table_columns).difference(available_cols)
         if len(missing_columns):
             logger.info(
@@ -1290,16 +1259,14 @@ class DataSource:
             usecols=list(table_dtypes.keys()),
             chunksize=1_000_000,
         )
-        for j, data in enumerate(reader):
-            data = data.assign(**{col: None for col in missing_columns})
-            date_types = [
-                k for k in table_dtypes if table_dtypes[k] in (pl.Date, pl.Datetime)
-            ]
+        for j, raw_chunk in enumerate(reader):
+            chunk = raw_chunk.assign(**dict.fromkeys(missing_columns))
+            date_types = [k for k in table_dtypes if table_dtypes[k] in (pl.Date, pl.Datetime)]
             for col in date_types:
-                data[col] = pd.to_datetime(data[col], format=STRPTIME, errors="coerce")
+                chunk[col] = pd.to_datetime(chunk[col], format=STRPTIME, errors="coerce")
 
             data = (
-                pl.from_dataframe(data)
+                pl.from_dataframe(chunk)
                 .cast({k: DTYPES[k] for k in set(table_columns)})
                 .with_columns(
                     pl.date(year, month, 1).alias("archive_month"),
@@ -1337,9 +1304,7 @@ class DataSource:
         """
         logger.info("Fetching data for %s %s / %s", self.table_name, year, month)
         archive = _get_archive(self.table_name, year, month)
-        return _archive_to_df(
-            archive, self.table_columns, year, month, low_memory=self.low_memory
-        )
+        return _archive_to_df(archive, self.table_columns, year, month, _low_memory=self.low_memory)
 
     def get_data(self):
         return self.read()
@@ -1358,9 +1323,7 @@ class BySettlementDate(DataSource):
             pl.DataFrame: A DataFrame containing the data.
         """
         date_time_parsed = datetime.strptime(date_time, "%Y/%m/%d %H:%M:%S")
-        return (
-            self.scan().filter(pl.col("SETTLEMENTDATE") == date_time_parsed).collect()
-        )
+        return self.scan().filter(pl.col("SETTLEMENTDATE") == date_time_parsed).collect()
 
 
 class ByIntervalDate(DataSource):
@@ -1376,11 +1339,7 @@ class ByIntervalDate(DataSource):
             pl.DataFrame: A DataFrame containing the data.
         """
         date_time_parsed = datetime.strptime(date_time, "%Y/%m/%d %H:%M:%S")
-        return (
-            self.scan()
-            .filter(pl.col("INTERVAL_DATETIME") == date_time_parsed)
-            .collect()
-        )
+        return self.scan().filter(pl.col("INTERVAL_DATETIME") == date_time_parsed).collect()
 
 
 class BySettlementDay(DataSource):
@@ -1440,14 +1399,10 @@ class ByEffectiveDateVersionNo(DataSource):
             pl.DataFrame: A DataFrame containing the data.
         """
         date = datetime.strptime(date_time, "%Y/%m/%d")
-        ids = [
-            key
-            for key in self.table_primary_keys
-            if key not in ["EFFECTIVEDATE", "VERSIONNO"]
-        ]
+        ids = [key for key in self.table_primary_keys if key not in ["EFFECTIVEDATE", "VERSIONNO"]]
         return (
             self.scan()
-            .filter((pl.col("EFFECTIVEDATE") <= date))
+            .filter(pl.col("EFFECTIVEDATE") <= date)
             .sort(self.table_primary_keys)
             .unique(subset=ids, keep="last")
             .collect()
