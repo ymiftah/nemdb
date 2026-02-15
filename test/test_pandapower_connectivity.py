@@ -1,5 +1,6 @@
 import geopandas as gpd
 import networkx as nx
+import pandas as pd
 import pytest
 import shapely as shp
 
@@ -7,7 +8,11 @@ pytest.importorskip("pandapower")
 import pandapower as pp
 
 from nemdb.models.pandapower import (
+    _build_connectivity_graph,
+    _calculate_distance_km,
     _create_cross_voltage_connection,
+    _create_synthetic_line,
+    _diagnose_graph,
     _find_closest_bus_pair,
     create_pandapower_network,
     get_pandapower_model,
@@ -342,3 +347,147 @@ def test_add_external_grids():
     ext_grid_names = set(net.ext_grid["name"].str.lower())
     assert any("torrens" in name for name in ext_grid_names), "Missing Torrens Island ext_grid"
     assert any("sydney" in name for name in ext_grid_names), "Missing Sydney West ext_grid"
+
+
+def test_calculate_distance_km():
+    """Test distance calculation between two geographic points."""
+    # Test known distance (Sydney to Melbourne approx)
+    sydney = shp.Point(151.2093, -33.8688)
+    melbourne = shp.Point(144.9631, -37.8136)
+
+    distance = _calculate_distance_km(sydney, melbourne)
+
+    # Distance should be approximately 713 km
+    assert 700 < distance < 750, f"Distance {distance} km is not in expected range"
+
+
+def test_diagnose_graph_simple():
+    """Test graph diagnosis with simple network."""
+    # Create simple test data
+    buses = gpd.GeoDataFrame(
+        {
+            "bus_id": ["bus1", "bus2", "bus3_orphan"],
+            "geodata": [shp.Point(0, 0), shp.Point(1, 0), shp.Point(2, 0)],
+        }
+    )
+
+    # Create lines connecting only bus1 and bus2
+    lines = gpd.GeoDataFrame(
+        {
+            "start_point": [shp.Point(0, 0)],
+            "end_point": [shp.Point(1, 0)],
+        }
+    )
+
+    # Create mapping
+    mapping = pd.Series(
+        {
+            shp.Point(0, 0): "bus1",
+            shp.Point(1, 0): "bus2",
+            shp.Point(2, 0): "bus3_orphan",
+        }
+    )
+
+    diagnostics = _diagnose_graph(lines, buses, mapping)
+
+    # Verify diagnostics
+    assert diagnostics["total_buses"] == 3
+    assert diagnostics["total_lines"] == 1
+    assert "bus3_orphan" in diagnostics["orphan_buses"]  # bus3 should be orphan
+    assert len(diagnostics["islands"]) >= 1  # At least one island
+
+
+def test_create_synthetic_line():
+    """Test synthetic line creation for same-voltage connections."""
+    buses_df = gpd.GeoDataFrame(
+        {
+            "bus_id": ["bus_a", "bus_b"],
+            "vn_kv": [220.0, 220.0],
+            "geodata": [shp.Point(151.0, -33.8), shp.Point(151.1, -33.9)],
+        },
+        index=["bus_a", "bus_b"],
+    )
+
+    line = _create_synthetic_line("bus_a", "bus_b", buses_df)
+
+    # Verify line properties
+    assert line["from_bus"] == "bus_a"
+    assert line["to_bus"] == "bus_b"
+    assert line["length_km"] > 0
+    assert line["in_service"] is True
+    assert line["voltagekv"] == 220.0
+    assert "Synthetic" in line["name"]
+
+
+def test_build_connectivity_graph():
+    """Test building connectivity graph from model."""
+    # Create simple model with all required keys
+    model = {
+        "lines": pd.DataFrame(
+            {
+                "from_bus": [0, 1],
+                "to_bus": [1, 2],
+            }
+        ),
+        "trafos": pd.DataFrame(
+            {
+                "hv_bus": [2],
+                "lv_bus": [3],
+            }
+        ),
+        "gens": pd.DataFrame(
+            {
+                "bus_id": [0],
+            }
+        ),
+        "loads": pd.DataFrame(
+            {
+                "bus_id": [3],
+            }
+        ),
+    }
+
+    graph = _build_connectivity_graph(model)
+
+    # Verify graph structure
+    assert 0 in graph.nodes()
+    assert 3 in graph.nodes()
+    assert graph.has_edge(0, 1)
+    assert graph.has_edge(1, 2)
+    assert graph.has_edge(2, 3)  # Transformer connection
+
+
+def test_model_validation_runs_without_error():
+    """Test that model validation doesn't raise errors."""
+    model = get_pandapower_model()
+
+    # Should have all required keys
+    assert "buses" in model
+    assert "lines" in model
+    assert "trafos" in model
+    assert "gens" in model
+    assert "loads" in model
+
+
+def test_network_has_transformers():
+    """Test that network contains transformers for voltage conversion."""
+    net = create_pandapower_network(use_opennem=False)
+
+    # Should have transformers for cross-voltage connections
+    assert len(net.trafo) > 0, "No transformers found in network"
+
+    # All transformers should connect valid buses
+    for _, trafo in net.trafo.iterrows():
+        assert trafo["hv_bus"] in net.bus.index
+        assert trafo["lv_bus"] in net.bus.index
+
+
+def test_network_buses_have_voltage():
+    """Test that all buses have valid voltage levels."""
+    net = create_pandapower_network(use_opennem=False)
+
+    # All buses should have a nominal voltage
+    for _, bus in net.bus.iterrows():
+        assert bus["vn_kv"] > 0, f"Bus {bus.name} has invalid voltage {bus['vn_kv']}"
+        # Voltage should be reasonable (between distribution and transmission levels)
+        assert 0.4 <= bus["vn_kv"] <= 500, f"Bus has unusual voltage level: {bus['vn_kv']} kV"
