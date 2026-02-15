@@ -160,7 +160,7 @@ def clean_multilines(mls: Any) -> Any:
         return shp.line_merge(force_line(mls))
 
 
-def clean_transmission_lines(lines: gpd.GeoDataFrame):
+def clean_transmission_lines(lines: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
     Cleans a given GeoDataFrame of transmission lines by ensuring that all lines are contiguous.
 

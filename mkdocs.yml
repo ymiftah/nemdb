@@ -29,6 +29,6 @@ nav:
     - Use OpenNEM API: how-to/use-opennem-api.md
   - Explanation:
     - Transmission Line Cleaning: explanation/transmission-line-cleaning.md
+    - Island Connectivity: explanation/island-connectivity.md
   - Reference:
     - Configuration: reference/configuration.md
-    - API: api/
