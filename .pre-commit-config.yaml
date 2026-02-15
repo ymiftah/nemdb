@@ -18,6 +18,12 @@ repos:
         args: [--fix]
       - id: ruff-format
 
+  - repo: https://github.com/rvben/rumdl-pre-commit
+    rev: v0.1.21
+    hooks:
+      - id: rumdl      # Lint only (fails on issues)
+      - id: rumdl-fmt  # Auto-format and fail if issues remain
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.15.0
     hooks:

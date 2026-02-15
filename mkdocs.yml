@@ -1,11 +1,37 @@
 site_name: nemdb
 theme:
   name: material
+  features:
+    - content.code.copy
 repo_url: https://github.com/ymiftah/nemdb
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: pymdownx.superfences.fence_code_format
 plugins:
   - mkdocs-autoapi:
       autoapi_dir: ./src/nemdb
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
 nav:
   - Home: index.md
-  - API: api/
+  - Tutorials:
+    - Getting Started: tutorials/getting-started.md
+    - Build a Network Model: tutorials/build-network-model.md
+  - How-to Guides:
+    - Fetch NEMWEB Data: how-to/fetch-nemweb-data.md
+    - Work with Geodata: how-to/work-with-geodata.md
+    - Use DNSP Data: how-to/use-dnsp-data.md
+    - Use ISP Assumptions: how-to/use-isp-assumptions.md
+    - Use OpenNEM API: how-to/use-opennem-api.md
+  - Explanation:
+    - Transmission Line Cleaning: explanation/transmission-line-cleaning.md
+    - Island Connectivity: explanation/island-connectivity.md
+  - Reference:
+    - Configuration: reference/configuration.md

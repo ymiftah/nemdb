@@ -5,9 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Cross-voltage island connections**: Fixed network constraint violation where synthetic transmission lines were directly connecting buses with different nominal voltages
+  - Implemented synthetic intermediate buses at island voltage levels for cross-voltage connections
+  - All synthetic lines now properly connect same-voltage bus pairs
+  - Cross-voltage bridging handled through transformers instead of direct line connections
+  - Added `_create_cross_voltage_connection()` helper function for proper transformer architecture
+  - Network sanity check `different_voltage_levels_connected` now passes ✓
+
+### Added
+
+- **Island Connectivity Explanation** (`docs/explanation/island-connectivity.md`): Comprehensive guide to island detection, connection strategies, and cross-voltage bridging architecture
+
 ## [0.1.0] - 2026-02-15
 
 ### Added
+
 - **Visualization Module** (`src/nemdb/models/visualize.py`): Interactive Plotly-based visualization for NEM transmission network with geographic mapping
 - **Geodata Matching** (`src/nemdb/geodata/matching.py`): Enhanced geodata matching capabilities for facility-to-gis integration
 - **Comprehensive Documentation**:
@@ -26,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rumdl configuration for markdown linting
 
 ### Fixed
+
 - **Pre-commit Hook Compliance**: All 12 pre-commit hooks now pass
   - Fixed YAML validation issues in mkdocs.yml
   - Fixed Python linting errors (72+ issues resolved)
@@ -46,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Kept legitimate type: ignore comments only where genuinely needed (sapn.py line 78)
 
 ### Changed
+
 - **DNSP Module Test Code**: Updated all test code blocks to use year-based function calls
   - Changed from: `read_all_zss('/path/to/file.zip')`
   - Changed to: `read_all_zss(2024)`
@@ -55,11 +73,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Python Version**: Support for Python 3.13+ with proper type hints
 
 ### Dependencies
+
 - Added visualization dependencies: `plotly>=6.5.2`, `nbformat>=5.10.4`
 - Added grid modeling dependencies: `pandapower>=3.2.0`, `scikit-learn>=1.7.2`
 - Upgraded development dependencies for improved tooling
 
 ### Documentation
+
 - Restructured documentation with mkdocs
 - Added material theme for better presentation
 - Comprehensive API documentation via mkdocs-autoapi

@@ -19,7 +19,7 @@ def get_url(year: int):
     }.get(year)
 
 
-@pa.check_output(LoadSchema)
+@pa.check_output(LoadSchema)  # type: ignore[arg-type]
 def _read_all_zss(file):
     """
     Reads a zip file of zone substation load data from Ergon Energy into a polars dataframe.
@@ -64,6 +64,5 @@ def _read_all_zss(file):
 
 
 if __name__ == "__main__":
-    path = "/home/simba/Downloads/Ergon-Network-Substation-Load-Data-2023-24.zip"
-    df = read_all_zss(path)
+    df = read_all_zss(2024)
     print(df)

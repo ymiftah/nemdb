@@ -21,7 +21,7 @@ def get_url(year: int):
     )
 
 
-@pa.check_output(LoadSchema)
+@pa.check_output(LoadSchema)  # type: ignore[arg-type]
 def _read_all_zss(file):
     """
     Read a zip file containing csvs of load data for each zone substation (ZSS)
@@ -77,6 +77,5 @@ def read_all_zss(year: int):
 
 
 if __name__ == "__main__":
-    file = "/home/simba/Downloads/1 - All CP and PAL ZSS data - FY22-23.zip"
-    df = read_all_zss(file)
+    df = read_all_zss(2024)
     print(df)

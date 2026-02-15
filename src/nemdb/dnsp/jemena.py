@@ -19,7 +19,7 @@ def get_url(year: int):
     }.get(year)
 
 
-@pa.check_output(LoadSchema)
+@pa.check_output(LoadSchema)  # type: ignore[arg-type]
 def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
@@ -48,5 +48,5 @@ def _get_start_index(df):
 
 
 if __name__ == "__main__":
-    df = read_all_zss("/home/simba/Downloads/Jemena-Network-Substation-Load-Data-2023-24.zip")
+    df = read_all_zss(2024)
     print(df)

@@ -19,7 +19,7 @@ def get_url(year: int):
     return {2024: "https://www.sapowernetworks.com.au/public/download.jsp?id=331119"}.get(year)
 
 
-@pa.check_output(LoadSchema)
+@pa.check_output(LoadSchema)  # type: ignore[arg-type]
 def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:
@@ -75,7 +75,7 @@ def _read_all_zss(file):
 
 
 def _fix_columns(df: pd.DataFrame):
-    columns = pd.DataFrame.from_records(df.columns).set_axis(df.columns.names, axis=1)
+    columns = pd.DataFrame.from_records(df.columns).set_axis(df.columns.names, axis=1)  # type: ignore[arg-type]
     clean_columns = (
         columns.apply(
             lambda s: s.where(
@@ -96,6 +96,5 @@ def _fix_columns(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    path = "/home/simba/Downloads/SAPN-Zone-Substation-Load-Data-2023-24.zip"
-    df = read_all_zss(path)
+    df = read_all_zss(2024)
     print(df)

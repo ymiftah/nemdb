@@ -875,7 +875,7 @@ class NEMWEBManager:
 
     @staticmethod
     @lru_cache(maxsize=4)
-    def read_bids(year: int, month: int, day: int):
+    def read_bids(year: int, month: int, day: int) -> tuple[pl.DataFrame, pl.DataFrame]:
         """Read bid data for a specific date
 
         NOTE This method reads data for the specific date, zips are cached locally
@@ -894,7 +894,7 @@ class NEMWEBManager:
         """
         date_parsed = datetime.strptime(date, "%Y/%m/%d %H:%M:%S")
         _, volume = self.read_bids(date_parsed.year, date_parsed.month, date_parsed.day)
-        return volume.with_columns(
+        volume_pl = volume.with_columns(
             (pl.col("ROCUP") * 60).alias("RAMPUPRATE"),
             (pl.col("ROCDOWN") * 60).alias("RAMPDOWNRATE"),
         )[
@@ -922,6 +922,7 @@ class NEMWEBManager:
                 "RAMPDOWNRATE",
             ]
         ]
+        return volume_pl
 
     def get_unit_price_bids(self, date: str) -> pl.DataFrame:
         """Get unit price bids for a specific date.
@@ -1119,8 +1120,9 @@ class DataSource:
             pl.LazyFrame: A LazyFrame representing the scanned dataset.
         """
         kwargs_ = {"hive_partitioning": True, "missing_columns": "insert"}
-        kwargs_.update(kwargs if kwargs is None else {})
-        return pl.scan_parquet(self.path, *args, **kwargs_)
+        if kwargs:
+            kwargs_.update(kwargs)
+        return pl.scan_parquet(self.path, *args, **kwargs_)  # type: ignore[arg-type]
 
     def read(self, *args, **kwargs) -> pl.DataFrame:
         """Reads the parquet dataset with polars.
@@ -1306,14 +1308,14 @@ class DataSource:
         archive = _get_archive(self.table_name, year, month)
         return _archive_to_df(archive, self.table_columns, year, month, _low_memory=self.low_memory)
 
-    def get_data(self):
+    def get_data(self) -> pl.DataFrame:  # type: ignore[return-value]
         return self.read()
 
 
 class BySettlementDate(DataSource):
     """A DataSource filtered by settlement date."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific settlement date.
 
         Args:
@@ -1329,7 +1331,7 @@ class BySettlementDate(DataSource):
 class ByIntervalDate(DataSource):
     """A DataSource filtered by interval date."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific interval date.
 
         Args:
@@ -1345,7 +1347,7 @@ class ByIntervalDate(DataSource):
 class BySettlementDay(DataSource):
     """A DataSource filtered by settlement day."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific settlement day.
 
         Args:
@@ -1366,7 +1368,7 @@ class BySettlementDay(DataSource):
 class ByStartEnd(DataSource):
     """A DataSource filtered by start and end dates."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific date within the start and end dates.
 
         Args:
@@ -1389,7 +1391,7 @@ class ByStartEnd(DataSource):
 class ByEffectiveDateVersionNo(DataSource):
     """A DataSource filtered by effective date and version number."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific date, returning the latest version.
 
         Args:

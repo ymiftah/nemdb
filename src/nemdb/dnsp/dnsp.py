@@ -128,7 +128,7 @@ class DNSPDataSource:
                     check = self.scan().filter(pl.col("year") == year).head()
                     data_exists = len(check.collect()) > 0
             if not data_exists:
-                self.add_data(year=year, month=None)
+                self.add_data(year, None)
             else:
                 log.info(
                     "Data already exists for %s %s, skipping download. Use force_new=True to overwrite.",
