@@ -1,10 +1,14 @@
+import geopandas as gpd
 import networkx as nx
 import pytest
+import shapely as shp
 
 pytest.importorskip("pandapower")
 import pandapower as pp
 
 from nemdb.models.pandapower import (
+    _create_cross_voltage_connection,
+    _find_closest_bus_pair,
     create_pandapower_network,
     get_pandapower_model,
     get_pandapower_model_with_opennem,
@@ -187,3 +191,154 @@ def test_network_structure_integrity():
         assert load["bus"] in net.bus.index, (
             f"Load {load['name']} references non-existent bus {load['bus']}"
         )
+
+
+def test_find_closest_bus_pair_same_voltage():
+    """Test finding closest bus pair with same voltage constraint."""
+    # Create test buses with geodata
+    island_buses = gpd.GeoDataFrame(
+        {
+            "vn_kv": [220.0],
+            "geodata": [shp.Point(151.0, -33.8)],  # Sydney
+        },
+        index=[10],
+    )
+
+    main_buses = gpd.GeoDataFrame(
+        {
+            "vn_kv": [220.0, 330.0],
+            "geodata": [
+                shp.Point(151.1, -33.9),  # Close, same voltage
+                shp.Point(151.2, -34.0),  # Farther, different voltage
+            ],
+        },
+        index=[20, 21],
+    )
+
+    # Find closest pair with same voltage constraint
+    island_id, main_id, distance = _find_closest_bus_pair(
+        island_buses, main_buses, same_voltage=True
+    )
+
+    # Should find the bus with same voltage
+    assert island_id == 10
+    assert main_id == 20  # Same voltage
+    assert distance > 0
+
+
+def test_find_closest_bus_pair_cross_voltage():
+    """Test finding closest bus pair without voltage constraint."""
+    island_buses = gpd.GeoDataFrame(
+        {
+            "vn_kv": [220.0],
+            "geodata": [shp.Point(151.0, -33.8)],
+        },
+        index=[10],
+    )
+
+    main_buses = gpd.GeoDataFrame(
+        {
+            "vn_kv": [220.0, 330.0],
+            "geodata": [
+                shp.Point(151.5, -33.5),  # Far, same voltage
+                shp.Point(151.1, -33.9),  # Close, different voltage
+            ],
+        },
+        index=[20, 21],
+    )
+
+    # Find closest pair ignoring voltage
+    island_id, main_id, distance = _find_closest_bus_pair(
+        island_buses, main_buses, same_voltage=False
+    )
+
+    # Should find the closest regardless of voltage
+    assert island_id == 10
+    assert main_id == 21  # Closest, even though different voltage
+    assert distance > 0
+
+
+def test_find_closest_bus_pair_distance_threshold():
+    """Test distance threshold parameter."""
+    island_buses = gpd.GeoDataFrame(
+        {
+            "vn_kv": [220.0],
+            "geodata": [shp.Point(151.0, -33.8)],
+        },
+        index=[10],
+    )
+
+    main_buses = gpd.GeoDataFrame(
+        {
+            "vn_kv": [220.0],
+            "geodata": [shp.Point(151.5, -33.5)],  # ~55 km away
+        },
+        index=[20],
+    )
+
+    # With low distance threshold, should return None
+    island_id, main_id, distance = _find_closest_bus_pair(
+        island_buses, main_buses, max_distance_km=10.0
+    )
+
+    assert island_id is None
+    assert main_id is None
+    assert distance == float("inf")
+
+
+def test_create_cross_voltage_connection():
+    """Test creating a cross-voltage connection with synthetic bus."""
+    # Create test buses
+    buses_df = gpd.GeoDataFrame(
+        {
+            "bus_id": ["island_bus", "main_bus"],
+            "vn_kv": [220.0, 330.0],
+            "geodata": [shp.Point(151.0, -33.8), shp.Point(151.1, -33.9)],
+            "zone": ["NSW", "NSW"],
+        },
+        index=["island_bus", "main_bus"],
+    )
+
+    bus_counter = [1000]
+
+    # Create cross-voltage connection
+    synthetic_bus, line, transformer = _create_cross_voltage_connection(
+        "island_bus", "main_bus", buses_df, bus_counter
+    )
+
+    # Verify synthetic bus was created
+    assert synthetic_bus is not None
+    assert synthetic_bus["vn_kv"] == 220.0  # Island voltage
+    assert "synthetic" in synthetic_bus["bus_id"]
+
+    # Verify line connects island to synthetic
+    assert line is not None
+    assert line["from_bus"] == "island_bus"
+    assert line["to_bus"] == synthetic_bus["bus_id"]
+
+    # Verify transformer connects synthetic to main
+    assert transformer is not None
+    assert transformer["hv_bus"] in [synthetic_bus["bus_id"], "main_bus"]
+    assert transformer["lv_bus"] in [synthetic_bus["bus_id"], "main_bus"]
+
+    # Bus counter should have incremented
+    assert bus_counter[0] == 1001
+
+
+def test_add_external_grids():
+    """Test adding external grids to pandapower network."""
+    net = create_pandapower_network(use_opennem=False)
+
+    # Check that external grids were added
+    assert len(net.ext_grid) > 0, "No external grids found"
+
+    # Verify each external grid references a valid bus
+    for _, ext_grid in net.ext_grid.iterrows():
+        assert ext_grid["bus"] in net.bus.index, (
+            f"External grid references non-existent bus {ext_grid['bus']}"
+        )
+
+    # Check specific known external grids
+    ext_grid_names = set(net.ext_grid["name"].str.lower())
+    assert any("torrens" in name for name in ext_grid_names), "Missing Torrens Island ext_grid"
+    assert any("sydney" in name for name in ext_grid_names), "Missing Sydney West ext_grid"
