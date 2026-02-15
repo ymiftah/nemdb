@@ -20,6 +20,28 @@ from nemdb.models.pandapower import (
 )
 
 
+@pytest.fixture
+def mock_matched_facilities():
+    """Create a sample matched facilities GeoDataFrame for testing."""
+    return gpd.GeoDataFrame(
+        {
+            "name": ["Sample Coal Plant", "Sample Solar Farm"],
+            "code": ["COAL1", "SOLAR1"],
+            "capacity_registered_mw": [500.0, 100.0],
+            "fueltech_id": ["coal_black", "solar_utility"],
+            "status_id": ["operating", "operating"],
+            "gis_name": ["Coal Plant GIS", "Solar Farm GIS"],
+            "match_type": ["powerstation", "powerstation"],
+            "distance_m": [100.0, 50.0],
+            "geometry": [
+                shp.Point(151.2, -33.8),
+                shp.Point(144.9, -37.8),
+            ],
+        },
+        crs="EPSG:4283",
+    )
+
+
 @pytest.mark.skip(
     reason="Network contains synthetic intermediate buses for cross-voltage bridging that are intentionally disconnected at the pandapower level but properly connected via transformers at model level"
 )
@@ -42,8 +64,13 @@ def test_no_disconnected_elements_ga():
 @pytest.mark.skip(
     reason="Network contains synthetic intermediate buses for cross-voltage bridging that are intentionally disconnected at the pandapower level but properly connected via transformers at model level"
 )
-def test_no_disconnected_elements_opennem():
+def test_no_disconnected_elements_opennem(mocker, mock_matched_facilities):
     """Verify network with OpenNEM generators has zero disconnected elements."""
+    # Mock the match_facilities_to_gis function to avoid API call
+    mocker.patch(
+        "nemdb.models.pandapower.match_facilities_to_gis",
+        return_value=mock_matched_facilities,
+    )
     net = create_pandapower_network(use_opennem=True)
     disconnected = pp.disconnected_elements(net)
 
@@ -81,8 +108,13 @@ def test_all_generators_connected_ga():
             )
 
 
-def test_all_generators_connected_opennem():
+def test_all_generators_connected_opennem(mocker, mock_matched_facilities):
     """Verify all OpenNEM generators are on connected buses."""
+    # Mock the match_facilities_to_gis function to avoid API call
+    mocker.patch(
+        "nemdb.models.pandapower.match_facilities_to_gis",
+        return_value=mock_matched_facilities,
+    )
     net = create_pandapower_network(use_opennem=True)
 
     # Build connectivity graph
@@ -139,8 +171,13 @@ def test_model_validation_runs_ga():
     assert len(model["lines"]) > 0
 
 
-def test_model_validation_runs_opennem():
+def test_model_validation_runs_opennem(mocker, mock_matched_facilities):
     """Verify OpenNEM model validation function executes without error."""
+    # Mock the match_facilities_to_gis function to avoid API call
+    mocker.patch(
+        "nemdb.models.pandapower.match_facilities_to_gis",
+        return_value=mock_matched_facilities,
+    )
     model = get_pandapower_model_with_opennem()
 
     # Model should have all required keys
