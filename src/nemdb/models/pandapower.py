@@ -466,18 +466,21 @@ def _calculate_distance_km(geom1, geom2) -> float:
     return float(gdf1.geometry.iloc[0].distance(gdf2.geometry.iloc[0]) / 1000)
 
 
-def _find_closest_bus_pair(island_buses, main_buses, same_voltage: bool = True):
+def _find_closest_bus_pair(
+    island_buses, main_buses, same_voltage: bool = True, max_distance_km: float = float("inf")
+):
     """Find the closest pair of buses between island and main component.
 
     Args:
         island_buses: GeoDataFrame of buses in island
         main_buses: GeoDataFrame of buses in main component
         same_voltage: If True, only connect buses at the same voltage level
+        max_distance_km: Maximum distance threshold in km. Returns None if no pair within this distance.
 
     Returns:
         Tuple of (island_bus_id, main_bus_id, distance_km) or (None, None, inf)
     """
-    min_distance = float("inf")
+    min_distance_km = float("inf")
     best_island_bus = None
     best_main_bus = None
 
@@ -495,34 +498,45 @@ def _find_closest_bus_pair(island_buses, main_buses, same_voltage: bool = True):
             if pd.isna(main_bus["geodata"]):
                 continue
 
-            # Calculate distance
-            distance = island_bus["geodata"].distance(main_bus["geodata"])
-            if distance < min_distance:
-                min_distance = distance
+            # Quick Euclidean distance in degrees as a fast filter
+            # (sufficient for finding closest pairs without expensive CRS conversions)
+            lat1, lon1 = island_bus["geodata"].y, island_bus["geodata"].x
+            lat2, lon2 = main_bus["geodata"].y, main_bus["geodata"].x
+            deg_distance = ((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2) ** 0.5
+
+            # Skip if obviously too far (rough approximation: 1 degree ≈ 111 km)
+            if deg_distance * 111 > max_distance_km:
+                continue
+
+            if deg_distance < min_distance_km:
+                min_distance_km = deg_distance
                 best_island_bus = island_bus_id
                 best_main_bus = main_bus_id
 
-    return best_island_bus, best_main_bus, min_distance
+    # Return None if distance exceeds threshold (recheck with better precision)
+    if best_island_bus and best_main_bus:
+        actual_distance_km = _calculate_distance_km(
+            island_buses.loc[best_island_bus, "geodata"],
+            main_buses.loc[best_main_bus, "geodata"],
+        )
+        if actual_distance_km > max_distance_km:
+            return None, None, float("inf")
+        return best_island_bus, best_main_bus, actual_distance_km
+
+    return None, None, float("inf")
 
 
 def _create_synthetic_line(best_island_bus, best_main_bus, buses_df):
     """Create a synthetic transmission line to connect an island.
 
     Returns:
-        Dictionary with line parameters
+        Dictionary with line parameters for same-voltage connections.
     """
-    # Determine voltage level for the connecting line
-    island_voltage = buses_df.loc[best_island_bus, "vn_kv"]
-    main_voltage = buses_df.loc[best_main_bus, "vn_kv"]
-    # Use the lower voltage to be conservative
-    voltage = min(island_voltage, main_voltage)
-
-    # Calculate distance in km
     island_geom = buses_df.loc[best_island_bus, "geodata"]
     main_geom = buses_df.loc[best_main_bus, "geodata"]
     distance_km = _calculate_distance_km(island_geom, main_geom)
+    island_voltage = buses_df.loc[best_island_bus, "vn_kv"]
 
-    # Create synthetic line to connect the island
     return {
         "name": f"Synthetic_{best_island_bus}_to_{best_main_bus}",
         "from_bus": best_island_bus,
@@ -531,14 +545,91 @@ def _create_synthetic_line(best_island_bus, best_main_bus, buses_df):
         "in_service": True,
         "class": "Synthetic Connection",
         "geodata": [(island_geom.x, island_geom.y), (main_geom.x, main_geom.y)],
-        "voltagekv": voltage,
+        "voltagekv": island_voltage,
     }
+
+
+def _create_cross_voltage_connection(best_island_bus, best_main_bus, buses_df, bus_counter):
+    """Create a cross-voltage connection using intermediate synthetic bus at island voltage.
+
+    Strategy:
+    1. Create intermediate synthetic bus at island voltage and main location
+    2. Connect island bus to intermediate with line at island voltage
+    3. Connect intermediate to main with transformer
+
+    Returns:
+        Tuple of (synthetic_bus, line_to_intermediate, transformer)
+    """
+    island_voltage = buses_df.loc[best_island_bus, "vn_kv"]
+    main_voltage = buses_df.loc[best_main_bus, "vn_kv"]
+    distance_km = _calculate_distance_km(
+        buses_df.loc[best_island_bus, "geodata"],
+        buses_df.loc[best_main_bus, "geodata"],
+    )
+
+    bus_counter[0] += 1
+    # Create intermediate bus at ISLAND voltage, located at main bus location
+    synthetic_bus_id = f"bus_{bus_counter[0]}_synthetic_{island_voltage:.0f}kv"
+
+    synthetic_bus = {
+        "bus_id": synthetic_bus_id,
+        "vn_kv": island_voltage,  # Same voltage as island bus
+        "geodata": buses_df.loc[best_main_bus, "geodata"],  # Located at main bus location
+        "in_service": True,
+        "type": "n",
+        "zone": buses_df.loc[best_main_bus, "zone"] if "zone" in buses_df.columns else None,
+    }
+
+    # Line from island to intermediate (same voltage - no mismatch)
+    island_geom = buses_df.loc[best_island_bus, "geodata"]
+    main_geom = buses_df.loc[best_main_bus, "geodata"]
+    line_to_intermediate = {
+        "name": f"Synthetic_{best_island_bus}_to_{synthetic_bus_id}",
+        "from_bus": best_island_bus,
+        "to_bus": synthetic_bus_id,
+        "length_km": distance_km,
+        "in_service": True,
+        "class": "Synthetic Connection",
+        "geodata": [(island_geom.x, island_geom.y), (main_geom.x, main_geom.y)],
+        "voltagekv": island_voltage,  # Same voltage as both ends
+    }
+
+    # Transformer from synthetic intermediate to main bus
+    if island_voltage < main_voltage:
+        lv_bus, hv_bus = synthetic_bus_id, best_main_bus
+        vn_lv_kv, vn_hv_kv = island_voltage, main_voltage
+    else:
+        lv_bus, hv_bus = best_main_bus, synthetic_bus_id
+        vn_lv_kv, vn_hv_kv = main_voltage, island_voltage
+
+    transformer = {
+        "name": f"Synthetic_trafo_{best_island_bus}_to_{best_main_bus}",
+        "lv_bus": lv_bus,
+        "hv_bus": hv_bus,
+        "vn_lv_kv": vn_lv_kv,
+        "vn_hv_kv": vn_hv_kv,
+        "sn_mva": 1_000,
+        "vk_percent": 12.2,
+        "vkr_percent": 0.25,
+        "pfe_kw": 60.0,
+        "i0_percent": 0.06,
+        "in_service": True,
+    }
+
+    return synthetic_bus, line_to_intermediate, transformer
 
 
 def _connect_islands(
     model: dict, components: list, buses_df, main_component, diagnostics: dict
 ) -> bool:
     """Connect disconnected island components to the main network.
+
+    Connection strategy:
+    1. Try same voltage within 50 km (preferred - no transformer needed)
+    2. Connect to nearest bus (any voltage, any distance) and add transformer to bridge voltages
+
+    For cross-voltage connections, creates synthetic intermediate buses to avoid directly
+    connecting buses with different nominal voltages.
 
     Args:
         model: Model dict with 'buses', 'lines', 'trafos', 'gens', 'loads'
@@ -551,45 +642,80 @@ def _connect_islands(
         True if islands were connected, False if unable to connect
     """
     new_lines = []
+    new_trafos = []
+    new_buses = []
+    MAX_SAME_VOLTAGE_DISTANCE = 50.0  # 50 km threshold for same-voltage connections
+    bus_counter = [max([int(b.split("_")[1]) for b in buses_df.index if "_" in b] or [1000])]
+
     for island_component in components[1:]:
         island_buses = buses_df.loc[list(island_component)]
         main_buses = buses_df.loc[list(main_component)]
 
-        # Try same voltage first
-        best_island_bus, best_main_bus, _min_distance = _find_closest_bus_pair(
-            island_buses, main_buses, same_voltage=True
+        # Strategy 1: Same voltage within 50 km (preferred - no transformer needed)
+        best_island_bus, best_main_bus, min_distance = _find_closest_bus_pair(
+            island_buses, main_buses, same_voltage=True, max_distance_km=MAX_SAME_VOLTAGE_DISTANCE
         )
-
-        # Fall back to different voltage if needed
-        if best_island_bus is None or best_main_bus is None:
-            log.debug(
-                f"  No same-voltage bus pair found for island with {len(island_component)} buses, "
-                f"falling back to different voltage connection"
-            )
-            best_island_bus, best_main_bus, _min_distance = _find_closest_bus_pair(
-                island_buses, main_buses, same_voltage=False
-            )
+        connection_method = None
+        needs_transformer = False
 
         if best_island_bus and best_main_bus:
-            new_line = _create_synthetic_line(best_island_bus, best_main_bus, buses_df)
-            distance_km = new_line["length_km"]
-            voltage = new_line["voltagekv"]
+            connection_method = f"same-voltage ({min_distance:.1f} km)"
+        else:
+            # Strategy 2: Connect to nearest bus (any voltage, any distance) with transformer
+            best_island_bus, best_main_bus, min_distance = _find_closest_bus_pair(
+                island_buses, main_buses, same_voltage=False, max_distance_km=float("inf")
+            )
+            if best_island_bus and best_main_bus:
+                connection_method = f"cross-voltage via transformer ({min_distance:.1f} km)"
+                needs_transformer = True
 
-            new_lines.append(new_line)
-            diagnostics["added_lines"] += 1
-            diagnostics["connected_buses"] += len(island_component)
+        if best_island_bus and best_main_bus:
+            island_voltage = buses_df.loc[best_island_bus, "vn_kv"]
+            main_voltage = buses_df.loc[best_main_bus, "vn_kv"]
+            distance_km = _calculate_distance_km(
+                buses_df.loc[best_island_bus, "geodata"],
+                buses_df.loc[best_main_bus, "geodata"],
+            )
 
             log.debug(
                 f"  Connecting island bus {best_island_bus} to main bus {best_main_bus} "
-                f"({distance_km:.1f} km, {voltage} kV, {len(island_component)} buses in island)"
+                f"({distance_km:.1f} km, {island_voltage} kV, {len(island_component)} buses in island) "
+                f"via {connection_method}"
             )
+
+            if needs_transformer and island_voltage != main_voltage:
+                # Cross-voltage: create synthetic intermediate bus
+                syn_bus, line, trafo = _create_cross_voltage_connection(
+                    best_island_bus, best_main_bus, buses_df, bus_counter
+                )
+                new_buses.append(syn_bus)
+                new_lines.append(line)
+                new_trafos.append(trafo)
+                diagnostics["added_lines"] += 1
+                log.debug(
+                    f"    Created synthetic intermediate bus {syn_bus['bus_id']} ({main_voltage} kV)"
+                )
+                log.debug(
+                    f"    Added synthetic transformer: {trafo['name']} "
+                    f"({trafo['vn_lv_kv']} kV ↔ {trafo['vn_hv_kv']} kV)"
+                )
+            else:
+                # Same voltage: simple line
+                new_lines.append(_create_synthetic_line(best_island_bus, best_main_bus, buses_df))
+                diagnostics["added_lines"] += 1
+
+            diagnostics["connected_buses"] += len(island_component)
+
+    if new_buses:
+        model["buses"] = pd.concat([model["buses"], pd.DataFrame(new_buses)], ignore_index=True)
 
     if new_lines:
         model["lines"] = pd.concat([model["lines"], pd.DataFrame(new_lines)], ignore_index=True)
-        return True
 
-    log.warning("Could not find valid connection points for islands")
-    return False
+    if new_trafos:
+        model["trafos"] = pd.concat([model["trafos"], pd.DataFrame(new_trafos)], ignore_index=True)
+
+    return len(new_lines) > 0
 
 
 def _build_connectivity_graph(model: dict) -> nx.Graph:
@@ -858,8 +984,7 @@ def create_pandapower_network(use_opennem: bool = False, model: dict | None = No
     _add_transformers_to_network(net, bus_idx_map, model["trafos"])
     _add_generators_to_network(net, bus_idx_map, model["gens"])
     _add_loads_to_network(net, bus_idx_map, model["loads"])
-
-    net = add_external_grids(net)
+    _add_external_grids(net)
     sanity_checks(net)
 
     return net
@@ -969,7 +1094,7 @@ def _add_loads_to_network(
         )
 
 
-def add_external_grids(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapowerNet:
+def _add_external_grids(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapowerNet:
     """Add external grid (slack bus) connections to major NEM substations.
 
     Creates ext_grid elements at key interconnection points:
