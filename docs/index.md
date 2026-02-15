@@ -71,7 +71,6 @@ This documentation follows the [Diataxis](https://diataxis.fr/) framework:
 | [How-to guides](how-to/fetch-nemweb-data.md) | Task-oriented recipes |
 | [Explanation](explanation/transmission-line-cleaning.md) | Background and design |
 | [Reference](reference/configuration.md) | Technical specifications |
-| [API](api/) | Auto-generated API reference |
 
 ## Requirements
 

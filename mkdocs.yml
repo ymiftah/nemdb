@@ -15,7 +15,10 @@ markdown_extensions:
 plugins:
   - mkdocs-autoapi:
       autoapi_dir: ./src/nemdb
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
 nav:
   - Home: index.md
   - Tutorials:
