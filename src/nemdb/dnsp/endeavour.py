@@ -56,6 +56,5 @@ def _read_all_zss(file):
 
 
 if __name__ == "__main__":
-    file = "/home/simba/Downloads/FY-23-DAPR-Upload-Folder.zip"
-    df = read_all_zss(file)
+    df = read_all_zss(2024)
     print(df)

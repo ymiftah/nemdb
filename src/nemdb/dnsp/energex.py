@@ -47,6 +47,5 @@ def _read_all_zss(file):
 
 
 if __name__ == "__main__":
-    file = "/home/simba/Downloads/Energex-Network-Substation-Load-Data-2023-24.zip"
-    df = read_all_zss("/home/simba/Downloads/Energex-Network-Substation-Load-Data-2023-24.zip")
+    df = read_all_zss(2024)
     print(df)

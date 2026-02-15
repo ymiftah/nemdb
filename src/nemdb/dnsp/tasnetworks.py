@@ -49,6 +49,5 @@ def _read_all_zss(file):
 
 
 if __name__ == "__main__":
-    path = "/home/simba/Downloads/Tasnetworks-Zone-Substation-Load-Data-2023-24.csv"
-    df = read_all_zss(path)
+    df = read_all_zss(2024)
     print(df)

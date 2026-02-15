@@ -26,7 +26,7 @@ What actually happened.
 
 ## Error Output
 
-```
+```text
 Paste any error messages or logs here
 ```
 
@@ -39,4 +39,5 @@ Paste any error messages or logs here
 
 ## Additional Context
 
-Add any other context about the problem here (e.g., screenshots, related issues, suggested fixes).
+Add any other context about the problem here (e.g., screenshots, related
+issues, suggested fixes).

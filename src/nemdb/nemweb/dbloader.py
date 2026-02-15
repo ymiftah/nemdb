@@ -1306,14 +1306,14 @@ class DataSource:
         archive = _get_archive(self.table_name, year, month)
         return _archive_to_df(archive, self.table_columns, year, month, _low_memory=self.low_memory)
 
-    def get_data(self):
+    def get_data(self) -> pl.DataFrame:  # type: ignore[return-value]
         return self.read()
 
 
 class BySettlementDate(DataSource):
     """A DataSource filtered by settlement date."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific settlement date.
 
         Args:
@@ -1329,7 +1329,7 @@ class BySettlementDate(DataSource):
 class ByIntervalDate(DataSource):
     """A DataSource filtered by interval date."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific interval date.
 
         Args:
@@ -1345,7 +1345,7 @@ class ByIntervalDate(DataSource):
 class BySettlementDay(DataSource):
     """A DataSource filtered by settlement day."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific settlement day.
 
         Args:
@@ -1366,7 +1366,7 @@ class BySettlementDay(DataSource):
 class ByStartEnd(DataSource):
     """A DataSource filtered by start and end dates."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific date within the start and end dates.
 
         Args:
@@ -1389,7 +1389,7 @@ class ByStartEnd(DataSource):
 class ByEffectiveDateVersionNo(DataSource):
     """A DataSource filtered by effective date and version number."""
 
-    def get_data(self, date_time: str) -> pl.DataFrame:
+    def get_data(self, date_time: str) -> pl.DataFrame:  # type: ignore[override]
         """Gets data for a specific date, returning the latest version.
 
         Args:

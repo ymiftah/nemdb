@@ -2,7 +2,7 @@ import datetime
 
 import polars as pl
 from joblib import Memory
-from openelectricity import AsyncOEClient
+from openelectricity import AsyncOEClient, UnitFueltechType, UnitStatusType
 from openelectricity.types import (
     DataInterval,
     DataMetric,
@@ -14,6 +14,32 @@ from openelectricity.types import (
 from nemdb.config import Config
 
 memory = Memory(location=Config.TEMP_DIR, verbose=1)
+
+
+@memory.cache
+async def read_facilities(
+    network_id: list[str] | None = None,
+    status_id: list[UnitStatusType] | None = None,
+    fueltech_id: list[UnitFueltechType] | None = None,
+) -> pl.DataFrame:
+    async with AsyncOEClient() as client:
+        # Make async API calls
+        response = await client.get_facilities(
+            network_id=network_id,
+            status_id=status_id,
+            fueltech_id=fueltech_id,
+        )
+    df = pl.concat(
+        pl.DataFrame(facility.units).with_columns(
+            pl.lit(facility.code).alias("facility_code"),
+            pl.lit(facility.name).alias("name"),
+            pl.lit(facility.network_id).alias("network_id"),
+            pl.lit(facility.location.lat if facility.location else None).alias("latitude"),
+            pl.lit(facility.location.lng if facility.location else None).alias("longitude"),
+        )
+        for facility in response.data
+    )
+    return df
 
 
 async def read_data(

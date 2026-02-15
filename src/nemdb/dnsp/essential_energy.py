@@ -79,6 +79,5 @@ def _read_all_zss(file):
 
 
 if __name__ == "__main__":
-    file = "/home/simba/Downloads/EE-Zone-Substation-Load-Data-2023-24.zip"
-    df = read_all_zss(file)
+    df = read_all_zss(2024)
     print(df)
