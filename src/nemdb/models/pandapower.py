@@ -550,15 +550,27 @@ def _create_synthetic_line(best_island_bus, best_main_bus, buses_df):
 
 
 def _create_cross_voltage_connection(best_island_bus, best_main_bus, buses_df, bus_counter):
-    """Create a cross-voltage connection using intermediate synthetic bus at island voltage.
+    """Create a cross-voltage connection using intermediate synthetic bus.
 
-    Strategy:
-    1. Create intermediate synthetic bus at island voltage and main location
-    2. Connect island bus to intermediate with line at island voltage
-    3. Connect intermediate to main with transformer
+    Implements three-part architecture to avoid directly connecting buses with different
+    nominal voltages (which violates network constraints):
+
+    1. Create synthetic intermediate bus at island voltage (same as island_bus)
+    2. Connect island_bus → intermediate with transmission line (same voltage ✓)
+    3. Connect intermediate → main_bus with transformer (voltage conversion)
+
+    This ensures all transmission lines connect buses at matching voltage levels while
+    properly bridging the voltage difference through a transformer at the intermediate
+    location.
+
+    Args:
+        best_island_bus: Bus ID in isolated island (e.g., 'bus_474_220kv')
+        best_main_bus: Closest bus in main network (e.g., 'bus_600_66kv')
+        buses_df: Bus dataframe with geodata and voltage info
+        bus_counter: List with counter for generating unique synthetic bus IDs
 
     Returns:
-        Tuple of (synthetic_bus, line_to_intermediate, transformer)
+        Tuple of (synthetic_bus_dict, line_dict, transformer_dict)
     """
     island_voltage = buses_df.loc[best_island_bus, "vn_kv"]
     main_voltage = buses_df.loc[best_main_bus, "vn_kv"]

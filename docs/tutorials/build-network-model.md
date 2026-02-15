@@ -46,7 +46,7 @@ The `get_pandapower_model()` function orchestrates the full pipeline:
 3. Maps lines to from/to buses
 4. Infers transformers where multiple voltage levels meet at a bus
 5. Attaches generators (from power station data) and loads (from substations)
-6. Validates and fixes connectivity (removes orphan buses, connects islands)
+6. Validates and fixes connectivity (removes orphan buses, connects islands with synthetic transformers)
 
 ```python
 from nemdb.models.pandapower import get_pandapower_model
@@ -59,6 +59,8 @@ print(f"Transformers: {len(model['trafos'])}")
 print(f"Generators:   {len(model['gens'])}")
 print(f"Loads:        {len(model['loads'])}")
 ```
+
+Isolated voltage-level islands are detected and connected using a two-stage strategy: same-voltage connections within 50 km (preferred) or cross-voltage connections with synthetic transformers. See [Island Connectivity and Cross-Voltage Bridging](../explanation/island-connectivity.md) for architectural details.
 
 ### Using OpenNEM facilities as generators
 
@@ -143,4 +145,5 @@ fig.show()
 
 - [Work with geodata](../how-to/work-with-geodata.md) -- more detail on GIS data functions
 - [Transmission line cleaning](../explanation/transmission-line-cleaning.md) -- how the cleaning algorithms work
+- [Island connectivity and cross-voltage bridging](../explanation/island-connectivity.md) -- how isolated voltage-level islands are connected
 - [Use OpenNEM API](../how-to/use-opennem-api.md) -- query facility and generation data

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Cross-voltage island connections**: Fixed network constraint violation where synthetic transmission lines were directly connecting buses with different nominal voltages
+  - Implemented synthetic intermediate buses at island voltage levels for cross-voltage connections
+  - All synthetic lines now properly connect same-voltage bus pairs
+  - Cross-voltage bridging handled through transformers instead of direct line connections
+  - Added `_create_cross_voltage_connection()` helper function for proper transformer architecture
+  - Network sanity check `different_voltage_levels_connected` now passes ✓
+
+### Added
+
+- **Island Connectivity Explanation** (`docs/explanation/island-connectivity.md`): Comprehensive guide to island detection, connection strategies, and cross-voltage bridging architecture
+
 ## [0.1.0] - 2026-02-15
 
 ### Added
