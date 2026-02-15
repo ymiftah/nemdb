@@ -49,7 +49,7 @@ def get_url(year: int):
         return r.content
 
 
-@pa.check_output(LoadSchema)
+@pa.check_output(LoadSchema)  # type: ignore[arg-type]
 def _read_all_zss(file):
     """
     Read a zip file containing csvs of load data for each zone substation (ZSS)

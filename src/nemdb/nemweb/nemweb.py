@@ -16,7 +16,7 @@ MMSDM = "https://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/M
 BIDMOVE = "https://nemweb.com.au/Reports/Current/Bidmove_Complete/"
 
 
-def read_bids(year, month, day):
+def read_bids(year, month, day) -> tuple[pl.DataFrame, pl.DataFrame]:
     """Returns price and volume bids for the given day."""
     file = f"PUBLIC_BIDMOVE_COMPLETE_{year}{month:02d}{day:02d}"
     files = __read_files_available(BIDMOVE, format=".zip")
@@ -205,7 +205,7 @@ def read_demand_forecast(date: str | None = None) -> pl.DataFrame:
     # TODO maybe use dask, but careful with 403
     df = pd.concat(__fetch(f) for f in files)
     # process in polars
-    df = (
+    demand_forecast: pl.DataFrame = (
         pl.from_pandas(df)
         .drop_nulls()
         .sort(
@@ -224,7 +224,7 @@ def read_demand_forecast(date: str | None = None) -> pl.DataFrame:
         )
         .sort("INTERVAL_DATETIME", "REGIONID")
     )
-    return df
+    return demand_forecast
 
 
 # Helpers

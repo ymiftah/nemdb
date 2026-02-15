@@ -93,7 +93,7 @@ async def _fetch_api(
     return response
 
 
-def _response_to_df(response):
+def _response_to_df(response) -> pl.DataFrame:
     data = []
     for timeseries in response.data:
         for result in timeseries.results:

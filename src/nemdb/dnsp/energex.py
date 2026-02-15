@@ -19,7 +19,7 @@ def get_url(year: int):
     }.get(year)
 
 
-@pa.check_output(LoadSchema)
+@pa.check_output(LoadSchema)  # type: ignore[arg-type]
 def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:

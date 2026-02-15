@@ -1,3 +1,5 @@
+from typing import Any
+
 import geopandas as gpd
 import networkx as nx
 import pandapower as pp
@@ -836,7 +838,7 @@ _DEFAULT_LINE_PARAMS = {
 }
 
 
-def create_pandapower_network(use_opennem: bool = False, model: dict | None = None):
+def create_pandapower_network(use_opennem: bool = False, model: dict | None = None) -> Any:
     """Convert a model dict into a pandapower Network object.
 
     Args:

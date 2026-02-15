@@ -34,7 +34,7 @@ def list_zss(file):
     return [f.split("/")[1].split(" ZS_")[0] for f in files]
 
 
-@pa.check_output(LoadSchema)
+@pa.check_output(LoadSchema)  # type: ignore[arg-type]
 def _read_all_zss(file):
     dfs = []
     with zipfile.ZipFile(file, "r") as zip_ref:

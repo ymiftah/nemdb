@@ -1,10 +1,12 @@
 from functools import partial
 from itertools import chain
+from typing import Any
 
 import geopandas as gpd
 import pandas as pd
 import shapely as shp
 from shapely import shortest_line
+from shapely.geometry import LineString
 from shapely.ops import linemerge
 
 
@@ -40,7 +42,7 @@ def _get_points(geom):
     return points
 
 
-def force_line(geom):
+def force_line(geom: Any) -> LineString:
     """
     Given a shapely geometry object, forces it to be a line by choosing the sequence of points to traverse.
 
@@ -95,7 +97,7 @@ def force_line(geom):
     return output.simplify(tolerance=100)
 
 
-def make_continuous(geometry, tol_dist=100):
+def make_continuous(geometry: Any, tol_dist: int = 100) -> Any:
     """
     Simplifies a given multiline string continuous by merging any nearby lines that are within a certain distance.
     This ensures all lines are contiguous.
@@ -139,7 +141,7 @@ def make_continuous(geometry, tol_dist=100):
     return shp.union_all(output).simplify(tolerance=tol_dist)
 
 
-def clean_multilines(mls):
+def clean_multilines(mls: Any) -> Any:
     """
     Cleans a given MultiLineString geometry by ensuring that all lines are contiguous.
 
