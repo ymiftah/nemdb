@@ -1,4 +1,7 @@
 import networkx as nx
+import pytest
+
+pytest.importorskip("pandapower")
 import pandapower as pp
 
 from nemdb.models.pandapower import (

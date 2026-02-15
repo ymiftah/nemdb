@@ -1,8 +1,10 @@
 """Tests for network visualization module."""
 
 import pandas as pd
-import plotly.graph_objects as go
 import pytest
+
+pytest.importorskip("plotly")
+import plotly.graph_objects as go
 import shapely as shp
 
 from nemdb.models.visualize import (
