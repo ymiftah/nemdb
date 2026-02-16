@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-16
+
 ### Fixed
 
 - **Cross-voltage island connections**: Fixed network constraint violation where synthetic transmission lines were directly connecting buses with different nominal voltages
@@ -19,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Island Connectivity Explanation** (`docs/explanation/island-connectivity.md`): Comprehensive guide to island detection, connection strategies, and cross-voltage bridging architecture
+
+### Dependencies
+
+- Upgraded GitHub Actions dependencies:
+  - Bump astral-sh/setup-uv from 6 to 7
+  - Bump actions/setup-python from 5 to 6
+  - Bump actions/checkout from 4 to 6
 
 ## [0.1.0] - 2026-02-15
 
