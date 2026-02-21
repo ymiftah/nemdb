@@ -393,3 +393,49 @@ class MNSP_INTERCONNECTORSchema(pa.DataFrameModel):
     TO_REGION_TLF: pl.Float32 | None
     LHSFACTOR: pl.Float32 | None
     MAXCAPACITY: pl.Float32 | None
+
+
+# Constraint Tables
+# =================
+
+
+class GENCONDATASchema(pa.DataFrameModel):
+    """Generic constraint definitions and weighting."""
+
+    GENCONID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    CONSTRAINTTYPE: pl.Categorical | None
+    GENERICCONSTRAINTWEIGHT: pl.Float32 | None
+
+
+class SPDREGIONCONSTRAINTSchema(pa.DataFrameModel):
+    """Regional constraints on specific dispatch unit types."""
+
+    REGIONID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    GENCONID: pl.Categorical
+    BIDTYPE: pl.Categorical
+    FACTOR: pl.Float32 | None
+
+
+class SPDCONNECTIONPOINTCONSTRAINTSchema(pa.DataFrameModel):
+    """Connection point constraints on specific dispatch unit types."""
+
+    CONNECTIONPOINTID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    GENCONID: pl.Categorical
+    BIDTYPE: pl.Categorical
+    FACTOR: pl.Float32 | None
+
+
+class SPDINTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
+    """Interconnector constraints on specific dispatch unit types."""
+
+    INTERCONNECTORID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    GENCONID: pl.Categorical
+    FACTOR: pl.Float32 | None
