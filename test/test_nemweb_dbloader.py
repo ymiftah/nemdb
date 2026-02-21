@@ -18,7 +18,33 @@ from nemdb.nemweb.dbloader import (
     _get_archive,
     _MissingData,
 )
-from nemdb.nemweb.schemas import DispatchRegionSumSchema
+from nemdb.nemweb.schemas import (
+    BidDayOfferDSchema,
+    BidPerOfferDSchema,
+    DispatchConstraintSchema,
+    DispatchInterconnectorResSchema,
+    DispatchLoadSchema,
+    DispatchPriceSchema,
+    DispatchRegionSumSchema,
+    DUALLOCSchema,
+    DUDETAILSchema,
+    DUDETAILSUMMARYSchema,
+    GENCONDATASchema,
+    GENUNITSSchema,
+    INTERCONNECTORCONSTRAINTSchema,
+    INTERCONNECTORSchema,
+    LOSSFACTORMODELSchema,
+    LOSSMODELSchema,
+    MNSP_INTERCONNECTORSchema,
+    RESERVESchema,
+    SPDCONNECTIONPOINTCONSTRAINTSchema,
+    SPDINTERCONNECTORCONSTRAINTSchema,
+    SPDREGIONCONSTRAINTSchema,
+    STADUALLOCSchema,
+    STATIONOPERATINGSTATUSSchema,
+    STATIONOWNERSchema,
+    STATIONSchema,
+)
 
 
 @pytest.fixture
@@ -43,6 +69,38 @@ def test_nemweb_manager_init(mock_config):
     manager = NEMWEBManager(mock_config)
     assert manager.config == mock_config
     assert "DISPATCHREGIONSUM" in manager.active_tables()
+
+
+def test_nemweb_manager_datasources_have_schemas(mock_config):
+    """Test that NEMWEBManager DataSources are wired to their schemas."""
+    manager = NEMWEBManager(mock_config)
+
+    # Test all 26 DataSources
+    assert manager.DUALLOC.schema_class == DUALLOCSchema
+    assert manager.GENUNITS.schema_class == GENUNITSSchema
+    assert manager.RESERVE.schema_class == RESERVESchema
+    assert manager.DISPATCHREGIONSUM.schema_class == DispatchRegionSumSchema
+    assert manager.DISPATCHLOAD.schema_class == DispatchLoadSchema
+    assert manager.DISPATCHPRICE.schema_class == DispatchPriceSchema
+    assert manager.DUDETAILSUMMARY.schema_class == DUDETAILSUMMARYSchema
+    assert manager.DUDETAIL.schema_class == DUDETAILSchema
+    assert manager.STATION.schema_class == STATIONSchema
+    assert manager.STATIONOPERATINGSTATUS.schema_class == STATIONOPERATINGSTATUSSchema
+    assert manager.STATIONOWNER.schema_class == STATIONOWNERSchema
+    assert manager.STADUALLOC.schema_class == STADUALLOCSchema
+    assert manager.BIDDAYOFFER_D.schema_class == BidDayOfferDSchema
+    assert manager.BIDPEROFFER_D.schema_class == BidPerOfferDSchema
+    assert manager.DISPATCHCONSTRAINT.schema_class == DispatchConstraintSchema
+    assert manager.GENCONDATA.schema_class == GENCONDATASchema
+    assert manager.SPDREGIONCONSTRAINT.schema_class == SPDREGIONCONSTRAINTSchema
+    assert manager.SPDCONNECTIONPOINTCONSTRAINT.schema_class == SPDCONNECTIONPOINTCONSTRAINTSchema
+    assert manager.SPDINTERCONNECTORCONSTRAINT.schema_class == SPDINTERCONNECTORCONSTRAINTSchema
+    assert manager.INTERCONNECTOR.schema_class == INTERCONNECTORSchema
+    assert manager.INTERCONNECTORCONSTRAINT.schema_class == INTERCONNECTORCONSTRAINTSchema
+    assert manager.LOSSMODEL.schema_class == LOSSMODELSchema
+    assert manager.LOSSFACTORMODEL.schema_class == LOSSFACTORMODELSchema
+    assert manager.DISPATCHINTERCONNECTORRES.schema_class == DispatchInterconnectorResSchema
+    assert manager.MNSP_INTERCONNECTOR.schema_class == MNSP_INTERCONNECTORSchema
 
 
 def test_get_unit_volume_bids(mocker, mock_config):

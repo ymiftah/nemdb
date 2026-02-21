@@ -19,6 +19,33 @@ from tqdm import tqdm
 from nemdb import Config
 from nemdb import log as logger
 from nemdb.dnsp import DNSPDataSource
+from nemdb.nemweb.schemas import (
+    BidDayOfferDSchema,
+    BidPerOfferDSchema,
+    DispatchConstraintSchema,
+    DispatchInterconnectorResSchema,
+    DispatchLoadSchema,
+    DispatchPriceSchema,
+    DispatchRegionSumSchema,
+    DUALLOCSchema,
+    DUDETAILSchema,
+    DUDETAILSUMMARYSchema,
+    GENCONDATASchema,
+    GENUNITSSchema,
+    INTERCONNECTORCONSTRAINTSchema,
+    INTERCONNECTORSchema,
+    LOSSFACTORMODELSchema,
+    LOSSMODELSchema,
+    MNSP_INTERCONNECTORSchema,
+    RESERVESchema,
+    SPDCONNECTIONPOINTCONSTRAINTSchema,
+    SPDINTERCONNECTORCONSTRAINTSchema,
+    SPDREGIONCONSTRAINTSchema,
+    STADUALLOCSchema,
+    STATIONOPERATINGSTATUSSchema,
+    STATIONOWNERSchema,
+    STATIONSchema,
+)
 
 from .nemweb import read_bids
 from .utils import cache_response_zip
@@ -371,6 +398,7 @@ class NEMWEBManager:
             config=config,
             table_name="DUALLOC",
             table_columns=["DUID", "GENSETID", "LASTCHANGED", "VERSIONNO"],
+            schema_class=DUALLOCSchema,
         )
         self.GENUNITS = DataSource(
             config=config,
@@ -394,6 +422,7 @@ class NEMWEBManager:
                 "LASTCHANGED",
             ],
             table_primary_keys=["STATIONID", "LASTCHANGED"],
+            schema_class=GENUNITSSchema,
         )
         self.RESERVE = BySettlementDate(
             config=config,
@@ -409,6 +438,7 @@ class NEMWEBManager:
                 "LOWERREG",
             ],
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
+            schema_class=RESERVESchema,
         )
         self.DISPATCHREGIONSUM = BySettlementDate(
             config=config,
@@ -426,6 +456,7 @@ class NEMWEBManager:
                 "AVAILABLELOAD",
             ],
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
+            schema_class=DispatchRegionSumSchema,
         )
         self.DISPATCHLOAD = BySettlementDate(
             config=config,
@@ -466,6 +497,7 @@ class NEMWEBManager:
                 "UIGF",
             ],
             table_primary_keys=["SETTLEMENTDATE", "DUID"],
+            schema_class=DispatchLoadSchema,
         )
         self.DISPATCHPRICE = BySettlementDate(
             config=config,
@@ -487,6 +519,7 @@ class NEMWEBManager:
                 "LOWERREGROP",
             ],
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
+            schema_class=DispatchPriceSchema,
         )
         self.DUDETAILSUMMARY = ByStartEnd(
             config=config,
@@ -519,6 +552,7 @@ class NEMWEBManager:
                 "SECONDARY_TLF",
             ],
             table_primary_keys=["END_DATE", "REGIONID", "DUID"],
+            schema_class=DUDETAILSUMMARYSchema,
         )
         self.DUDETAIL = ByEffectiveDateVersionNo(
             config=config,
@@ -555,6 +589,7 @@ class NEMWEBManager:
                 "AGGREGATED",
             ],
             table_primary_keys=["VERSIONNO", "DUID"],
+            schema_class=DUDETAILSchema,
         )
         self.STATION = DataSource(
             config=config,
@@ -571,6 +606,7 @@ class NEMWEBManager:
                 "POSTCODE",
             ],
             table_primary_keys=["STATIONID"],
+            schema_class=STATIONSchema,
         )
         self.STATIONOPERATINGSTATUS = DataSource(
             config=config,
@@ -582,6 +618,7 @@ class NEMWEBManager:
                 "STATUS",
             ],
             table_primary_keys=["STATIONID", "EFFECTIVEDATE"],
+            schema_class=STATIONOPERATINGSTATUSSchema,
         )
         self.STATIONOWNER = DataSource(
             config=config,
@@ -593,6 +630,7 @@ class NEMWEBManager:
                 "VERSIONNO",
             ],
             table_primary_keys=["STATIONID", "EFFECTIVEDATE"],
+            schema_class=STATIONOWNERSchema,
         )
         self.STADUALLOC = DataSource(
             config=config,
@@ -604,6 +642,7 @@ class NEMWEBManager:
                 "VERSIONNO",
             ],
             table_primary_keys=["DUID", "EFFECTIVEDATE", "STATIONID", "VERSIONNO"],
+            schema_class=STADUALLOCSchema,
         )
         self.BIDDAYOFFER_D = BySettlementDate(
             config=config,
@@ -635,6 +674,7 @@ class NEMWEBManager:
                 "ENTRYTYPE",
             ],
             table_primary_keys=["SETTLEMENTDATE", "DUID", "VERSIONNO"],
+            schema_class=BidDayOfferDSchema,
         )
         self.BIDPEROFFER_D = BySettlementDate(
             config=config,
@@ -669,6 +709,7 @@ class NEMWEBManager:
             ],
             table_primary_keys=["SETTLEMENTDATE", "DUID", "INTERVAL_DATETIME"],
             low_memory=True,
+            schema_class=BidPerOfferDSchema,
         )
         self.DISPATCHCONSTRAINT = BySettlementDate(
             config=config,
@@ -685,6 +726,7 @@ class NEMWEBManager:
                 "MARGINALVALUE",
             ],
             table_primary_keys=["SETTLEMENTDATE", "CONSTRAINTID"],
+            schema_class=DispatchConstraintSchema,
         )
         self.GENCONDATA = ByEffectiveDateVersionNo(
             config=config,
@@ -697,6 +739,7 @@ class NEMWEBManager:
                 "GENERICCONSTRAINTWEIGHT",
             ],
             table_primary_keys=["GENCONID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=GENCONDATASchema,
         )
         self.SPDREGIONCONSTRAINT = ByEffectiveDateVersionNo(
             config=config,
@@ -716,6 +759,7 @@ class NEMWEBManager:
                 "VERSIONNO",
                 "BIDTYPE",
             ],
+            schema_class=SPDREGIONCONSTRAINTSchema,
         )
         self.SPDCONNECTIONPOINTCONSTRAINT = ByEffectiveDateVersionNo(
             config=config,
@@ -735,6 +779,7 @@ class NEMWEBManager:
                 "VERSIONNO",
                 "BIDTYPE",
             ],
+            schema_class=SPDCONNECTIONPOINTCONSTRAINTSchema,
         )
         self.SPDINTERCONNECTORCONSTRAINT = ByEffectiveDateVersionNo(
             config=config,
@@ -752,12 +797,14 @@ class NEMWEBManager:
                 "EFFECTIVEDATE",
                 "VERSIONNO",
             ],
+            schema_class=SPDINTERCONNECTORCONSTRAINTSchema,
         )
         self.INTERCONNECTOR = ByEffectiveDateVersionNo(
             config=config,
             table_name="INTERCONNECTOR",
             table_columns=["INTERCONNECTORID", "REGIONFROM", "REGIONTO"],
             table_primary_keys=["INTERCONNECTORID"],
+            schema_class=INTERCONNECTORSchema,
         )
         self.INTERCONNECTORCONSTRAINT = ByEffectiveDateVersionNo(
             config=config,
@@ -776,6 +823,7 @@ class NEMWEBManager:
                 "MAXMWOUT",
             ],
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=INTERCONNECTORCONSTRAINTSchema,
         )
         self.LOSSMODEL = ByEffectiveDateVersionNo(
             config=config,
@@ -788,6 +836,7 @@ class NEMWEBManager:
                 "MWBREAKPOINT",
             ],
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=LOSSMODELSchema,
         )
         self.LOSSFACTORMODEL = ByEffectiveDateVersionNo(
             config=config,
@@ -800,12 +849,14 @@ class NEMWEBManager:
                 "DEMANDCOEFFICIENT",
             ],
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=LOSSFACTORMODELSchema,
         )
         self.DISPATCHINTERCONNECTORRES = BySettlementDate(
             config=config,
             table_name="DISPATCHINTERCONNECTORRES",
             table_columns=["INTERCONNECTORID", "SETTLEMENTDATE", "MWFLOW", "MWLOSSES"],
             table_primary_keys=["INTERCONNECTORID", "SETTLEMENTDATE"],
+            schema_class=DispatchInterconnectorResSchema,
         )
         self.MNSP_INTERCONNECTOR = ByEffectiveDateVersionNo(
             config=config,
@@ -828,6 +879,7 @@ class NEMWEBManager:
                 "EFFECTIVEDATE",
                 "VERSIONNO",
             ],
+            schema_class=MNSP_INTERCONNECTORSchema,
         )
 
     def __repr__(self):
