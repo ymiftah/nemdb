@@ -1098,6 +1098,7 @@ class DataSource:
         table_primary_keys: list[str] | None = None,
         add_partitions: list[str] | None = None,
         low_memory: bool = False,
+        schema_class: type | None = None,
     ):
         """Creates a parquet dataset."""
         self.config = config
@@ -1108,6 +1109,7 @@ class DataSource:
             [*add_partitions, "archive_month"] if add_partitions is not None else ["archive_month"]
         )
         self.low_memory = low_memory
+        self.schema_class = schema_class
 
         self.path = f"{config.CACHE_DIR}/{table_name}/"
         self.fs = fsspec.filesystem(config.FILESYSTEM)

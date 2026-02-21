@@ -18,6 +18,7 @@ from nemdb.nemweb.dbloader import (
     _get_archive,
     _MissingData,
 )
+from nemdb.nemweb.schemas import DispatchRegionSumSchema
 
 
 @pytest.fixture
@@ -212,3 +213,15 @@ def test_by_effective_date_version_no(mocker, mock_config):
     ) = pl.DataFrame({"EFFECTIVEDATE": [datetime(2024, 1, 1)], "VERSIONNO": [1], "a": [1]})
     df = ds.get_data("2024/01/15")
     assert df.shape == (1, 3)
+
+
+def test_data_source_with_schema_class(mock_config):
+    """Test DataSource accepts and stores schema_class parameter."""
+    ds = DataSource(
+        mock_config,
+        "TABLE",
+        ["a", "b"],
+        ["a"],
+        schema_class=DispatchRegionSumSchema,
+    )
+    assert ds.schema_class == DispatchRegionSumSchema
