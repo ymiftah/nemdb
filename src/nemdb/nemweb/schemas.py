@@ -439,3 +439,18 @@ class SPDINTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
     VERSIONNO: pl.Int32
     GENCONID: pl.Categorical
     FACTOR: pl.Float32 | None
+
+
+# DNSP Tables (Not in standard DTYPES)
+# ====================================
+# Note: ZONE_SUBSTATION uses DNSP-specific columns not in DTYPES.
+# Types derived from usage in DNSPDataSource.
+
+
+class ZONESUBSTATIONSchema(pa.DataFrameModel):
+    """Distribution network zone substation data from DNSP operators."""
+
+    time: pl.String | None  # DNSP-specific, not in standard DTYPES
+    zss: pl.String | None  # DNSP-specific, not in standard DTYPES
+    MW: pl.Float32 | None
+    network: pl.String | None
