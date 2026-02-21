@@ -110,3 +110,67 @@ class DispatchInterconnectorResSchema(pa.DataFrameModel):
     SETTLEMENTDATE: pl.Datetime
     MWFLOW: pl.Float32 | None
     MWLOSSES: pl.Float32 | None
+
+
+# Bid Tables
+# ==========
+
+
+class BidDayOfferDSchema(pa.DataFrameModel):
+    """Daily energy bid offers by generators."""
+
+    DUID: pl.Categorical
+    SETTLEMENTDATE: pl.Datetime
+    BIDTYPE: pl.Categorical
+    DIRECTION: pl.Categorical
+    VERSIONNO: pl.Int32 | None
+    PARTICIPANTID: pl.Categorical | None
+    DAILYENERGYCONSTRAINT: pl.Float32 | None
+    PRICEBAND1: pl.Float32 | None
+    PRICEBAND2: pl.Float32 | None
+    PRICEBAND3: pl.Float32 | None
+    PRICEBAND4: pl.Float32 | None
+    PRICEBAND5: pl.Float32 | None
+    PRICEBAND6: pl.Float32 | None
+    PRICEBAND7: pl.Float32 | None
+    PRICEBAND8: pl.Float32 | None
+    PRICEBAND9: pl.Float32 | None
+    PRICEBAND10: pl.Float32 | None
+    MINIMUMLOAD: pl.Float32 | None
+    T1: pl.Float32 | None
+    T2: pl.Float32 | None
+    T3: pl.Float32 | None
+    T4: pl.Float32 | None
+    NORMALSTATUS: pl.String | None
+    ENTRYTYPE: pl.Categorical | None
+
+
+class BidPerOfferDSchema(pa.DataFrameModel):
+    """Interval-level bid offers with availability and constraints."""
+
+    DUID: pl.Categorical
+    SETTLEMENTDATE: pl.Datetime
+    BIDTYPE: pl.Categorical
+    DIRECTION: pl.Categorical
+    VERSIONNO: pl.Int32 | None
+    INTERVAL_DATETIME: pl.Datetime
+    MAXAVAIL: pl.Float32 | None
+    FIXEDLOAD: pl.Float32 | None
+    ROCUP: pl.Float32 | None
+    ROCDOWN: pl.Float32 | None
+    ENABLEMENTMIN: pl.Float32 | None
+    ENABLEMENTMAX: pl.Float32 | None
+    LOWBREAKPOINT: pl.Float32 | None
+    HIGHBREAKPOINT: pl.Float32 | None
+    BANDAVAIL1: pl.Float32 | None
+    BANDAVAIL2: pl.Float32 | None
+    BANDAVAIL3: pl.Float32 | None
+    BANDAVAIL4: pl.Float32 | None
+    BANDAVAIL5: pl.Float32 | None
+    BANDAVAIL6: pl.Float32 | None
+    BANDAVAIL7: pl.Float32 | None
+    BANDAVAIL8: pl.Float32 | None
+    BANDAVAIL9: pl.Float32 | None
+    BANDAVAIL10: pl.Float32 | None
+    ENERGYLIMIT: pl.Float32 | None
+    LASTCHANGED: pl.Datetime | None
