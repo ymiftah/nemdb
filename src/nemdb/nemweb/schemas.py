@@ -8,6 +8,7 @@ type hinting. Fields are marked Optional since the _archive_to_df function fills
 missing columns with null values.
 """
 
+import logging
 from typing import Optional  # noqa: F401
 
 import pandera.polars as pa
@@ -495,3 +496,42 @@ SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
     # DNSP Tables
     "ZONE_SUBSTATION": ZONESUBSTATIONSchema,
 }
+
+
+# Validation Utilities
+# ====================
+
+
+def validate_against_schema(
+    df: pl.DataFrame,
+    schema_class: type[pa.DataFrameModel],
+    raise_on_error: bool = False,
+) -> bool:
+    """
+    Validate a Polars DataFrame against a Pandera schema.
+
+    This is an opt-in utility for schema validation. It's not called automatically
+    to preserve the performance characteristics of the main data pipeline. Use this
+    in tests, CI/CD, or specific validation scenarios.
+
+    Args:
+        df: DataFrame to validate
+        schema_class: Pandera DataFrameModel schema class to validate against
+        raise_on_error: If True, raise SchemaError on validation failure.
+                       If False, return False and log warning.
+
+    Returns:
+        True if validation passes, False if validation fails (and raise_on_error=False)
+
+    Raises:
+        pandera.errors.SchemaError: If validation fails and raise_on_error=True
+    """
+    try:
+        schema_class.validate(df)
+        return True
+    except pa.errors.SchemaError as e:
+        if raise_on_error:
+            raise
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Schema validation failed for {schema_class.__name__}: {e}")
+        return False

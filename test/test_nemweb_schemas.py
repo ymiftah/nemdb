@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pandera.polars as pa
 import polars as pl
+import pytest
 
 from nemdb import Config
 from nemdb.nemweb.dbloader import DataSource, NEMWEBManager
@@ -37,6 +38,7 @@ from nemdb.nemweb.schemas import (
     STATIONOWNERSchema,
     STATIONSchema,
     ZONESUBSTATIONSchema,
+    validate_against_schema,
 )
 
 
@@ -241,3 +243,76 @@ def test_datasource_schema_class_attribute():
         assert checked_count >= 25, (
             f"Only checked {checked_count} DataSources, expected at least 25"
         )
+
+
+def test_validate_against_schema_valid_data():
+    """Test validate_against_schema with valid data."""
+    # Create valid DataFrame matching schema
+    df = pl.DataFrame(
+        {
+            "SETTLEMENTDATE": [datetime(2024, 1, 1, 12, 0)],
+            "REGIONID": ["NSW1"],
+            "TOTALDEMAND": [1000.0],
+            "DEMANDFORECAST": [1050.0],
+            "DISPATCHABLELOAD": [900.0],
+            "INITIALSUPPLY": [950.0],
+            "SS_SOLAR_AVAILABILITY": [100.0],
+            "SS_WIND_AVAILABILITY": [50.0],
+            "AVAILABLEGENERATION": [1100.0],
+            "AVAILABLELOAD": [950.0],
+        }
+    ).cast(
+        {
+            "SETTLEMENTDATE": pl.Datetime,
+            "REGIONID": pl.Categorical,
+            "TOTALDEMAND": pl.Float32,
+            "DEMANDFORECAST": pl.Float32,
+            "DISPATCHABLELOAD": pl.Float32,
+            "INITIALSUPPLY": pl.Float32,
+            "SS_SOLAR_AVAILABILITY": pl.Float32,
+            "SS_WIND_AVAILABILITY": pl.Float32,
+            "AVAILABLEGENERATION": pl.Float32,
+            "AVAILABLELOAD": pl.Float32,
+        }
+    )
+
+    result = validate_against_schema(df, DispatchRegionSumSchema)
+    assert result is True
+
+
+def test_validate_against_schema_invalid_data():
+    """Test validate_against_schema with invalid data (missing required field)."""
+    # Create invalid DataFrame (missing REGIONID)
+    df = pl.DataFrame(
+        {
+            "SETTLEMENTDATE": [datetime(2024, 1, 1, 12, 0)],
+            # Missing REGIONID - required field
+            "TOTALDEMAND": [1000.0],
+        }
+    ).cast(
+        {
+            "SETTLEMENTDATE": pl.Datetime,
+            "TOTALDEMAND": pl.Float32,
+        }
+    )
+
+    result = validate_against_schema(df, DispatchRegionSumSchema, raise_on_error=False)
+    assert result is False
+
+
+def test_validate_against_schema_raises_on_error():
+    """Test validate_against_schema raises exception when requested."""
+    df = pl.DataFrame(
+        {
+            "SETTLEMENTDATE": [],
+            "TOTALDEMAND": [],
+        }
+    ).cast(
+        {
+            "SETTLEMENTDATE": pl.Datetime,
+            "TOTALDEMAND": pl.Float32,
+        }
+    )
+
+    with pytest.raises(pa.errors.SchemaError):
+        validate_against_schema(df, DispatchRegionSumSchema, raise_on_error=True)
