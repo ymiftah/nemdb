@@ -454,3 +454,44 @@ class ZONESUBSTATIONSchema(pa.DataFrameModel):
     zss: pl.String | None  # DNSP-specific, not in standard DTYPES
     MW: pl.Float32 | None
     network: pl.String | None
+
+
+# SCHEMA_MAP Registry
+# ===================
+# Maps table names to their corresponding Pandera schemas for discovery and validation
+
+SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
+    # Dispatch Tables
+    "DISPATCHREGIONSUM": DispatchRegionSumSchema,
+    "DISPATCHLOAD": DispatchLoadSchema,
+    "DISPATCHPRICE": DispatchPriceSchema,
+    "DISPATCHCONSTRAINT": DispatchConstraintSchema,
+    "DISPATCHINTERCONNECTORRES": DispatchInterconnectorResSchema,
+    # Bid Tables
+    "BIDDAYOFFER_D": BidDayOfferDSchema,
+    "BIDPEROFFER_D": BidPerOfferDSchema,
+    # Generation Unit Tables
+    "DUALLOC": DUALLOCSchema,
+    "GENUNITS": GENUNITSSchema,
+    "DUDETAILSUMMARY": DUDETAILSUMMARYSchema,
+    "DUDETAIL": DUDETAILSchema,
+    "RESERVE": RESERVESchema,
+    # Station Tables
+    "STATION": STATIONSchema,
+    "STATIONOPERATINGSTATUS": STATIONOPERATINGSTATUSSchema,
+    "STATIONOWNER": STATIONOWNERSchema,
+    "STADUALLOC": STADUALLOCSchema,
+    # Interconnector Tables
+    "INTERCONNECTOR": INTERCONNECTORSchema,
+    "INTERCONNECTORCONSTRAINT": INTERCONNECTORCONSTRAINTSchema,
+    "LOSSMODEL": LOSSMODELSchema,
+    "LOSSFACTORMODEL": LOSSFACTORMODELSchema,
+    "MNSP_INTERCONNECTOR": MNSP_INTERCONNECTORSchema,
+    # Constraint Tables
+    "GENCONDATA": GENCONDATASchema,
+    "SPDREGIONCONSTRAINT": SPDREGIONCONSTRAINTSchema,
+    "SPDCONNECTIONPOINTCONSTRAINT": SPDCONNECTIONPOINTCONSTRAINTSchema,
+    "SPDINTERCONNECTORCONSTRAINT": SPDINTERCONNECTORCONSTRAINTSchema,
+    # DNSP Tables
+    "ZONE_SUBSTATION": ZONESUBSTATIONSchema,
+}

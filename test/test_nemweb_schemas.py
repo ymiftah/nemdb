@@ -2,9 +2,11 @@
 
 from datetime import datetime
 
+import pandera.polars as pa
 import polars as pl
 
 from nemdb.nemweb.schemas import (
+    SCHEMA_MAP,
     BidDayOfferDSchema,
     BidPerOfferDSchema,
     DispatchConstraintSchema,
@@ -157,3 +159,16 @@ def test_sample_dispatch_region_sum_data():
     assert df is not None
     assert "SETTLEMENTDATE" in df.columns
     assert len(df) == 1
+
+
+def test_schema_map_exists_and_is_complete():
+    """Test that SCHEMA_MAP registry exists and contains all 26 schemas."""
+    # Should have 26 entries
+    assert len(SCHEMA_MAP) == 26, f"SCHEMA_MAP has {len(SCHEMA_MAP)} entries, expected 26"
+
+    # All values should be schema classes
+    for table_name, schema_class in SCHEMA_MAP.items():
+        assert isinstance(table_name, str)
+        assert issubclass(schema_class, pa.DataFrameModel), (
+            f"{table_name}: schema_class {schema_class} is not a DataFrameModel"
+        )
