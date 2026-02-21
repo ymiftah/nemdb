@@ -174,3 +174,114 @@ class BidPerOfferDSchema(pa.DataFrameModel):
     BANDAVAIL10: pl.Float32 | None
     ENERGYLIMIT: pl.Float32 | None
     LASTCHANGED: pl.Datetime | None
+
+
+# Generation Unit Tables
+# ======================
+
+
+class DUALLOCSchema(pa.DataFrameModel):
+    """Dispatch unit to generation set allocation."""
+
+    DUID: pl.Categorical
+    GENSETID: pl.Categorical
+    LASTCHANGED: pl.Datetime | None
+    VERSIONNO: pl.Int32 | None
+
+
+class GENUNITSSchema(pa.DataFrameModel):
+    """Generation unit characteristics and capabilities."""
+
+    GENSETID: pl.Categorical
+    STATIONID: pl.String
+    VOLTLEVEL: pl.Float32 | None
+    DISPATCHTYPE: pl.Categorical
+    STARTTYPE: pl.String | None
+    NORMALSTATUS: pl.String | None
+    MAXCAPACITY: pl.Float32 | None
+    GENSETTYPE: pl.String | None
+    GENSETNAME: pl.String | None
+    LOWERREG: pl.Float32 | None
+    CO2E_EMISSIONS_FACTOR: pl.Float32 | None
+    CO2E_ENERGY_SOURCE: pl.String | None
+    CO2E_DATA_SOURCE: pl.String | None
+    MINCAPACITY: pl.Float32 | None
+    REGISTEREDMINCAPACITY: pl.Float32 | None
+    LASTCHANGED: pl.Datetime | None
+
+
+class DUDETAILSUMMARYSchema(pa.DataFrameModel):
+    """Dispatch unit summary with operational dates and limits."""
+
+    DUID: pl.Categorical
+    START_DATE: pl.Date
+    END_DATE: pl.Date
+    DISPATCHTYPE: pl.Categorical | None
+    CONNECTIONPOINTID: pl.Categorical | None
+    REGIONID: pl.Categorical | None
+    STATIONID: pl.String | None
+    TRANSMISSIONLOSSFACTOR: pl.Float32 | None
+    STARTTYPE: pl.String | None
+    DISTRIBUTIONLOSSFACTOR: pl.Float32 | None
+    MINIMUM_ENERGY_PRICE: pl.Float32 | None
+    MAXIMUM_ENERGY_PRICE: pl.Float32 | None
+    SCHEDULE_TYPE: pl.Categorical | None
+    MIN_RAMP_RATE_UP: pl.Float32 | None
+    MIN_RAMP_RATE_DOWN: pl.Float32 | None
+    MAX_RAMP_RATE_UP: pl.Float32 | None
+    MAX_RAMP_RATE_DOWN: pl.Float32 | None
+    IS_AGGREGATED: pl.Boolean | None
+    LOAD_MINIMUM_ENERGY_PRICE: pl.Float32 | None
+    LOAD_MAXIMUM_ENERGY_PRICE: pl.Float32 | None
+    LOAD_MIN_RAMP_RATE_UP: pl.Float32 | None
+    LOAD_MIN_RAMP_RATE_DOWN: pl.Float32 | None
+    LOAD_MAX_RAMP_RATE_UP: pl.Float32 | None
+    LOAD_MAX_RAMP_RATE_DOWN: pl.Float32 | None
+    SECONDARY_TLF: pl.Float32 | None
+
+
+class DUDETAILSchema(pa.DataFrameModel):
+    """Dispatch unit detailed technical specifications."""
+
+    DUID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    CONNECTIONPOINTID: pl.Categorical | None
+    VOLTLEVEL: pl.Float32 | None
+    REGISTEREDCAPACITY: pl.Float32 | None
+    AGCCAPABILITY: pl.String | None
+    DISPATCHTYPE: pl.Categorical | None
+    MAXCAPACITY: pl.Float32 | None
+    STARTTYPE: pl.String | None
+    NORMALLYONFLAG: pl.String | None
+    SPINNINGRESERVEFLAG: pl.String | None
+    INTERMITTENTFLAG: pl.String | None
+    SEMISCHEDULE_FLAG: pl.String | None
+    MAXRATEOFCHANGEUP: pl.Float32 | None
+    MAXRATEOFCHANGEDOWN: pl.Float32 | None
+    ADG_ID: pl.String | None
+    MINCAPACITY: pl.Float32 | None
+    REGISTEREDMINCAPACITY: pl.Float32 | None
+    MAXRATEOFCHANGEUP_LOAD: pl.Float32 | None
+    MAXRATEOFCHANGEDOWN_LOAD: pl.Float32 | None
+    MAXSTORAGECAPACITY: pl.Float32 | None
+    STORAGEIMPORTEFFICIENCYFACTOR: pl.Float32 | None
+    STORAGEEXPORTEFFICIENCYFACTOR: pl.Float32 | None
+    MIN_RAMP_RATE_UP: pl.Float32 | None
+    MIN_RAMP_RATE_DOWN: pl.Float32 | None
+    LOAD_MIN_RAMP_RATE_UP: pl.Float32 | None
+    LOAD_MIN_RAMP_RATE_DOWN: pl.Float32 | None
+    AGGREGATED: pl.String | None
+
+
+class RESERVESchema(pa.DataFrameModel):
+    """Regional reserve requirements and availability."""
+
+    SETTLEMENTDATE: pl.Datetime
+    VERSIONNO: pl.Int32 | None
+    REGIONID: pl.Categorical
+    PERIODID: pl.Int32 | None
+    LOWER5MIN: pl.Float32 | None
+    RAISE5MIN: pl.Float32 | None
+    RAISEREG: pl.Float32 | None
+    LOWERREG: pl.Float32 | None
