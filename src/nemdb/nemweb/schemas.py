@@ -6,6 +6,31 @@ table as returned by the corresponding DataSource.get_data() method.
 All schemas use pandera.polars.DataFrameModel for native Polars support and IDE
 type hinting. Fields are marked Optional since the _archive_to_df function fills
 missing columns with null values.
+
+## Schema Discovery
+
+Each schema is indexed in SCHEMA_MAP for programmatic access:
+
+    from nemdb.nemweb.schemas import SCHEMA_MAP
+    schema = SCHEMA_MAP["DISPATCHREGIONSUM"]
+
+## IDE Type Inference
+
+DataSource instances store their schema class for IDE inference:
+
+    from nemdb.nemweb import NEMWEBManager
+    manager = NEMWEBManager(config)
+    df = manager.DISPATCHREGIONSUM.get_data("2024/01/01 12:00:00")
+    # IDE knows df conforms to DispatchRegionSumSchema via manager.DISPATCHREGIONSUM.schema_class
+
+## Optional Runtime Validation
+
+Validation is provided as an opt-in utility (not in critical path):
+
+    from nemdb.nemweb.schemas import validate_against_schema
+    result = validate_against_schema(df, DispatchRegionSumSchema)
+    if not result:
+        logger.warning("Data does not conform to schema")
 """
 
 import logging

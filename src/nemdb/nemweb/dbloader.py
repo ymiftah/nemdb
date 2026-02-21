@@ -1152,7 +1152,20 @@ class DataSource:
         low_memory: bool = False,
         schema_class: type | None = None,
     ):
-        """Creates a parquet dataset."""
+        """Creates a parquet dataset.
+
+        Args:
+            config: Configuration class for cache and filesystem settings
+            table_name: Name of the table (used as subdirectory in cache)
+            table_columns: List of column names for this table
+            table_primary_keys: Optional list of primary key column names
+            add_partitions: Optional list of additional partition columns
+            low_memory: Whether to use lower memory mode for reading
+            schema_class: Optional Pandera schema class for this DataSource. When provided,
+                         enables IDE type inference and schema validation via
+                         validate_against_schema(). See nemdb.nemweb.schemas for available
+                         schema classes.
+        """
         self.config = config
         self.table_name = table_name
         self.table_columns = table_columns
