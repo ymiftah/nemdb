@@ -1,10 +1,14 @@
 """Tests for NEMWEB Pandera schemas."""
 
+import tempfile
 from datetime import datetime
+from pathlib import Path
 
 import pandera.polars as pa
 import polars as pl
 
+from nemdb import Config
+from nemdb.nemweb.dbloader import DataSource, NEMWEBManager
 from nemdb.nemweb.schemas import (
     SCHEMA_MAP,
     BidDayOfferDSchema,
@@ -171,4 +175,69 @@ def test_schema_map_exists_and_is_complete():
         assert isinstance(table_name, str)
         assert issubclass(schema_class, pa.DataFrameModel), (
             f"{table_name}: schema_class {schema_class} is not a DataFrameModel"
+        )
+
+
+def test_schema_fields_match_table_columns():
+    """Verify that schema fields match DataSource table_columns for each table."""
+    # Create temp config
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        config = Config()
+        config.CACHE_DIR = Path(tmp_dir)
+        config.TEMP_DIR = Path(tmp_dir)
+        manager = NEMWEBManager(config)
+
+        # For each DataSource with a schema, verify columns match schema fields
+        for ds_attr in dir(manager):
+            if ds_attr.startswith("_"):
+                continue
+            obj = getattr(manager, ds_attr)
+            if not hasattr(obj, "table_name") or not hasattr(obj, "table_columns"):
+                continue
+
+            table_name = obj.table_name
+            if table_name not in SCHEMA_MAP:
+                continue
+
+            # Get schema fields from __fields__ dict
+            schema_class = SCHEMA_MAP[table_name]
+            schema_fields = set(schema_class.__fields__.keys())
+            table_columns = set(obj.table_columns)
+
+            assert schema_fields == table_columns, (
+                f"{table_name}: Schema fields {schema_fields} do not match "
+                f"table columns {table_columns}. Mismatch: "
+                f"Missing from schema: {table_columns - schema_fields}, "
+                f"Extra in schema: {schema_fields - table_columns}"
+            )
+
+
+def test_datasource_schema_class_attribute():
+    """Verify all NEMWEBManager DataSources have schema_class attribute."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        config = Config()
+        config.CACHE_DIR = Path(tmp_dir)
+        config.TEMP_DIR = Path(tmp_dir)
+        manager = NEMWEBManager(config)
+
+        # Check all DataSource instances (not DNSPDataSource) in manager
+        checked_count = 0
+        for ds_attr in dir(manager):
+            if ds_attr.startswith("_"):
+                continue
+            obj = getattr(manager, ds_attr)
+            # Only check DataSource instances (skip DNSPDataSource, etc)
+            if not isinstance(obj, DataSource):
+                continue
+
+            # DataSources should have schema_class attribute
+            assert hasattr(obj, "schema_class"), (
+                f"{obj.table_name} DataSource missing schema_class attribute"
+            )
+            assert obj.schema_class is not None, f"{obj.table_name} schema_class is None"
+            checked_count += 1
+
+        # Should have checked at least 25 DataSources (all except ZONE_SUBSTATION which is DNSPDataSource)
+        assert checked_count >= 25, (
+            f"Only checked {checked_count} DataSources, expected at least 25"
         )
