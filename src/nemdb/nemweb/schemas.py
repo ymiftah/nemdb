@@ -285,3 +285,48 @@ class RESERVESchema(pa.DataFrameModel):
     RAISE5MIN: pl.Float32 | None
     RAISEREG: pl.Float32 | None
     LOWERREG: pl.Float32 | None
+
+
+# Station Tables
+# ==============
+
+
+class STATIONSchema(pa.DataFrameModel):
+    """Power station location and contact information."""
+
+    STATIONID: pl.String
+    STATIONNAME: pl.String | None
+    ADDRESS1: pl.String | None
+    ADDRESS2: pl.String | None
+    ADDRESS3: pl.String | None
+    ADDRESS4: pl.String | None
+    CITY: pl.String | None
+    STATE: pl.String | None
+    POSTCODE: pl.String | None
+
+
+class STATIONOPERATINGSTATUSSchema(pa.DataFrameModel):
+    """Station operating status over time."""
+
+    EFFECTIVEDATE: pl.Date
+    STATIONID: pl.String
+    VERSIONNO: pl.Int32 | None
+    STATUS: pl.String | None
+
+
+class STATIONOWNERSchema(pa.DataFrameModel):
+    """Station ownership and participant information."""
+
+    EFFECTIVEDATE: pl.Date
+    PARTICIPANTID: pl.Categorical
+    STATIONID: pl.String
+    VERSIONNO: pl.Int32 | None
+
+
+class STADUALLOCSchema(pa.DataFrameModel):
+    """Station to dispatch unit allocation."""
+
+    DUID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    STATIONID: pl.String
+    VERSIONNO: pl.Int32
