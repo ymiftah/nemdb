@@ -330,3 +330,66 @@ class STADUALLOCSchema(pa.DataFrameModel):
     EFFECTIVEDATE: pl.Date
     STATIONID: pl.String
     VERSIONNO: pl.Int32
+
+
+# Interconnector Tables
+# =====================
+
+
+class INTERCONNECTORSchema(pa.DataFrameModel):
+    """Interconnector corridor definitions with region endpoints."""
+
+    INTERCONNECTORID: pl.Categorical
+    REGIONFROM: pl.Categorical
+    REGIONTO: pl.Categorical
+
+
+class INTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
+    """Interconnector technical constraints and limits."""
+
+    INTERCONNECTORID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    FROMREGIONLOSSSHARE: pl.Float32 | None
+    ICTYPE: pl.Categorical | None
+    LOSSCONSTANT: pl.Float32 | None
+    LOSSFLOWCOEFFICIENT: pl.Float32 | None
+    IMPORTLIMIT: pl.Float32 | None
+    EXPORTLIMIT: pl.Float32 | None
+    MAXMWIN: pl.Float32 | None
+    MAXMWOUT: pl.Float32 | None
+
+
+class LOSSMODELSchema(pa.DataFrameModel):
+    """Loss model segments for interconnectors."""
+
+    INTERCONNECTORID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    LOSSSEGMENT: pl.Int32 | None
+    MWBREAKPOINT: pl.Float32 | None
+
+
+class LOSSFACTORMODELSchema(pa.DataFrameModel):
+    """Loss factors by region on interconnectors."""
+
+    INTERCONNECTORID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    REGIONID: pl.Categorical | None
+    DEMANDCOEFFICIENT: pl.Float32 | None
+
+
+class MNSP_INTERCONNECTORSchema(pa.DataFrameModel):
+    """Market Network Service Provider interconnector details."""
+
+    INTERCONNECTORID: pl.Categorical
+    LINKID: pl.Categorical
+    EFFECTIVEDATE: pl.Date
+    VERSIONNO: pl.Int32
+    FROMREGION: pl.Categorical | None
+    TOREGION: pl.Categorical | None
+    FROM_REGION_TLF: pl.Float32 | None
+    TO_REGION_TLF: pl.Float32 | None
+    LHSFACTOR: pl.Float32 | None
+    MAXCAPACITY: pl.Float32 | None
