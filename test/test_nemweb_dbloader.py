@@ -190,9 +190,10 @@ def test_get_archive_failure(mocker):
 
 
 def test_archive_to_df(mocker, tmp_path):
-    """Test _archive_to_df function."""
+    """Test _archive_to_df function with schema-derived dtypes."""
     mocker.patch("nemdb.nemweb.dbloader.read_header", return_value={"a", "b"})
     mocker.patch("pandas.read_csv", return_value=pd.DataFrame({"a": [1], "b": [2]}))
+    # Mock dtypes dict instead of DTYPES
     dtypes = {"a": pl.Int64, "b": pl.Int64}
     df = _archive_to_df(str(tmp_path / "test.zip"), ["a", "b"], dtypes, 2024, 1)
     assert isinstance(df, pl.DataFrame)
