@@ -38,6 +38,7 @@ from nemdb.nemweb.schemas import (
     STATIONOWNERSchema,
     STATIONSchema,
     ZONESUBSTATIONSchema,
+    _schema_to_dtypes,
     validate_against_schema,
 )
 
@@ -316,3 +317,31 @@ def test_validate_against_schema_raises_on_error():
 
     with pytest.raises(pa.errors.SchemaError):
         validate_against_schema(df, DispatchRegionSumSchema, raise_on_error=True)
+
+
+def test_schema_to_dtypes():
+    """Test that _schema_to_dtypes correctly extracts Polars types from schema annotations."""
+    dtypes = _schema_to_dtypes(DispatchRegionSumSchema)
+
+    # Check that we get Polars types (not unions with None)
+    assert isinstance(dtypes, dict)
+    assert "SETTLEMENTDATE" in dtypes
+    assert dtypes["SETTLEMENTDATE"] == pl.Datetime  # required field, no union
+    assert "TOTALDEMAND" in dtypes
+    assert dtypes["TOTALDEMAND"] == pl.Float32  # optional field, union unwrapped
+    assert dtypes["REGIONID"] == pl.Categorical
+
+    # Should have exactly the expected schema fields
+    expected_fields = {
+        "SETTLEMENTDATE",
+        "REGIONID",
+        "TOTALDEMAND",
+        "DEMANDFORECAST",
+        "DISPATCHABLELOAD",
+        "INITIALSUPPLY",
+        "SS_SOLAR_AVAILABILITY",
+        "SS_WIND_AVAILABILITY",
+        "AVAILABLEGENERATION",
+        "AVAILABLELOAD",
+    }
+    assert set(dtypes.keys()) == expected_fields

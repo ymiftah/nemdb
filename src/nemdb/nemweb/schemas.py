@@ -34,6 +34,8 @@ Validation is provided as an opt-in utility (not in critical path):
 """
 
 import logging
+import types
+import typing
 from typing import Optional  # noqa: F401
 
 import pandera.polars as pa
@@ -521,6 +523,47 @@ SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
     # DNSP Tables
     "ZONE_SUBSTATION": ZONESUBSTATIONSchema,
 }
+
+
+# Type Extraction
+# ==============
+
+
+def _schema_to_dtypes(schema_class: type[pa.DataFrameModel]) -> dict[str, type]:
+    """Extract Polars column types from a Pandera schema, unwrapping optional unions.
+
+    Pandera schemas use `pl.X | None` for optional fields. This function extracts
+    the bare Polars type (e.g., `pl.Float32`) for use in `.cast()` operations.
+    Required fields like `pl.Datetime` are returned as-is.
+
+    Args:
+        schema_class: A Pandera DataFrameModel subclass
+
+    Returns:
+        dict mapping column name -> bare Polars type (without | None wrapper)
+
+    Example:
+        >>> dtypes = _schema_to_dtypes(DispatchRegionSumSchema)
+        >>> dtypes['TOTALDEMAND']  # returns pl.Float32, not pl.Float32 | None
+        <polars.datatypes.Float32 object>
+    """
+    result = {}
+    type_hints = typing.get_type_hints(schema_class)
+    # Only process actual schema fields
+    for field_name in schema_class.__fields__:
+        annotation = type_hints.get(field_name)
+        if annotation is None:
+            continue
+        origin = typing.get_origin(annotation)
+        # Handle X | None (types.UnionType) or typing.Union[X, None]
+        if origin is types.UnionType or origin is typing.Union:
+            # Get union args and filter out NoneType
+            args = [a for a in typing.get_args(annotation) if a is not type(None)]
+            result[field_name] = args[0] if args else annotation
+        else:
+            # Not a union - bare type like pl.Datetime
+            result[field_name] = annotation
+    return result
 
 
 # Validation Utilities
