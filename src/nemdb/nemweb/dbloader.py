@@ -717,11 +717,23 @@ def _get_archive(table_name, year, month):
 def _archive_to_df(
     archive: str,
     table_columns: list[str],
+    dtypes: dict[str, type],
     year: int,
     month: int,
     _low_memory: bool = False,
 ) -> pl.DataFrame:
-    """Downloads a zipped csv file and converts it to a pandas DataFrame, returns the DataFrame.
+    """Downloads a zipped csv file and converts it to a polars DataFrame.
+
+    Args:
+        archive: Path to CSV file (from ZIP)
+        table_columns: List of column names to read
+        dtypes: Dict mapping column names to Polars types
+        year: Year of data
+        month: Month of data
+        _low_memory: Unused (for compatibility); low-memory handling is in add_data()
+
+    Returns:
+        Polars DataFrame with data cast to correct types
 
     Examples
     --------
@@ -777,7 +789,7 @@ def _archive_to_df(
     """
     # Read the file into a DataFrame.
     available_cols = read_header(archive)
-    table_dtypes = {k: DTYPES[k] for k in set(table_columns).intersection(available_cols)}
+    table_dtypes = {k: dtypes[k] for k in set(table_columns).intersection(available_cols)}
 
     data = pd.read_csv(
         archive,
@@ -799,7 +811,7 @@ def _archive_to_df(
         data[col] = pd.to_datetime(data[col].to_list(), format=STRPTIME, errors="coerce")
     # Discard last row of DataFrame
     data = data[:-1]
-    return pl.from_dataframe(data).cast({k: DTYPES[k] for k in set(table_columns)})
+    return pl.from_dataframe(data).cast({k: dtypes[k] for k in set(table_columns)})
 
 
 def read_header(file: str):
@@ -984,19 +996,33 @@ class DataSource:
         try:
             archive = _get_archive(name, year, month)
             self._archive_to_df_low_memory(
-                archive, name, self.table_columns, year, month, self.path, **kwargs
+                archive, name, self.table_columns, self._dtypes, year, month, self.path, **kwargs
             )
             return None
         except _MissingData:
             logger.error("No data available for %s %s / %s", self.table_name, year, month)
             return
 
-    def _archive_to_df_low_memory(self, archive, name, table_columns, year, month, path, **kwargs):
+    def _archive_to_df_low_memory(
+        self, archive, name, table_columns, dtypes, year, month, path, **kwargs
+    ):
+        """Read CSV in chunks and write parquet, handling low-memory scenarios.
+
+        Args:
+            archive: Path to CSV file (from ZIP)
+            name: Table name
+            table_columns: List of column names
+            dtypes: Dict mapping column names to Polars types
+            year: Year of data
+            month: Month of data
+            path: Output parquet path
+            **kwargs: Additional args for write_parquet
+        """
         partition_cols = self.partitions
 
         # Read the file into a DataFrame.
         available_cols = read_header(archive)
-        table_dtypes = {k: DTYPES[k] for k in set(table_columns).intersection(available_cols)}
+        table_dtypes = {k: dtypes[k] for k in set(table_columns).intersection(available_cols)}
         missing_columns = set(table_columns).difference(available_cols)
         if len(missing_columns):
             logger.info(
@@ -1021,7 +1047,7 @@ class DataSource:
 
             data = (
                 pl.from_dataframe(chunk)
-                .cast({k: DTYPES[k] for k in set(table_columns)})
+                .cast({k: dtypes[k] for k in set(table_columns)})
                 .with_columns(
                     pl.date(year, month, 1).alias("archive_month"),
                 )
@@ -1058,7 +1084,9 @@ class DataSource:
         """
         logger.info("Fetching data for %s %s / %s", self.table_name, year, month)
         archive = _get_archive(self.table_name, year, month)
-        return _archive_to_df(archive, self.table_columns, year, month, _low_memory=self.low_memory)
+        return _archive_to_df(
+            archive, self.table_columns, self._dtypes, year, month, _low_memory=self.low_memory
+        )
 
     def get_data(self) -> pl.DataFrame:  # type: ignore[return-value]
         return self.read()
