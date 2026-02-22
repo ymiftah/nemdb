@@ -13,7 +13,7 @@ from functools import lru_cache
 
 import fsspec
 import pandas as pd
-import pandera as pa
+import pandera.polars as pa_polars
 import polars as pl
 from tqdm import tqdm
 
@@ -636,7 +636,7 @@ class DataSource:
         self,
         config: type[Config],
         table_name: str,
-        schema_class: type[pa.DataFrameModel],
+        schema_class: type[pa_polars.DataFrameModel],
         table_primary_keys: list[str] | None = None,
         add_partitions: list[str] | None = None,
         low_memory: bool = False,
