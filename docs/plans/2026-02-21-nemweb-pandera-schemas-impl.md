@@ -16,7 +16,7 @@
 
 - Create: `src/nemdb/nemweb/schemas.py`
 
-**Step 1: Write the file with module docstring and imports**
+### Step 1: Write the file with module docstring and imports
 
 ```python
 """Pandera schemas for NEMWEB database tables.
@@ -39,7 +39,7 @@ import polars as pl
 # ===============
 ```
 
-**Step 2: Verify file is created**
+### Step 2: Verify file is created
 
 ```bash
 cat src/nemdb/nemweb/schemas.py | head -20
@@ -47,7 +47,7 @@ cat src/nemdb/nemweb/schemas.py | head -20
 
 Expected: Module docstring and imports visible.
 
-**Step 3: Commit skeleton**
+### Step 3: Commit skeleton
 
 ```bash
 git add src/nemdb/nemweb/schemas.py
@@ -65,7 +65,7 @@ table schemas by category."
 
 - Modify: `src/nemdb/nemweb/schemas.py` (add dispatch schemas after "# Dispatch Tables" comment)
 
-**Step 1: Add dispatch table schemas**
+### Step 1: Add dispatch table schemas
 
 Append these schemas after the "# Dispatch Tables" comment:
 
@@ -165,7 +165,7 @@ class DispatchInterconnectorResSchema(pa.DataFrameModel):
     MWLOSSES: Optional[pl.Float32]
 ```
 
-**Step 2: Verify schemas compile**
+### Step 2: Verify schemas compile
 
 ```bash
 python -c "from nemdb.nemweb.schemas import DispatchRegionSumSchema; print('Dispatch schemas loaded')"
@@ -173,7 +173,7 @@ python -c "from nemdb.nemweb.schemas import DispatchRegionSumSchema; print('Disp
 
 Expected: "Dispatch schemas loaded"
 
-**Step 3: Commit dispatch schemas**
+### Step 3: Commit dispatch schemas
 
 ```bash
 git add src/nemdb/nemweb/schemas.py
@@ -191,7 +191,7 @@ DISPATCHCONSTRAINT, and DISPATCHINTERCONNECTORRES tables."
 
 - Modify: `src/nemdb/nemweb/schemas.py` (append after dispatch schemas)
 
-**Step 1: Add section comment and bid schemas**
+### Step 1: Add section comment and bid schemas
 
 Append these after dispatch schemas:
 
@@ -260,7 +260,7 @@ class BidPerOfferDSchema(pa.DataFrameModel):
     LASTCHANGED: Optional[pl.Datetime]
 ```
 
-**Step 2: Verify bid schemas compile**
+### Step 2: Verify bid schemas compile
 
 ```bash
 python -c "from nemdb.nemweb.schemas import BidDayOfferDSchema, BidPerOfferDSchema; print('Bid schemas loaded')"
@@ -268,7 +268,7 @@ python -c "from nemdb.nemweb.schemas import BidDayOfferDSchema, BidPerOfferDSche
 
 Expected: "Bid schemas loaded"
 
-**Step 3: Commit bid schemas**
+### Step 3: Commit bid schemas
 
 ```bash
 git add src/nemdb/nemweb/schemas.py
@@ -285,7 +285,7 @@ Add schemas for BIDDAYOFFER_D and BIDPEROFFER_D tables."
 
 - Modify: `src/nemdb/nemweb/schemas.py` (append after bid schemas)
 
-**Step 1: Add section comment and generation schemas**
+### Step 1: Add section comment and generation schemas
 
 Append these after bid schemas:
 
@@ -401,7 +401,7 @@ class RESERVESchema(pa.DataFrameModel):
     LOWERREG: Optional[pl.Float32]
 ```
 
-**Step 2: Verify generation schemas compile**
+### Step 2: Verify generation schemas compile
 
 ```bash
 python -c "from nemdb.nemweb.schemas import GENUNITSSchema, DUDETAILSchema; print('Generation schemas loaded')"
@@ -409,7 +409,7 @@ python -c "from nemdb.nemweb.schemas import GENUNITSSchema, DUDETAILSchema; prin
 
 Expected: "Generation schemas loaded"
 
-**Step 3: Commit generation schemas**
+### Step 3: Commit generation schemas
 
 ```bash
 git add src/nemdb/nemweb/schemas.py
@@ -426,7 +426,7 @@ Add schemas for DUALLOC, GENUNITS, DUDETAILSUMMARY, DUDETAIL, and RESERVE tables
 
 - Modify: `src/nemdb/nemweb/schemas.py` (append after generation schemas)
 
-**Step 1: Add section comment and station schemas**
+### Step 1: Add section comment and station schemas
 
 Append these after generation schemas:
 
@@ -476,7 +476,7 @@ class STADUALLOCSchema(pa.DataFrameModel):
     VERSIONNO: pl.Int32
 ```
 
-**Step 2: Verify station schemas compile**
+### Step 2: Verify station schemas compile
 
 ```bash
 python -c "from nemdb.nemweb.schemas import STATIONSchema, STADUALLOCSchema; print('Station schemas loaded')"
@@ -484,7 +484,7 @@ python -c "from nemdb.nemweb.schemas import STATIONSchema, STADUALLOCSchema; pri
 
 Expected: "Station schemas loaded"
 
-**Step 3: Commit station schemas**
+### Step 3: Commit station schemas
 
 ```bash
 git add src/nemdb/nemweb/schemas.py
@@ -501,7 +501,7 @@ Add schemas for STATION, STATIONOPERATINGSTATUS, STATIONOWNER, and STADUALLOC ta
 
 - Modify: `src/nemdb/nemweb/schemas.py` (append after station schemas)
 
-**Step 1: Add section comment and interconnector schemas**
+### Step 1: Add section comment and interconnector schemas
 
 Append these after station schemas:
 
@@ -569,7 +569,7 @@ class MNSP_INTERCONNECTORSchema(pa.DataFrameModel):
     MAXCAPACITY: Optional[pl.Float32]
 ```
 
-**Step 2: Verify interconnector schemas compile**
+### Step 2: Verify interconnector schemas compile
 
 ```bash
 python -c "from nemdb.nemweb.schemas import INTERCONNECTORSchema, LOSSFACTORMODELSchema; print('Interconnector schemas loaded')"
@@ -577,7 +577,7 @@ python -c "from nemdb.nemweb.schemas import INTERCONNECTORSchema, LOSSFACTORMODE
 
 Expected: "Interconnector schemas loaded"
 
-**Step 3: Commit interconnector schemas**
+### Step 3: Commit interconnector schemas
 
 ```bash
 git add src/nemdb/nemweb/schemas.py
@@ -595,7 +595,7 @@ LOSSFACTORMODEL, and MNSP_INTERCONNECTOR tables."
 
 - Modify: `src/nemdb/nemweb/schemas.py` (append after interconnector schemas)
 
-**Step 1: Add section comment and constraint schemas**
+### Step 1: Add section comment and constraint schemas
 
 Append these after interconnector schemas:
 
@@ -646,7 +646,7 @@ class SPDINTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
     FACTOR: Optional[pl.Float32]
 ```
 
-**Step 2: Verify constraint schemas compile**
+### Step 2: Verify constraint schemas compile
 
 ```bash
 python -c "from nemdb.nemweb.schemas import GENCONDATASchema, SPDREGIONCONSTRAINTSchema; print('Constraint schemas loaded')"
@@ -654,7 +654,7 @@ python -c "from nemdb.nemweb.schemas import GENCONDATASchema, SPDREGIONCONSTRAIN
 
 Expected: "Constraint schemas loaded"
 
-**Step 3: Commit constraint schemas**
+### Step 3: Commit constraint schemas
 
 ```bash
 git add src/nemdb/nemweb/schemas.py
@@ -672,7 +672,7 @@ and SPDINTERCONNECTORCONSTRAINT tables."
 
 - Modify: `src/nemdb/nemweb/schemas.py` (append at end)
 
-**Step 1: Add DNSP section and ZONE_SUBSTATION schema**
+### Step 1: Add DNSP section and ZONE_SUBSTATION schema
 
 Append this after constraint schemas:
 
@@ -692,7 +692,7 @@ class ZONESUBSTATIONSchema(pa.DataFrameModel):
     network: Optional[pl.String]
 ```
 
-**Step 2: Verify all schemas compile together**
+### Step 2: Verify all schemas compile together
 
 ```bash
 python -c "from nemdb.nemweb import schemas; print(f'All schemas loaded: {len([x for x in dir(schemas) if x.endswith(\"Schema\")])} schema classes')"
@@ -700,7 +700,7 @@ python -c "from nemdb.nemweb import schemas; print(f'All schemas loaded: {len([x
 
 Expected: "All schemas loaded: 26 schema classes" (or close count)
 
-**Step 3: Commit ZONE_SUBSTATION schema**
+### Step 3: Commit ZONE_SUBSTATION schema
 
 ```bash
 git add src/nemdb/nemweb/schemas.py
@@ -718,7 +718,7 @@ are not in standard DTYPES; types are derived from usage context."
 
 - Create: `test/test_nemweb_schemas.py`
 
-**Step 1: Write test file**
+### Step 1: Write test file
 
 ```python
 """Tests for NEMWEB Pandera schemas."""
@@ -898,7 +898,7 @@ def test_sample_dispatch_region_sum_data():
     assert len(df) == 1
 ```
 
-**Step 2: Run tests to ensure they pass**
+### Step 2: Run tests to ensure they pass
 
 ```bash
 pytest test/test_nemweb_schemas.py -v
@@ -906,7 +906,7 @@ pytest test/test_nemweb_schemas.py -v
 
 Expected: All tests pass.
 
-**Step 3: Commit test file**
+### Step 3: Commit test file
 
 ```bash
 git add test/test_nemweb_schemas.py
@@ -924,7 +924,7 @@ fields, and can work with sample data."
 
 - No new files
 
-**Step 1: Run pytest with coverage**
+### Step 1: Run pytest with coverage
 
 ```bash
 pytest test/test_nemweb_schemas.py test/test_nemweb_dbloader.py -v --cov=nemdb.nemweb.schemas
@@ -932,7 +932,7 @@ pytest test/test_nemweb_schemas.py test/test_nemweb_dbloader.py -v --cov=nemdb.n
 
 Expected: All tests pass, coverage for schemas module above threshold.
 
-**Step 2: Run ruff lint and format**
+### Step 2: Run ruff lint and format
 
 ```bash
 ruff check src/nemdb/nemweb/schemas.py test/test_nemweb_schemas.py
@@ -941,7 +941,7 @@ ruff format src/nemdb/nemweb/schemas.py test/test_nemweb_schemas.py
 
 Expected: No errors or auto-fixable issues.
 
-**Step 3: Run mypy type checking**
+### Step 3: Run mypy type checking
 
 ```bash
 mypy src/nemdb/nemweb/schemas.py --show-error-codes
@@ -949,7 +949,7 @@ mypy src/nemdb/nemweb/schemas.py --show-error-codes
 
 Expected: No errors (pandera.polars may have some untyped imports but should pass).
 
-**Step 4: Verify pre-commit hooks pass**
+### Step 4: Verify pre-commit hooks pass
 
 ```bash
 pre-commit run --all-files -- src/nemdb/nemweb/schemas.py test/test_nemweb_schemas.py
@@ -957,7 +957,7 @@ pre-commit run --all-files -- src/nemdb/nemweb/schemas.py test/test_nemweb_schem
 
 Expected: All hooks pass.
 
-**Step 5: Final commit (if any formatting changes)**
+### Step 5: Final commit (if any formatting changes)
 
 ```bash
 git status
@@ -986,7 +986,7 @@ Format code, resolve ruff and mypy issues."
 cat src/nemdb/nemweb/__init__.py
 ```
 
-**Step 2: Decide whether to export**
+### Step 2: Decide whether to export
 
 If you want schemas available as `from nemdb.nemweb import DispatchRegionSumSchema`, add to `__init__.py`:
 
@@ -1050,7 +1050,7 @@ __all__ = [
 ]
 ```
 
-**Step 3: Test imports**
+### Step 3: Test imports
 
 ```bash
 python -c "from nemdb.nemweb import DispatchRegionSumSchema; print('Schemas re-exported from nemweb')"
@@ -1058,7 +1058,7 @@ python -c "from nemdb.nemweb import DispatchRegionSumSchema; print('Schemas re-e
 
 Expected: "Schemas re-exported from nemweb"
 
-**Step 4: Commit (if exporting)**
+### Step 4: Commit (if exporting)
 
 ```bash
 git add src/nemdb/nemweb/__init__.py
@@ -1075,7 +1075,7 @@ Make all 26 schemas available directly from nemdb.nemweb for easier discovery."
 
 - No new files
 
-**Step 1: Verify schemas.py is importable and complete**
+### Step 1: Verify schemas.py is importable and complete
 
 ```bash
 python -c "import nemdb.nemweb.schemas; import inspect; schemas = [x for x in dir(nemdb.nemweb.schemas) if x.endswith('Schema') and not x.startswith('_')]; print(f'Found {len(schemas)} schema classes:\n' + '\n'.join(sorted(schemas)))"
@@ -1083,7 +1083,7 @@ python -c "import nemdb.nemweb.schemas; import inspect; schemas = [x for x in di
 
 Expected: List of 26 schema class names.
 
-**Step 2: Run final test suite**
+### Step 2: Run final test suite
 
 ```bash
 pytest test/test_nemweb_schemas.py -v --tb=short
@@ -1091,13 +1091,13 @@ pytest test/test_nemweb_schemas.py -v --tb=short
 
 Expected: All tests pass.
 
-**Step 3: Create brief usage documentation**
+### Step 3: Create brief usage documentation
 
 Add docstring at top of `src/nemdb/nemweb/schemas.py` if not already present:
 
 The module docstring should explain that these are type contracts for documentation, not runtime validation.
 
-**Step 4: Final status check**
+### Step 4: Final status check
 
 ```bash
 git log --oneline -12

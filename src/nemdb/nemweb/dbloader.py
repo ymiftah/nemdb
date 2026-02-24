@@ -633,7 +633,7 @@ class DataSource:
     Args:
         config (Config): The configuration object.
         table_name (str): The name of the table.
-        table_columns (list[str]): A list of columns in the table.
+        schema_class: Pandera DataFrameModel schema for this table.
         table_primary_keys (list[str], optional): A list of primary key
             columns. Defaults to None.
         add_partitions (list[str], optional): A list of additional columns
