@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+import pandera as pa
 import polars as pl
 import pytest
 
@@ -17,6 +18,33 @@ from nemdb.nemweb.dbloader import (
     _archive_to_df,
     _get_archive,
     _MissingData,
+)
+from nemdb.nemweb.schemas import (
+    BidDayOfferDSchema,
+    BidPerOfferDSchema,
+    DispatchConstraintSchema,
+    DispatchInterconnectorResSchema,
+    DispatchLoadSchema,
+    DispatchPriceSchema,
+    DispatchRegionSumSchema,
+    DUALLOCSchema,
+    DUDETAILSchema,
+    DUDETAILSUMMARYSchema,
+    GENCONDATASchema,
+    GENUNITSSchema,
+    INTERCONNECTORCONSTRAINTSchema,
+    INTERCONNECTORSchema,
+    LOSSFACTORMODELSchema,
+    LOSSMODELSchema,
+    MNSP_INTERCONNECTORSchema,
+    RESERVESchema,
+    SPDCONNECTIONPOINTCONSTRAINTSchema,
+    SPDINTERCONNECTORCONSTRAINTSchema,
+    SPDREGIONCONSTRAINTSchema,
+    STADUALLOCSchema,
+    STATIONOPERATINGSTATUSSchema,
+    STATIONOWNERSchema,
+    STATIONSchema,
 )
 
 
@@ -42,6 +70,38 @@ def test_nemweb_manager_init(mock_config):
     manager = NEMWEBManager(mock_config)
     assert manager.config == mock_config
     assert "DISPATCHREGIONSUM" in manager.active_tables()
+
+
+def test_nemweb_manager_datasources_have_schemas(mock_config):
+    """Test that NEMWEBManager DataSources are wired to their schemas."""
+    manager = NEMWEBManager(mock_config)
+
+    # Test all 26 DataSources
+    assert manager.DUALLOC.schema_class == DUALLOCSchema
+    assert manager.GENUNITS.schema_class == GENUNITSSchema
+    assert manager.RESERVE.schema_class == RESERVESchema
+    assert manager.DISPATCHREGIONSUM.schema_class == DispatchRegionSumSchema
+    assert manager.DISPATCHLOAD.schema_class == DispatchLoadSchema
+    assert manager.DISPATCHPRICE.schema_class == DispatchPriceSchema
+    assert manager.DUDETAILSUMMARY.schema_class == DUDETAILSUMMARYSchema
+    assert manager.DUDETAIL.schema_class == DUDETAILSchema
+    assert manager.STATION.schema_class == STATIONSchema
+    assert manager.STATIONOPERATINGSTATUS.schema_class == STATIONOPERATINGSTATUSSchema
+    assert manager.STATIONOWNER.schema_class == STATIONOWNERSchema
+    assert manager.STADUALLOC.schema_class == STADUALLOCSchema
+    assert manager.BIDDAYOFFER_D.schema_class == BidDayOfferDSchema
+    assert manager.BIDPEROFFER_D.schema_class == BidPerOfferDSchema
+    assert manager.DISPATCHCONSTRAINT.schema_class == DispatchConstraintSchema
+    assert manager.GENCONDATA.schema_class == GENCONDATASchema
+    assert manager.SPDREGIONCONSTRAINT.schema_class == SPDREGIONCONSTRAINTSchema
+    assert manager.SPDCONNECTIONPOINTCONSTRAINT.schema_class == SPDCONNECTIONPOINTCONSTRAINTSchema
+    assert manager.SPDINTERCONNECTORCONSTRAINT.schema_class == SPDINTERCONNECTORCONSTRAINTSchema
+    assert manager.INTERCONNECTOR.schema_class == INTERCONNECTORSchema
+    assert manager.INTERCONNECTORCONSTRAINT.schema_class == INTERCONNECTORCONSTRAINTSchema
+    assert manager.LOSSMODEL.schema_class == LOSSMODELSchema
+    assert manager.LOSSFACTORMODEL.schema_class == LOSSFACTORMODELSchema
+    assert manager.DISPATCHINTERCONNECTORRES.schema_class == DispatchInterconnectorResSchema
+    assert manager.MNSP_INTERCONNECTOR.schema_class == MNSP_INTERCONNECTORSchema
 
 
 def test_get_unit_volume_bids(mocker, mock_config):
@@ -130,34 +190,54 @@ def test_get_archive_failure(mocker):
 
 
 def test_archive_to_df(mocker, tmp_path):
-    """Test _archive_to_df function."""
+    """Test _archive_to_df function with schema-derived dtypes."""
     mocker.patch("nemdb.nemweb.dbloader.read_header", return_value={"a", "b"})
     mocker.patch("pandas.read_csv", return_value=pd.DataFrame({"a": [1], "b": [2]}))
-    mocker.patch.dict("nemdb.nemweb.dbloader.DTYPES", {"a": int, "b": int})
-    df = _archive_to_df(str(tmp_path / "test.zip"), ["a", "b"], 2024, 1)
+    # Mock dtypes dict instead of DTYPES
+    dtypes = {"a": pl.Int64, "b": pl.Int64}
+    df = _archive_to_df(str(tmp_path / "test.zip"), ["a", "b"], dtypes, 2024, 1)
     assert isinstance(df, pl.DataFrame)
     assert df.columns == ["a", "b"]
 
 
 def test_data_source_init(mock_config):
-    """Test DataSource initialization."""
-    ds = DataSource(mock_config, "TABLE", ["a", "b"], ["a"])
-    assert ds.table_name == "TABLE"
-    assert ds.table_columns == ["a", "b"]
-    assert ds.table_primary_keys == ["a"]
+    """Test DataSource init derives table_columns and types from schema_class."""
+    ds = DataSource(
+        mock_config,
+        "DISPATCHREGIONSUM",
+        schema_class=DispatchRegionSumSchema,
+        table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
+    )
+    assert ds.table_name == "DISPATCHREGIONSUM"
+    # table_columns should be derived from schema
+    assert set(ds.table_columns) == set(DispatchRegionSumSchema.__fields__.keys())
+    assert ds.table_primary_keys == ["SETTLEMENTDATE", "REGIONID"]
+    assert ds.schema_class == DispatchRegionSumSchema
 
 
 def test_data_source_populate(mocker, mock_config):
     """Test DataSource populate method."""
+
+    class SimpleSchema(pa.DataFrameModel):
+        a: pl.Int64
+        b: pl.Int64
+
     mock_add_data = mocker.patch("nemdb.nemweb.dbloader.DataSource.add_data")
-    ds = DataSource(mock_config, "TABLE", ["a", "b"], ["a"])
+    ds = DataSource(mock_config, "TABLE", schema_class=SimpleSchema, table_primary_keys=["a"])
     ds.populate(slice("2024-01-01", "2024-01-31"))
     mock_add_data.assert_called_once_with(year=2024, month=1)
 
 
 def test_by_settlement_date(mocker, mock_config):
     """Test BySettlementDate get_data method."""
-    ds = BySettlementDate(mock_config, "TABLE", ["SETTLEMENTDATE", "a"], ["a"])
+
+    class SimpleSettlementSchema(pa.DataFrameModel):
+        SETTLEMENTDATE: pl.Datetime
+        a: pl.Int64
+
+    ds = BySettlementDate(
+        mock_config, "TABLE", schema_class=SimpleSettlementSchema, table_primary_keys=["a"]
+    )
     mock_scan = mocker.patch.object(ds, "scan")
     mock_scan.return_value.filter.return_value.collect.return_value = pl.DataFrame(
         {"SETTLEMENTDATE": [datetime(2024, 1, 1, 12, 0)], "a": [1]}
@@ -168,7 +248,14 @@ def test_by_settlement_date(mocker, mock_config):
 
 def test_by_interval_date(mocker, mock_config):
     """Test ByIntervalDate get_data method."""
-    ds = ByIntervalDate(mock_config, "TABLE", ["INTERVAL_DATETIME", "a"], ["a"])
+
+    class SimpleIntervalSchema(pa.DataFrameModel):
+        INTERVAL_DATETIME: pl.Datetime
+        a: pl.Int64
+
+    ds = ByIntervalDate(
+        mock_config, "TABLE", schema_class=SimpleIntervalSchema, table_primary_keys=["a"]
+    )
     mock_scan = mocker.patch.object(ds, "scan")
     mock_scan.return_value.filter.return_value.collect.return_value = pl.DataFrame(
         {"INTERVAL_DATETIME": [datetime(2024, 1, 1, 12, 0)], "a": [1]}
@@ -179,7 +266,14 @@ def test_by_interval_date(mocker, mock_config):
 
 def test_by_settlement_day(mocker, mock_config):
     """Test BySettlementDay get_data method."""
-    ds = BySettlementDay(mock_config, "TABLE", ["SETTLEMENTDATE", "a"], ["a"])
+
+    class SimpleSettlementDaySchema(pa.DataFrameModel):
+        SETTLEMENTDATE: pl.Date
+        a: pl.Int64
+
+    ds = BySettlementDay(
+        mock_config, "TABLE", schema_class=SimpleSettlementDaySchema, table_primary_keys=["a"]
+    )
     mock_scan = mocker.patch.object(ds, "scan")
     mock_scan.return_value.filter.return_value.collect.return_value = pl.DataFrame(
         {"SETTLEMENTDATE": [datetime(2024, 1, 1)], "a": [1]}
@@ -190,7 +284,15 @@ def test_by_settlement_day(mocker, mock_config):
 
 def test_by_start_end(mocker, mock_config):
     """Test ByStartEnd get_data method."""
-    ds = ByStartEnd(mock_config, "TABLE", ["START_DATE", "END_DATE", "a"], ["a"])
+
+    class SimpleStartEndSchema(pa.DataFrameModel):
+        START_DATE: pl.Date
+        END_DATE: pl.Date
+        a: pl.Int64
+
+    ds = ByStartEnd(
+        mock_config, "TABLE", schema_class=SimpleStartEndSchema, table_primary_keys=["a"]
+    )
     mock_scan = mocker.patch.object(ds, "scan")
     mock_scan.return_value.filter.return_value.collect.return_value = pl.DataFrame(
         {
@@ -205,10 +307,29 @@ def test_by_start_end(mocker, mock_config):
 
 def test_by_effective_date_version_no(mocker, mock_config):
     """Test ByEffectiveDateVersionNo get_data method."""
-    ds = ByEffectiveDateVersionNo(mock_config, "TABLE", ["EFFECTIVEDATE", "VERSIONNO", "a"], ["a"])
+
+    class SimpleEffectiveDateSchema(pa.DataFrameModel):
+        EFFECTIVEDATE: pl.Date
+        VERSIONNO: pl.Int64
+        a: pl.Int64
+
+    ds = ByEffectiveDateVersionNo(
+        mock_config, "TABLE", schema_class=SimpleEffectiveDateSchema, table_primary_keys=["a"]
+    )
     mock_scan = mocker.patch.object(ds, "scan")
     (
         mock_scan.return_value.filter.return_value.sort.return_value.unique.return_value.collect.return_value
     ) = pl.DataFrame({"EFFECTIVEDATE": [datetime(2024, 1, 1)], "VERSIONNO": [1], "a": [1]})
     df = ds.get_data("2024/01/15")
     assert df.shape == (1, 3)
+
+
+def test_data_source_with_schema_class(mock_config):
+    """Test DataSource accepts and stores schema_class parameter."""
+    ds = DataSource(
+        mock_config,
+        "DISPATCHREGIONSUM",
+        schema_class=DispatchRegionSumSchema,
+        table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
+    )
+    assert ds.schema_class == DispatchRegionSumSchema

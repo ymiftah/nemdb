@@ -13,12 +13,41 @@ from functools import lru_cache
 
 import fsspec
 import pandas as pd
+import pandera.polars as pa_polars
 import polars as pl
 from tqdm import tqdm
 
 from nemdb import Config
 from nemdb import log as logger
 from nemdb.dnsp import DNSPDataSource
+from nemdb.nemweb.schemas import (
+    BidDayOfferDSchema,
+    BidPerOfferDSchema,
+    DispatchConstraintSchema,
+    DispatchInterconnectorResSchema,
+    DispatchLoadSchema,
+    DispatchPriceSchema,
+    DispatchRegionSumSchema,
+    DUALLOCSchema,
+    DUDETAILSchema,
+    DUDETAILSUMMARYSchema,
+    GENCONDATASchema,
+    GENUNITSSchema,
+    INTERCONNECTORCONSTRAINTSchema,
+    INTERCONNECTORSchema,
+    LOSSFACTORMODELSchema,
+    LOSSMODELSchema,
+    MNSP_INTERCONNECTORSchema,
+    RESERVESchema,
+    SPDCONNECTIONPOINTCONSTRAINTSchema,
+    SPDINTERCONNECTORCONSTRAINTSchema,
+    SPDREGIONCONSTRAINTSchema,
+    STADUALLOCSchema,
+    STATIONOPERATINGSTATUSSchema,
+    STATIONOWNERSchema,
+    STATIONSchema,
+    _schema_to_dtypes,
+)
 
 from .nemweb import read_bids
 from .utils import cache_response_zip
@@ -27,215 +56,6 @@ URL = "http://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSD
 URL_ALT = "http://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_ARCHIVE%23{table}%23FILE01%23{year}{month:02d}010000.zip"
 
 STRPTIME = "%Y/%m/%d %H:%M:%S"
-DTYPES = {
-    "DISPATCHABLELOAD": pl.Float32,
-    "AVAILABLELOAD": pl.Float32,
-    "AVAILABLEGENERATION": pl.Float32,
-    "ENTRYTYPE": pl.Categorical,
-    "NORMALSTATUS": pl.String,
-    "ADDRESS1": pl.String,
-    "ADDRESS2": pl.String,
-    "ADDRESS3": pl.String,
-    "ADDRESS4": pl.String,
-    "CITY": pl.String,
-    "STATE": pl.String,
-    "POSTCODE": pl.String,
-    "PARTICIPANTID": pl.Categorical,
-    "DIRECTION": pl.Categorical,
-    "DAILYENERGYCONSTRAINT": pl.Float32,
-    "INTERVAL_DATETIME": pl.Datetime,
-    "LASTCHANGED": pl.Datetime,
-    "DUID": pl.Categorical,
-    "BIDTYPE": pl.Categorical,
-    "BANDAVAIL1": pl.Float32,
-    "BANDAVAIL2": pl.Float32,
-    "BANDAVAIL3": pl.Float32,
-    "BANDAVAIL4": pl.Float32,
-    "BANDAVAIL5": pl.Float32,
-    "BANDAVAIL6": pl.Float32,
-    "BANDAVAIL7": pl.Float32,
-    "BANDAVAIL8": pl.Float32,
-    "BANDAVAIL9": pl.Float32,
-    "BANDAVAIL10": pl.Float32,
-    "MAXAVAIL": pl.Float32,
-    "ENABLEMENTMIN": pl.Float32,
-    "ENABLEMENTMAX": pl.Float32,
-    "LOWBREAKPOINT": pl.Float32,
-    "HIGHBREAKPOINT": pl.Float32,
-    "SETTLEMENTDATE": pl.Datetime,
-    "PRICEBAND1": pl.Float32,
-    "PRICEBAND2": pl.Float32,
-    "PRICEBAND3": pl.Float32,
-    "PRICEBAND4": pl.Float32,
-    "PRICEBAND5": pl.Float32,
-    "PRICEBAND6": pl.Float32,
-    "PRICEBAND7": pl.Float32,
-    "PRICEBAND8": pl.Float32,
-    "PRICEBAND9": pl.Float32,
-    "PRICEBAND10": pl.Float32,
-    "T1": pl.Float32,
-    "T2": pl.Float32,
-    "T3": pl.Float32,
-    "T4": pl.Float32,
-    "REGIONID": pl.Categorical,
-    "TOTALDEMAND": pl.Float32,
-    "DEMANDFORECAST": pl.Float32,
-    "INITIALSUPPLY": pl.Float32,
-    "SS_SOLAR_AVAILABILITY": pl.Float32,
-    "SS_WIND_AVAILABILITY": pl.Float32,
-    "DISPATCHMODE": pl.Int8,
-    "AGCSTATUS": pl.Int8,
-    "STATUS": pl.String,
-    "INITIALMW": pl.Float32,
-    "TOTALCLEARED": pl.Float32,
-    "RAMPDOWNRATE": pl.Float32,
-    "ROCUP": pl.Float32,
-    "ROCDOWN": pl.Float32,
-    "RAMPUPRATE": pl.Float32,
-    "AVAILABILITY": pl.Float32,
-    "RAISEREGENABLEMENTMAX": pl.Float32,
-    "RAISEREGENABLEMENTMIN": pl.Float32,
-    "LOWERREGENABLEMENTMAX": pl.Float32,
-    "LOWERREGENABLEMENTMIN": pl.Float32,
-    "START_DATE": pl.Date,
-    "END_DATE": pl.Date,
-    "DISPATCHTYPE": pl.Categorical,
-    "CONNECTIONPOINTID": pl.Categorical,
-    "TRANSMISSIONLOSSFACTOR": pl.Float32,
-    "DISTRIBUTIONLOSSFACTOR": pl.Float32,
-    "CONSTRAINTID": pl.Categorical,
-    "RHS": pl.Float32,
-    "GENCONID_EFFECTIVEDATE": pl.Date,
-    "GENCONID_VERSIONNO": pl.Int32,
-    "GENCONID": pl.Categorical,
-    "GENSETID": pl.Categorical,
-    "CO2E_ENERGY_SOURCE": pl.String,
-    "CO2E_EMISSIONS_FACTOR": pl.Float32,
-    "CO2E_DATA_SOURCE": pl.String,
-    "GENSETNAME": pl.String,
-    "GENSETTYPE": pl.String,
-    "STARTTYPE": pl.String,
-    "VOLTLEVEL": pl.Float32,
-    "STATIONID": pl.String,
-    "REGISTEREDMINCAPACITY": pl.Float32,
-    "MINCAPACITY": pl.Float32,
-    "EFFECTIVEDATE": pl.Date,
-    "VERSIONNO": pl.Int32,
-    "CONSTRAINTTYPE": pl.Categorical,
-    "GENERICCONSTRAINTWEIGHT": pl.Float32,
-    "FACTOR": pl.Float32,
-    "FROMREGIONLOSSSHARE": pl.Float32,
-    "LOSSCONSTANT": pl.Float32,
-    "LOSSFLOWCOEFFICIENT": pl.Float32,
-    "IMPORTLIMIT": pl.Float32,
-    "EXPORTLIMIT": pl.Float32,
-    "LOSSSEGMENT": pl.Int32,
-    "MWBREAKPOINT": pl.Float32,
-    "DEMANDCOEFFICIENT": pl.Float32,
-    "INTERCONNECTORID": pl.Categorical,
-    "REGIONFROM": pl.Categorical,
-    "REGIONTO": pl.Categorical,
-    "MWFLOW": pl.Float32,
-    "MWLOSSES": pl.Float32,
-    "MINIMUMLOAD": pl.Float32,
-    "MAXCAPACITY": pl.Float32,
-    "SEMIDISPATCHCAP": pl.Float32,
-    "RRP": pl.Float32,
-    "SCHEDULE_TYPE": pl.Categorical,
-    "LOWER5MIN": pl.Float32,
-    "LOWER60SEC": pl.Float32,
-    "LOWER6SEC": pl.Float32,
-    "LOWER1SEC": pl.Float32,
-    "RAISE5MIN": pl.Float32,
-    "RAISE60SEC": pl.Float32,
-    "RAISE6SEC": pl.Float32,
-    "RAISE1SEC": pl.Float32,
-    "LOWERREG": pl.Float32,
-    "RAISEREG": pl.Float32,
-    "ENERGYLIMIT": pl.Float32,
-    "MAX_RAMP_RATE_DOWN": pl.Float32,
-    "MAX_RAMP_RATE_UP": pl.Float32,
-    "MIN_RAMP_RATE_UP": pl.Float32,
-    "MIN_RAMP_RATE_DOWN": pl.Float32,
-    "IS_AGGREGATED": pl.Boolean,
-    "RAISEREGAVAILABILITY": pl.Float32,
-    "RAISE6SECACTUALAVAILABILITY": pl.Float32,
-    "RAISE1SECACTUALAVAILABILITY": pl.Float32,
-    "RAISE60SECACTUALAVAILABILITY": pl.Float32,
-    "RAISE5MINACTUALAVAILABILITY": pl.Float32,
-    "RAISEREGACTUALAVAILABILITY": pl.Float32,
-    "LOWER6SECACTUALAVAILABILITY": pl.Float32,
-    "LOWER1SECACTUALAVAILABILITY": pl.Float32,
-    "LOWER60SECACTUALAVAILABILITY": pl.Float32,
-    "LOWER5MINACTUALAVAILABILITY": pl.Float32,
-    "LOWERREGACTUALAVAILABILITY": pl.Float32,
-    "UIGF": pl.Float32,
-    "LHS": pl.Float32,
-    "VIOLATIONDEGREE": pl.Float32,
-    "MARGINALVALUE": pl.Float32,
-    "RAISE6SECROP": pl.Float32,
-    "RAISE1SECROP": pl.Float32,
-    "RAISE60SECROP": pl.Float32,
-    "RAISE5MINROP": pl.Float32,
-    "RAISEREGROP": pl.Float32,
-    "LOWER6SECROP": pl.Float32,
-    "LOWER1SECROP": pl.Float32,
-    "LOWER60SECROP": pl.Float32,
-    "LOWER5MINROP": pl.Float32,
-    "LOWERREGROP": pl.Float32,
-    "FROM_REGION_TLF": pl.Float32,
-    "TO_REGION_TLF": pl.Float32,
-    "ICTYPE": pl.Categorical,
-    "LINKID": pl.Categorical,
-    "FROMREGION": pl.Categorical,
-    "TOREGION": pl.Categorical,
-    "REGISTEREDCAPACITY": pl.Float32,
-    "LHSFACTOR": pl.Float32,
-    "ROP": pl.Float32,
-    "CASESUBTYPE": pl.Categorical,
-    "SOLUTIONSTATUS": pl.Int8,
-    "INTERVENTION": pl.Int8,
-    "TOTALOBJECTIVE": pl.Float32,
-    "TOTALAREAGENVIOLATION": pl.Float32,
-    "TOTALINTERCONNECTORVIOLATION": pl.Float32,
-    "TOTALGENERICVIOLATION": pl.Float32,
-    "TOTALRAMPRATEVIOLATION": pl.Float32,
-    "TOTALUNITMWCAPACITYVIOLATION": pl.Float32,
-    "TOTAL5MINVIOLATION": pl.Float32,
-    "TOTALREGVIOLATION": pl.Float32,
-    "TOTAL6SECVIOLATION": pl.Float32,
-    "TOTAL60SECVIOLATION": pl.Float32,
-    "TOTALASPROFILEVIOLATION": pl.Float32,
-    "TOTALFASTSTARTVIOLATION": pl.Float32,
-    "TOTALENERGYOFFERVIOLATION": pl.Float32,
-    "FIXEDLOAD": pl.Float32,
-    "MINIMUM_ENERGY_PRICE": pl.Float32,
-    "MAXIMUM_ENERGY_PRICE": pl.Float32,
-    "LOAD_MINIMUM_ENERGY_PRICE": pl.Float32,
-    "LOAD_MAXIMUM_ENERGY_PRICE": pl.Float32,
-    "LOAD_MIN_RAMP_RATE_UP": pl.Float32,
-    "LOAD_MIN_RAMP_RATE_DOWN": pl.Float32,
-    "LOAD_MAX_RAMP_RATE_UP": pl.Float32,
-    "LOAD_MAX_RAMP_RATE_DOWN": pl.Float32,
-    "SECONDARY_TLF": pl.Float32,
-    "STATIONNAME": pl.String,
-    "NORMALLYONFLAG": pl.String,
-    "SPINNINGRESERVEFLAG": pl.String,
-    "INTERMITTENTFLAG": pl.String,
-    "SEMISCHEDULE_FLAG": pl.String,
-    "MAXRATEOFCHANGEUP": pl.Float32,
-    "MAXRATEOFCHANGEDOWN": pl.Float32,
-    "MAXMWIN": pl.Float32,
-    "MAXMWOUT": pl.Float32,
-    "ADG_ID": pl.String,
-    "MAXRATEOFCHANGEUP_LOAD": pl.Float32,
-    "MAXRATEOFCHANGEDOWN_LOAD": pl.Float32,
-    "MAXSTORAGECAPACITY": pl.Float32,
-    "STORAGEIMPORTEFFICIENCYFACTOR": pl.Float32,
-    "STORAGEEXPORTEFFICIENCYFACTOR": pl.Float32,
-    "AGGREGATED": pl.Int32,
-    "AGCCAPABILITY": pl.String,
-}
 
 
 class NEMWEBManager:
@@ -339,376 +159,143 @@ class NEMWEBManager:
     def __init__(self, config: type[Config]):
         self.config = config
         self._active_tables = [
-            "DISPATCHREGIONSUM",
             "BIDDAYOFFER_D",
             "BIDPEROFFER_D",
-            "DUDETAILSUMMARY",
-            "DUDETAIL",
-            "DUALLOC",
-            "GENUNITS",
-            "STATION",
-            "STATIONOPERATINGSTATUS",
+            "DISPATCHCONSTRAINT",
+            "DISPATCHINTERCONNECTORRES",
             "DISPATCHLOAD",
             "DISPATCHREGIONSUM",
             "DISPATCHPRICE",
+            "DUDETAILSUMMARY",
+            "DUDETAIL",
+            "DUALLOC",
+            "INTERCONNECTOR",
+            "INTERCONNECTORCONSTRAINT",
+            "LOSSMODEL",
+            "LOSSFACTORMODEL",
+            "GENUNITS",
+            "GENCONDATA",
+            "SPDREGIONCONSTRAINT",
+            "SPDCONNECTIONPOINTCONSTRAINT",
+            "SPDINTERCONNECTORCONSTRAINT",
+            "STATION",
+            "STATIONOPERATINGSTATUS",
+            "STADUALLOC",
             "MNSP_INTERCONNECTOR",
-            # "RESERVE",
+            "RESERVE",
             # "ZONE_SUBSTATION",
         ]
         self.ZONE_SUBSTATION = DNSPDataSource(
             config=config,
             table_name="ZONE_SUBSTATION",
-            add_partitions=["network"],
-            table_primary_keys=["zss", "time"],
             table_columns=[
                 "time",
                 "zss",
                 "MW",
                 "network",
             ],
+            add_partitions=["network"],
+            table_primary_keys=["zss", "time"],
         )
         self.DUALLOC = DataSource(
             config=config,
             table_name="DUALLOC",
-            table_columns=["DUID", "GENSETID", "LASTCHANGED", "VERSIONNO"],
+            schema_class=DUALLOCSchema,
         )
         self.GENUNITS = DataSource(
             config=config,
             table_name="GENUNITS",
-            table_columns=[
-                "GENSETID",
-                "STATIONID",
-                "VOLTLEVEL",
-                "DISPATCHTYPE",
-                "STARTTYPE",
-                "NORMALSTATUS",
-                "MAXCAPACITY",
-                "GENSETTYPE",
-                "GENSETNAME",
-                "LOWERREG",
-                "CO2E_EMISSIONS_FACTOR",
-                "CO2E_ENERGY_SOURCE",
-                "CO2E_DATA_SOURCE",
-                "MINCAPACITY",
-                "REGISTEREDMINCAPACITY",
-                "LASTCHANGED",
-            ],
             table_primary_keys=["STATIONID", "LASTCHANGED"],
+            schema_class=GENUNITSSchema,
         )
         self.RESERVE = BySettlementDate(
             config=config,
             table_name="RESERVE",
-            table_columns=[
-                "SETTLEMENTDATE",
-                "VERSIONNO",
-                "REGIONID",
-                "PERIODID",
-                "LOWER5MIN",
-                "RAISE5MIN",
-                "RAISEREG",
-                "LOWERREG",
-            ],
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
+            schema_class=RESERVESchema,
         )
         self.DISPATCHREGIONSUM = BySettlementDate(
             config=config,
             table_name="DISPATCHREGIONSUM",
-            table_columns=[
-                "SETTLEMENTDATE",
-                "REGIONID",
-                "TOTALDEMAND",
-                "DEMANDFORECAST",
-                "DISPATCHABLELOAD",
-                "INITIALSUPPLY",
-                "SS_SOLAR_AVAILABILITY",
-                "SS_WIND_AVAILABILITY",
-                "AVAILABLEGENERATION",
-                "AVAILABLELOAD",
-            ],
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
+            schema_class=DispatchRegionSumSchema,
         )
         self.DISPATCHLOAD = BySettlementDate(
             config=config,
             table_name="DISPATCHLOAD",
-            table_columns=[
-                "SETTLEMENTDATE",
-                "DUID",
-                "DISPATCHMODE",
-                "AGCSTATUS",
-                "INITIALMW",
-                "TOTALCLEARED",
-                "RAMPDOWNRATE",
-                "RAMPUPRATE",
-                "AVAILABILITY",
-                "RAISEREGENABLEMENTMAX",
-                "RAISEREGENABLEMENTMIN",
-                "LOWERREGENABLEMENTMAX",
-                "LOWERREGENABLEMENTMIN",
-                "SEMIDISPATCHCAP",
-                "LOWER5MIN",
-                "LOWER60SEC",
-                "LOWER6SEC",
-                "LOWER1SEC",
-                "RAISE5MIN",
-                "RAISE60SEC",
-                "RAISE6SEC",
-                "RAISE1SEC",
-                "LOWERREG",
-                "RAISEREG",
-                "RAISEREGAVAILABILITY",
-                "RAISE6SECACTUALAVAILABILITY",
-                "RAISE1SECACTUALAVAILABILITY",
-                "RAISE60SECACTUALAVAILABILITY",
-                "RAISE5MINACTUALAVAILABILITY",
-                "RAISEREGACTUALAVAILABILITY",
-                "LOWER6SECACTUALAVAILABILITY",
-                "LOWER1SECACTUALAVAILABILITY",
-                "UIGF",
-            ],
             table_primary_keys=["SETTLEMENTDATE", "DUID"],
+            schema_class=DispatchLoadSchema,
         )
         self.DISPATCHPRICE = BySettlementDate(
             config=config,
             table_name="DISPATCHPRICE",
-            table_columns=[
-                "SETTLEMENTDATE",
-                "REGIONID",
-                "RRP",
-                "ROP",
-                "RAISE6SECROP",
-                "RAISE1SECROP",
-                "RAISE60SECROP",
-                "RAISE5MINROP",
-                "RAISEREGROP",
-                "LOWER6SECROP",
-                "LOWER1SECROP",
-                "LOWER60SECROP",
-                "LOWER5MINROP",
-                "LOWERREGROP",
-            ],
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
+            schema_class=DispatchPriceSchema,
         )
         self.DUDETAILSUMMARY = ByStartEnd(
             config=config,
             table_name="DUDETAILSUMMARY",
-            table_columns=[
-                "DUID",
-                "START_DATE",
-                "END_DATE",
-                "DISPATCHTYPE",
-                "CONNECTIONPOINTID",
-                "REGIONID",
-                "STATIONID",
-                "TRANSMISSIONLOSSFACTOR",
-                "STARTTYPE",
-                "DISTRIBUTIONLOSSFACTOR",
-                "MINIMUM_ENERGY_PRICE",
-                "MAXIMUM_ENERGY_PRICE",
-                "SCHEDULE_TYPE",
-                "MIN_RAMP_RATE_UP",
-                "MIN_RAMP_RATE_DOWN",
-                "MAX_RAMP_RATE_UP",
-                "MAX_RAMP_RATE_DOWN",
-                "IS_AGGREGATED",
-                "LOAD_MINIMUM_ENERGY_PRICE",
-                "LOAD_MAXIMUM_ENERGY_PRICE",
-                "LOAD_MIN_RAMP_RATE_UP",
-                "LOAD_MIN_RAMP_RATE_DOWN",
-                "LOAD_MAX_RAMP_RATE_UP",
-                "LOAD_MAX_RAMP_RATE_DOWN",
-                "SECONDARY_TLF",
-            ],
             table_primary_keys=["END_DATE", "REGIONID", "DUID"],
+            schema_class=DUDETAILSUMMARYSchema,
         )
         self.DUDETAIL = ByEffectiveDateVersionNo(
             config=config,
             table_name="DUDETAIL",
-            table_columns=[
-                "DUID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "CONNECTIONPOINTID",
-                "VOLTLEVEL",
-                "REGISTEREDCAPACITY",
-                "AGCCAPABILITY",
-                "DISPATCHTYPE",
-                "MAXCAPACITY",
-                "STARTTYPE",
-                "NORMALLYONFLAG",
-                "SPINNINGRESERVEFLAG",
-                "INTERMITTENTFLAG",
-                "SEMISCHEDULE_FLAG",
-                "MAXRATEOFCHANGEUP",
-                "MAXRATEOFCHANGEDOWN",
-                "ADG_ID",
-                "MINCAPACITY",
-                "REGISTEREDMINCAPACITY",
-                "MAXRATEOFCHANGEUP_LOAD",
-                "MAXRATEOFCHANGEDOWN_LOAD",
-                "MAXSTORAGECAPACITY",
-                "STORAGEIMPORTEFFICIENCYFACTOR",
-                "STORAGEEXPORTEFFICIENCYFACTOR",
-                "MIN_RAMP_RATE_UP",
-                "MIN_RAMP_RATE_DOWN",
-                "LOAD_MIN_RAMP_RATE_UP",
-                "LOAD_MIN_RAMP_RATE_DOWN",
-                "AGGREGATED",
-            ],
             table_primary_keys=["VERSIONNO", "DUID"],
+            schema_class=DUDETAILSchema,
         )
         self.STATION = DataSource(
             config=config,
             table_name="STATION",
-            table_columns=[
-                "STATIONID",
-                "STATIONNAME",
-                "ADDRESS1",
-                "ADDRESS2",
-                "ADDRESS3",
-                "ADDRESS4",
-                "CITY",
-                "STATE",
-                "POSTCODE",
-            ],
             table_primary_keys=["STATIONID"],
+            schema_class=STATIONSchema,
         )
         self.STATIONOPERATINGSTATUS = DataSource(
             config=config,
             table_name="STATIONOPERATINGSTATUS",
-            table_columns=[
-                "EFFECTIVEDATE",
-                "STATIONID",
-                "VERSIONNO",
-                "STATUS",
-            ],
             table_primary_keys=["STATIONID", "EFFECTIVEDATE"],
+            schema_class=STATIONOPERATINGSTATUSSchema,
         )
         self.STATIONOWNER = DataSource(
             config=config,
             table_name="STATIONOWNER",
-            table_columns=[
-                "EFFECTIVEDATE",
-                "PARTICIPANTID",
-                "STATIONID",
-                "VERSIONNO",
-            ],
             table_primary_keys=["STATIONID", "EFFECTIVEDATE"],
+            schema_class=STATIONOWNERSchema,
         )
         self.STADUALLOC = DataSource(
             config=config,
             table_name="STADUALLOC",
-            table_columns=[
-                "DUID",
-                "EFFECTIVEDATE",
-                "STATIONID",
-                "VERSIONNO",
-            ],
             table_primary_keys=["DUID", "EFFECTIVEDATE", "STATIONID", "VERSIONNO"],
+            schema_class=STADUALLOCSchema,
         )
         self.BIDDAYOFFER_D = BySettlementDate(
             config=config,
             table_name="BIDDAYOFFER_D",
-            table_columns=[
-                "DUID",
-                "SETTLEMENTDATE",
-                "BIDTYPE",
-                "DIRECTION",
-                "VERSIONNO",
-                "PARTICIPANTID",
-                "DAILYENERGYCONSTRAINT",
-                "PRICEBAND1",
-                "PRICEBAND2",
-                "PRICEBAND3",
-                "PRICEBAND4",
-                "PRICEBAND5",
-                "PRICEBAND6",
-                "PRICEBAND7",
-                "PRICEBAND8",
-                "PRICEBAND9",
-                "PRICEBAND10",
-                "MINIMUMLOAD",
-                "T1",
-                "T2",
-                "T3",
-                "T4",
-                "NORMALSTATUS",
-                "ENTRYTYPE",
-            ],
             table_primary_keys=["SETTLEMENTDATE", "DUID", "VERSIONNO"],
+            schema_class=BidDayOfferDSchema,
         )
         self.BIDPEROFFER_D = BySettlementDate(
             config=config,
             table_name="BIDPEROFFER_D",
-            table_columns=[
-                "DUID",
-                "SETTLEMENTDATE",
-                "BIDTYPE",
-                "DIRECTION",
-                "VERSIONNO",
-                "INTERVAL_DATETIME",
-                "MAXAVAIL",
-                "FIXEDLOAD",
-                "ROCUP",
-                "ROCDOWN",
-                "ENABLEMENTMIN",
-                "ENABLEMENTMAX",
-                "LOWBREAKPOINT",
-                "HIGHBREAKPOINT",
-                "BANDAVAIL1",
-                "BANDAVAIL2",
-                "BANDAVAIL3",
-                "BANDAVAIL4",
-                "BANDAVAIL5",
-                "BANDAVAIL6",
-                "BANDAVAIL7",
-                "BANDAVAIL8",
-                "BANDAVAIL9",
-                "BANDAVAIL10",
-                "ENERGYLIMIT",
-                "LASTCHANGED",
-            ],
             table_primary_keys=["SETTLEMENTDATE", "DUID", "INTERVAL_DATETIME"],
             low_memory=True,
+            schema_class=BidPerOfferDSchema,
         )
         self.DISPATCHCONSTRAINT = BySettlementDate(
             config=config,
             table_name="DISPATCHCONSTRAINT",
-            table_columns=[
-                "SETTLEMENTDATE",
-                "CONSTRAINTID",
-                "DUID",
-                "RHS",
-                "GENCONID_EFFECTIVEDATE",
-                "GENCONID_VERSIONNO",
-                "LHS",
-                "VIOLATIONDEGREE",
-                "MARGINALVALUE",
-            ],
             table_primary_keys=["SETTLEMENTDATE", "CONSTRAINTID"],
+            schema_class=DispatchConstraintSchema,
         )
         self.GENCONDATA = ByEffectiveDateVersionNo(
             config=config,
             table_name="GENCONDATA",
-            table_columns=[
-                "GENCONID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "CONSTRAINTTYPE",
-                "GENERICCONSTRAINTWEIGHT",
-            ],
             table_primary_keys=["GENCONID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=GENCONDATASchema,
         )
         self.SPDREGIONCONSTRAINT = ByEffectiveDateVersionNo(
             config=config,
             table_name="SPDREGIONCONSTRAINT",
-            table_columns=[
-                "REGIONID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "GENCONID",
-                "BIDTYPE",
-                "FACTOR",
-            ],
             table_primary_keys=[
                 "REGIONID",
                 "GENCONID",
@@ -716,18 +303,11 @@ class NEMWEBManager:
                 "VERSIONNO",
                 "BIDTYPE",
             ],
+            schema_class=SPDREGIONCONSTRAINTSchema,
         )
         self.SPDCONNECTIONPOINTCONSTRAINT = ByEffectiveDateVersionNo(
             config=config,
             table_name="SPDCONNECTIONPOINTCONSTRAINT",
-            table_columns=[
-                "CONNECTIONPOINTID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "GENCONID",
-                "BIDTYPE",
-                "FACTOR",
-            ],
             table_primary_keys=[
                 "CONNECTIONPOINTID",
                 "GENCONID",
@@ -735,99 +315,59 @@ class NEMWEBManager:
                 "VERSIONNO",
                 "BIDTYPE",
             ],
+            schema_class=SPDCONNECTIONPOINTCONSTRAINTSchema,
         )
         self.SPDINTERCONNECTORCONSTRAINT = ByEffectiveDateVersionNo(
             config=config,
             table_name="SPDINTERCONNECTORCONSTRAINT",
-            table_columns=[
-                "INTERCONNECTORID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "GENCONID",
-                "FACTOR",
-            ],
             table_primary_keys=[
                 "INTERCONNECTORID",
                 "GENCONID",
                 "EFFECTIVEDATE",
                 "VERSIONNO",
             ],
+            schema_class=SPDINTERCONNECTORCONSTRAINTSchema,
         )
         self.INTERCONNECTOR = ByEffectiveDateVersionNo(
             config=config,
             table_name="INTERCONNECTOR",
-            table_columns=["INTERCONNECTORID", "REGIONFROM", "REGIONTO"],
             table_primary_keys=["INTERCONNECTORID"],
+            schema_class=INTERCONNECTORSchema,
         )
         self.INTERCONNECTORCONSTRAINT = ByEffectiveDateVersionNo(
             config=config,
             table_name="INTERCONNECTORCONSTRAINT",
-            table_columns=[
-                "INTERCONNECTORID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "FROMREGIONLOSSSHARE",
-                "ICTYPE",
-                "LOSSCONSTANT",
-                "LOSSFLOWCOEFFICIENT",
-                "IMPORTLIMIT",
-                "EXPORTLIMIT",
-                "MAXMWIN",
-                "MAXMWOUT",
-            ],
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=INTERCONNECTORCONSTRAINTSchema,
         )
         self.LOSSMODEL = ByEffectiveDateVersionNo(
             config=config,
             table_name="LOSSMODEL",
-            table_columns=[
-                "INTERCONNECTORID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "LOSSSEGMENT",
-                "MWBREAKPOINT",
-            ],
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=LOSSMODELSchema,
         )
         self.LOSSFACTORMODEL = ByEffectiveDateVersionNo(
             config=config,
             table_name="LOSSFACTORMODEL",
-            table_columns=[
-                "INTERCONNECTORID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "REGIONID",
-                "DEMANDCOEFFICIENT",
-            ],
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=LOSSFACTORMODELSchema,
         )
         self.DISPATCHINTERCONNECTORRES = BySettlementDate(
             config=config,
             table_name="DISPATCHINTERCONNECTORRES",
-            table_columns=["INTERCONNECTORID", "SETTLEMENTDATE", "MWFLOW", "MWLOSSES"],
             table_primary_keys=["INTERCONNECTORID", "SETTLEMENTDATE"],
+            schema_class=DispatchInterconnectorResSchema,
         )
         self.MNSP_INTERCONNECTOR = ByEffectiveDateVersionNo(
             config=config,
             table_name="MNSP_INTERCONNECTOR",
-            table_columns=[
-                "INTERCONNECTORID",
-                "LINKID",
-                "EFFECTIVEDATE",
-                "VERSIONNO",
-                "FROMREGION",
-                "TOREGION",
-                "FROM_REGION_TLF",
-                "TO_REGION_TLF",
-                "LHSFACTOR",
-                "MAXCAPACITY",
-            ],
             table_primary_keys=[
                 "INTERCONNECTORID",
                 "LINKID",
                 "EFFECTIVEDATE",
                 "VERSIONNO",
             ],
+            schema_class=MNSP_INTERCONNECTORSchema,
         )
 
     def __repr__(self):
@@ -978,11 +518,23 @@ def _get_archive(table_name, year, month):
 def _archive_to_df(
     archive: str,
     table_columns: list[str],
+    dtypes: dict[str, type],
     year: int,
     month: int,
     _low_memory: bool = False,
 ) -> pl.DataFrame:
-    """Downloads a zipped csv file and converts it to a pandas DataFrame, returns the DataFrame.
+    """Downloads a zipped csv file and converts it to a polars DataFrame.
+
+    Args:
+        archive: Path to CSV file (from ZIP)
+        table_columns: List of column names to read
+        dtypes: Dict mapping column names to Polars types
+        year: Year of data
+        month: Month of data
+        _low_memory: Unused (for compatibility); low-memory handling is in add_data()
+
+    Returns:
+        Polars DataFrame with data cast to correct types
 
     Examples
     --------
@@ -1038,7 +590,7 @@ def _archive_to_df(
     """
     # Read the file into a DataFrame.
     available_cols = read_header(archive)
-    table_dtypes = {k: DTYPES[k] for k in set(table_columns).intersection(available_cols)}
+    table_dtypes = {k: dtypes[k] for k in set(table_columns).intersection(available_cols)}
 
     data = pd.read_csv(
         archive,
@@ -1060,7 +612,7 @@ def _archive_to_df(
         data[col] = pd.to_datetime(data[col].to_list(), format=STRPTIME, errors="coerce")
     # Discard last row of DataFrame
     data = data[:-1]
-    return pl.from_dataframe(data).cast({k: DTYPES[k] for k in set(table_columns)})
+    return pl.from_dataframe(data).cast({k: dtypes[k] for k in set(table_columns)})
 
 
 def read_header(file: str):
@@ -1081,7 +633,7 @@ class DataSource:
     Args:
         config (Config): The configuration object.
         table_name (str): The name of the table.
-        table_columns (list[str]): A list of columns in the table.
+        schema_class: Pandera DataFrameModel schema for this table.
         table_primary_keys (list[str], optional): A list of primary key
             columns. Defaults to None.
         add_partitions (list[str], optional): A list of additional columns
@@ -1094,15 +646,28 @@ class DataSource:
         self,
         config: type[Config],
         table_name: str,
-        table_columns: list[str],
+        schema_class: type[pa_polars.DataFrameModel],
         table_primary_keys: list[str] | None = None,
         add_partitions: list[str] | None = None,
         low_memory: bool = False,
     ):
-        """Creates a parquet dataset."""
+        """Creates a parquet dataset.
+
+        Args:
+            config: Configuration class for cache and filesystem settings
+            table_name: Name of the table (used as subdirectory in cache)
+            schema_class: Pandera DataFrameModel schema for this table (defines columns and types)
+            table_primary_keys: Optional list of primary key column names
+            add_partitions: Optional list of additional partition columns
+            low_memory: Whether to use lower memory mode for reading
+        """
         self.config = config
         self.table_name = table_name
-        self.table_columns = table_columns
+        self.schema_class = schema_class
+        # Derive table_columns from schema
+        self.table_columns = list(schema_class.__fields__.keys())
+        # Extract types from schema (unwrapping X | None unions to bare types)
+        self._dtypes = _schema_to_dtypes(schema_class)
         self.table_primary_keys = table_primary_keys if table_primary_keys is not None else []
         self.partitions = (
             [*add_partitions, "archive_month"] if add_partitions is not None else ["archive_month"]
@@ -1232,19 +797,33 @@ class DataSource:
         try:
             archive = _get_archive(name, year, month)
             self._archive_to_df_low_memory(
-                archive, name, self.table_columns, year, month, self.path, **kwargs
+                archive, name, self.table_columns, self._dtypes, year, month, self.path, **kwargs
             )
             return None
         except _MissingData:
             logger.error("No data available for %s %s / %s", self.table_name, year, month)
             return
 
-    def _archive_to_df_low_memory(self, archive, name, table_columns, year, month, path, **kwargs):
+    def _archive_to_df_low_memory(
+        self, archive, name, table_columns, dtypes, year, month, path, **kwargs
+    ):
+        """Read CSV in chunks and write parquet, handling low-memory scenarios.
+
+        Args:
+            archive: Path to CSV file (from ZIP)
+            name: Table name
+            table_columns: List of column names
+            dtypes: Dict mapping column names to Polars types
+            year: Year of data
+            month: Month of data
+            path: Output parquet path
+            **kwargs: Additional args for write_parquet
+        """
         partition_cols = self.partitions
 
         # Read the file into a DataFrame.
         available_cols = read_header(archive)
-        table_dtypes = {k: DTYPES[k] for k in set(table_columns).intersection(available_cols)}
+        table_dtypes = {k: dtypes[k] for k in set(table_columns).intersection(available_cols)}
         missing_columns = set(table_columns).difference(available_cols)
         if len(missing_columns):
             logger.info(
@@ -1269,7 +848,7 @@ class DataSource:
 
             data = (
                 pl.from_dataframe(chunk)
-                .cast({k: DTYPES[k] for k in set(table_columns)})
+                .cast({k: dtypes[k] for k in set(table_columns)})
                 .with_columns(
                     pl.date(year, month, 1).alias("archive_month"),
                 )
@@ -1306,7 +885,9 @@ class DataSource:
         """
         logger.info("Fetching data for %s %s / %s", self.table_name, year, month)
         archive = _get_archive(self.table_name, year, month)
-        return _archive_to_df(archive, self.table_columns, year, month, _low_memory=self.low_memory)
+        return _archive_to_df(
+            archive, self.table_columns, self._dtypes, year, month, _low_memory=self.low_memory
+        )
 
     def get_data(self) -> pl.DataFrame:  # type: ignore[return-value]
         return self.read()
