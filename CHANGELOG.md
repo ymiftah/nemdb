@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-25
+
+### Added
+
+- **Pandera Schemas** (`src/nemdb/nemweb/schemas.py`): 26 typed Pandera schema classes for all
+  NEMWEB tables, providing IDE type inference and optional runtime validation
+  - Schemas for dispatch, bid, generation unit, station, interconnector, loss model,
+    constraint, and DNSP tables
+  - All schemas exported from `nemdb.nemweb` for convenient imports
+    (e.g. `from nemdb.nemweb import DispatchLoadSchema`)
+- **Schema-driven DataSource**: `DataSource` now accepts a `schema_class` parameter to attach
+  a Pandera schema for type safety and IDE inference
+- **SCHEMA_MAP registry**: Table-to-schema discovery via `SCHEMA_MAP` dict
+- **`validate_against_schema()` utility**: Opt-in runtime DataFrame validation against schemas
+  with no performance overhead when not used
+
+### Changed
+
+- **Single source of truth for types**: The `DTYPES` dictionary (200+ lines) has been removed
+  from `dbloader.py`; column types are now derived automatically from Pandera schema annotations
+- `_archive_to_df()` and `_archive_to_df_low_memory()` now accept a `dtypes` parameter instead
+  of referencing the global `DTYPES` dict
+
+### Documentation
+
+- Added design and implementation plan docs under `docs/plans/`
+
 ## [0.2.0] - 2026-02-16
 
 ### Fixed
