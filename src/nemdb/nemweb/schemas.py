@@ -41,11 +41,16 @@ from typing import Optional  # noqa: F401
 import pandera.polars as pa
 import polars as pl
 
+
 # Dispatch Tables
 # ===============
+class BasePartitionedSchema(pa.DataFrameModel):
+    """Base schema for partitioned tables with common columns."""
+
+    archive_month: pl.Date
 
 
-class DispatchRegionSumSchema(pa.DataFrameModel):
+class DispatchRegionSumSchema(BasePartitionedSchema):
     """Daily region dispatch summary with demand and supply data."""
 
     SETTLEMENTDATE: pl.Datetime
@@ -60,7 +65,7 @@ class DispatchRegionSumSchema(pa.DataFrameModel):
     AVAILABLELOAD: pl.Float32 | None
 
 
-class DispatchLoadSchema(pa.DataFrameModel):
+class DispatchLoadSchema(BasePartitionedSchema):
     """Dispatch load and availability data for generators."""
 
     SETTLEMENTDATE: pl.Datetime
@@ -98,7 +103,7 @@ class DispatchLoadSchema(pa.DataFrameModel):
     UIGF: pl.Float32 | None
 
 
-class DispatchPriceSchema(pa.DataFrameModel):
+class DispatchPriceSchema(BasePartitionedSchema):
     """Regional dispatch pricing for energy and reserve products."""
 
     SETTLEMENTDATE: pl.Datetime
@@ -117,7 +122,7 @@ class DispatchPriceSchema(pa.DataFrameModel):
     LOWERREGROP: pl.Float32 | None
 
 
-class DispatchConstraintSchema(pa.DataFrameModel):
+class DispatchConstraintSchema(BasePartitionedSchema):
     """Dispatch constraint violations and marginal values."""
 
     SETTLEMENTDATE: pl.Datetime
@@ -131,20 +136,22 @@ class DispatchConstraintSchema(pa.DataFrameModel):
     MARGINALVALUE: pl.Float32 | None
 
 
-class DispatchInterconnectorResSchema(pa.DataFrameModel):
+class DispatchInterconnectorResSchema(BasePartitionedSchema):
     """Interconnector flow and losses during dispatch."""
 
     INTERCONNECTORID: pl.Categorical
     SETTLEMENTDATE: pl.Datetime
     MWFLOW: pl.Float32 | None
     MWLOSSES: pl.Float32 | None
+    EXPORTLIMIT: pl.Float32 | None
+    IMPORTLIMIT: pl.Float32 | None
 
 
 # Bid Tables
 # ==========
 
 
-class BidDayOfferDSchema(pa.DataFrameModel):
+class BidDayOfferDSchema(BasePartitionedSchema):
     """Daily energy bid offers by generators."""
 
     DUID: pl.Categorical
@@ -173,7 +180,7 @@ class BidDayOfferDSchema(pa.DataFrameModel):
     ENTRYTYPE: pl.Categorical | None
 
 
-class BidPerOfferDSchema(pa.DataFrameModel):
+class BidPerOfferDSchema(BasePartitionedSchema):
     """Interval-level bid offers with availability and constraints."""
 
     DUID: pl.Categorical
@@ -208,7 +215,7 @@ class BidPerOfferDSchema(pa.DataFrameModel):
 # ======================
 
 
-class DUALLOCSchema(pa.DataFrameModel):
+class DUALLOCSchema(BasePartitionedSchema):
     """Dispatch unit to generation set allocation."""
 
     DUID: pl.Categorical
@@ -217,7 +224,7 @@ class DUALLOCSchema(pa.DataFrameModel):
     VERSIONNO: pl.Int32 | None
 
 
-class GENUNITSSchema(pa.DataFrameModel):
+class GENUNITSSchema(BasePartitionedSchema):
     """Generation unit characteristics and capabilities."""
 
     GENSETID: pl.Categorical
@@ -238,7 +245,7 @@ class GENUNITSSchema(pa.DataFrameModel):
     LASTCHANGED: pl.Datetime | None
 
 
-class DUDETAILSUMMARYSchema(pa.DataFrameModel):
+class DUDETAILSUMMARYSchema(BasePartitionedSchema):
     """Dispatch unit summary with operational dates and limits."""
 
     DUID: pl.Categorical
@@ -268,7 +275,7 @@ class DUDETAILSUMMARYSchema(pa.DataFrameModel):
     SECONDARY_TLF: pl.Float32 | None
 
 
-class DUDETAILSchema(pa.DataFrameModel):
+class DUDETAILSchema(BasePartitionedSchema):
     """Dispatch unit detailed technical specifications."""
 
     DUID: pl.Categorical
@@ -302,7 +309,7 @@ class DUDETAILSchema(pa.DataFrameModel):
     AGGREGATED: pl.String | None
 
 
-class RESERVESchema(pa.DataFrameModel):
+class RESERVESchema(BasePartitionedSchema):
     """Regional reserve requirements and availability."""
 
     SETTLEMENTDATE: pl.Datetime
@@ -319,7 +326,7 @@ class RESERVESchema(pa.DataFrameModel):
 # ==============
 
 
-class STATIONSchema(pa.DataFrameModel):
+class STATIONSchema(BasePartitionedSchema):
     """Power station location and contact information."""
 
     STATIONID: pl.String
@@ -333,7 +340,7 @@ class STATIONSchema(pa.DataFrameModel):
     POSTCODE: pl.String | None
 
 
-class STATIONOPERATINGSTATUSSchema(pa.DataFrameModel):
+class STATIONOPERATINGSTATUSSchema(BasePartitionedSchema):
     """Station operating status over time."""
 
     EFFECTIVEDATE: pl.Date
@@ -342,7 +349,7 @@ class STATIONOPERATINGSTATUSSchema(pa.DataFrameModel):
     STATUS: pl.String | None
 
 
-class STATIONOWNERSchema(pa.DataFrameModel):
+class STATIONOWNERSchema(BasePartitionedSchema):
     """Station ownership and participant information."""
 
     EFFECTIVEDATE: pl.Date
@@ -351,7 +358,7 @@ class STATIONOWNERSchema(pa.DataFrameModel):
     VERSIONNO: pl.Int32 | None
 
 
-class STADUALLOCSchema(pa.DataFrameModel):
+class STADUALLOCSchema(BasePartitionedSchema):
     """Station to dispatch unit allocation."""
 
     DUID: pl.Categorical
@@ -364,7 +371,7 @@ class STADUALLOCSchema(pa.DataFrameModel):
 # =====================
 
 
-class INTERCONNECTORSchema(pa.DataFrameModel):
+class INTERCONNECTORSchema(BasePartitionedSchema):
     """Interconnector corridor definitions with region endpoints."""
 
     INTERCONNECTORID: pl.Categorical
@@ -372,7 +379,7 @@ class INTERCONNECTORSchema(pa.DataFrameModel):
     REGIONTO: pl.Categorical
 
 
-class INTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
+class INTERCONNECTORCONSTRAINTSchema(BasePartitionedSchema):
     """Interconnector technical constraints and limits."""
 
     INTERCONNECTORID: pl.Categorical
@@ -388,7 +395,7 @@ class INTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
     MAXMWOUT: pl.Float32 | None
 
 
-class LOSSMODELSchema(pa.DataFrameModel):
+class LOSSMODELSchema(BasePartitionedSchema):
     """Loss model segments for interconnectors."""
 
     INTERCONNECTORID: pl.Categorical
@@ -398,7 +405,7 @@ class LOSSMODELSchema(pa.DataFrameModel):
     MWBREAKPOINT: pl.Float32 | None
 
 
-class LOSSFACTORMODELSchema(pa.DataFrameModel):
+class LOSSFACTORMODELSchema(BasePartitionedSchema):
     """Loss factors by region on interconnectors."""
 
     INTERCONNECTORID: pl.Categorical
@@ -408,7 +415,7 @@ class LOSSFACTORMODELSchema(pa.DataFrameModel):
     DEMANDCOEFFICIENT: pl.Float32 | None
 
 
-class MNSP_INTERCONNECTORSchema(pa.DataFrameModel):
+class MNSP_INTERCONNECTORSchema(BasePartitionedSchema):
     """Market Network Service Provider interconnector details."""
 
     INTERCONNECTORID: pl.Categorical
@@ -427,7 +434,7 @@ class MNSP_INTERCONNECTORSchema(pa.DataFrameModel):
 # =================
 
 
-class GENCONDATASchema(pa.DataFrameModel):
+class GENCONDATASchema(BasePartitionedSchema):
     """Generic constraint definitions and weighting."""
 
     GENCONID: pl.Categorical
@@ -437,7 +444,7 @@ class GENCONDATASchema(pa.DataFrameModel):
     GENERICCONSTRAINTWEIGHT: pl.Float32 | None
 
 
-class SPDREGIONCONSTRAINTSchema(pa.DataFrameModel):
+class SPDREGIONCONSTRAINTSchema(BasePartitionedSchema):
     """Regional constraints on specific dispatch unit types."""
 
     REGIONID: pl.Categorical
@@ -448,7 +455,7 @@ class SPDREGIONCONSTRAINTSchema(pa.DataFrameModel):
     FACTOR: pl.Float32 | None
 
 
-class SPDCONNECTIONPOINTCONSTRAINTSchema(pa.DataFrameModel):
+class SPDCONNECTIONPOINTCONSTRAINTSchema(BasePartitionedSchema):
     """Connection point constraints on specific dispatch unit types."""
 
     CONNECTIONPOINTID: pl.Categorical
@@ -459,7 +466,7 @@ class SPDCONNECTIONPOINTCONSTRAINTSchema(pa.DataFrameModel):
     FACTOR: pl.Float32 | None
 
 
-class SPDINTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
+class SPDINTERCONNECTORCONSTRAINTSchema(BasePartitionedSchema):
     """Interconnector constraints on specific dispatch unit types."""
 
     INTERCONNECTORID: pl.Categorical
@@ -475,7 +482,7 @@ class SPDINTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
 # Types derived from usage in DNSPDataSource.
 
 
-class ZONESUBSTATIONSchema(pa.DataFrameModel):
+class ZONESUBSTATIONSchema(BasePartitionedSchema):
     """Distribution network zone substation data from DNSP operators."""
 
     time: pl.String | None  # DNSP-specific, not in standard DTYPES
@@ -488,7 +495,7 @@ class ZONESUBSTATIONSchema(pa.DataFrameModel):
 # ===================
 # Maps table names to their corresponding Pandera schemas for discovery and validation
 
-SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
+SCHEMA_MAP: dict[str, type[BasePartitionedSchema]] = {
     # Dispatch Tables
     "DISPATCHREGIONSUM": DispatchRegionSumSchema,
     "DISPATCHLOAD": DispatchLoadSchema,
@@ -529,7 +536,7 @@ SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
 # ==============
 
 
-def _schema_to_dtypes(schema_class: type[pa.DataFrameModel]) -> dict[str, type]:
+def _schema_to_dtypes(schema_class: type[BasePartitionedSchema]) -> dict[str, type]:
     """Extract Polars column types from a Pandera schema, unwrapping optional unions.
 
     Pandera schemas use `pl.X | None` for optional fields. This function extracts
@@ -572,7 +579,7 @@ def _schema_to_dtypes(schema_class: type[pa.DataFrameModel]) -> dict[str, type]:
 
 def validate_against_schema(
     df: pl.DataFrame,
-    schema_class: type[pa.DataFrameModel],
+    schema_class: type[BasePartitionedSchema],
     raise_on_error: bool = False,
 ) -> bool:
     """
