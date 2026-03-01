@@ -319,6 +319,18 @@ class RESERVESchema(pa.DataFrameModel):
 # ==============
 
 
+class PARTICIPANTSchema(pa.DataFrameModel):
+    """Participant ID, name and class for all registered NEM participants."""
+
+    PARTICIPANTID: pl.String
+    PARTICIPANTCLASSID: pl.String | None
+    NAME: pl.String | None
+    DESCRIPTION: pl.String | None
+    ACN: pl.String | None
+    PRIMARYBUSINESS: pl.String | None
+    LASTCHANGED: pl.Datetime | None
+
+
 class STATIONSchema(pa.DataFrameModel):
     """Power station location and contact information."""
 
@@ -504,6 +516,8 @@ SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
     "DUDETAILSUMMARY": DUDETAILSUMMARYSchema,
     "DUDETAIL": DUDETAILSchema,
     "RESERVE": RESERVESchema,
+    # Participant Tables
+    "PARTICIPANT": PARTICIPANTSchema,
     # Station Tables
     "STATION": STATIONSchema,
     "STATIONOPERATINGSTATUS": STATIONOPERATINGSTATUSSchema,

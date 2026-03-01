@@ -38,6 +38,7 @@ from nemdb.nemweb.schemas import (
     LOSSFACTORMODELSchema,
     LOSSMODELSchema,
     MNSP_INTERCONNECTORSchema,
+    PARTICIPANTSchema,
     RESERVESchema,
     SPDCONNECTIONPOINTCONSTRAINTSchema,
     SPDINTERCONNECTORCONSTRAINTSchema,
@@ -178,6 +179,7 @@ class NEMWEBManager:
             "SPDREGIONCONSTRAINT",
             "SPDCONNECTIONPOINTCONSTRAINT",
             "SPDINTERCONNECTORCONSTRAINT",
+            "PARTICIPANT",
             "STATION",
             "STATIONOPERATINGSTATUS",
             "STADUALLOC",
@@ -241,8 +243,14 @@ class NEMWEBManager:
         self.DUDETAIL = ByEffectiveDateVersionNo(
             config=config,
             table_name="DUDETAIL",
-            table_primary_keys=["VERSIONNO", "DUID"],
+            table_primary_keys=["DUID", "VERSIONNO"],
             schema_class=DUDETAILSchema,
+        )
+        self.PARTICIPANT = DataSource(
+            config=config,
+            table_name="PARTICIPANT",
+            table_primary_keys=["PARTICIPANTID", "LASTCHANGED"],
+            schema_class=PARTICIPANTSchema,
         )
         self.STATION = DataSource(
             config=config,
