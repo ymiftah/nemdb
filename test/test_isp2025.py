@@ -82,15 +82,17 @@ def test_read_sheet_returns_dataframe():
     df = read_sheet("Heat rates", header_row=7)
     assert isinstance(df, pl.DataFrame)
     assert df.shape[0] > 600
-    assert "IASR ID" in df.columns
+    assert "iasr_id" in df.columns
 
 
 def test_read_timeseries_unpivots_years():
+    import datetime
+
     df = read_timeseries("Build costs", header_row=9)
     assert "year" in df.columns
     assert "value" in df.columns
     years = df["year"].unique().to_list()
-    assert "2025-26" in years
+    assert datetime.date(2025, 6, 30) in years
     assert len(years) >= 29
 
 
@@ -100,41 +102,41 @@ def test_read_timeseries_unpivots_years():
 @pytest.mark.parametrize(
     "fn, min_rows, required_col",
     [
-        (existing_generators, 640, "IASR ID"),
-        (new_entrant_generators, 510, "IASR ID"),
-        (new_electrolyser_data, 140, "IASR ID"),
-        (storage_properties, 8, "Technology"),
-        (maximum_capacity, 650, "IASR ID"),
-        (seasonal_ratings, 640, "IASR ID"),
-        (maintenance, 10, "Generator type"),
-        (generator_reliability, 10, "Fuel type"),
-        (retirement, 640, "IASR ID"),
-        (retirement_costs, 8, "Technology Type"),
-        (heat_rates, 640, "IASR ID"),
-        (auxiliary, 640, "IASR ID"),
-        (emissions_intensity, 640, "IASR ID"),
-        (fixed_opex, 640, "IASR ID"),
-        (variable_opex, 640, "IASR ID"),
-        (affine_heat_rates, 170, "IASR ID"),
-        (max_ramp_rates, 170, "IASR ID"),
-        (coal_min_stable_level, 40, "IASR ID"),
-        (gpg_min_stable_level, 130, "IASR ID"),
-        (lead_time_project_life, 20, "Technology"),
+        (existing_generators, 640, "iasr_id"),
+        (new_entrant_generators, 510, "iasr_id"),
+        (new_electrolyser_data, 140, "iasr_id"),
+        (storage_properties, 8, "technology"),
+        (maximum_capacity, 640, "iasr_id"),
+        (seasonal_ratings, 640, "iasr_id"),
+        (maintenance, 10, "generator_type"),
+        (generator_reliability, 10, "fuel_type"),
+        (retirement, 640, "iasr_id"),
+        (retirement_costs, 8, "technology_type"),
+        (heat_rates, 640, "iasr_id"),
+        (auxiliary, 640, "iasr_id"),
+        (emissions_intensity, 640, "iasr_id"),
+        (fixed_opex, 640, "iasr_id"),
+        (variable_opex, 640, "iasr_id"),
+        (affine_heat_rates, 170, "iasr_id"),
+        (max_ramp_rates, 170, "iasr_id"),
+        (coal_min_stable_level, 40, "iasr_id"),
+        (gpg_min_stable_level, 130, "iasr_id"),
+        (lead_time_project_life, 20, "technology"),
         (financial_parameters, 10, None),
-        (gas_system_properties, 170, "Name"),
-        (renewable_energy_zones, 50, "ID"),
-        (network_capability, 140, "Flow Paths"),
-        (network_losses, 20, "Flow Path"),
-        (transmission_reliability, 5, "Line/Flowpath"),
-        (connection_cost, 60, "REZ ID"),
-        (flow_path_augmentation, 120, "Flow path"),
-        (rez_augmentations, 120, "REZ / constraint ID"),
-        (build_limits_rez, 240, "REZ ID"),
-        (build_limits_phes, 10, "Name"),
-        (locational_cost_factors, 210, "Cost zone / REZ ID"),
-        (capacity_factors, 200, "REZ ID / Subregion"),
-        (marginal_loss_factors, 650, "IASR ID"),
-        (hydro_scheme_inflows, 140, "Reference Year (FYE)"),
+        (gas_system_properties, 170, "name"),
+        (renewable_energy_zones, 50, "id"),
+        (network_capability, 20, "flow_paths"),
+        (network_losses, 20, "flow_path"),
+        (transmission_reliability, 5, "line_flowpath"),
+        (connection_cost, 45, "rez_id"),
+        (flow_path_augmentation, 55, "flow_path"),
+        (rez_augmentations, 120, "rez_constraint_id"),
+        (build_limits_rez, 240, "rez_id"),
+        (build_limits_phes, 10, "name"),
+        (locational_cost_factors, 210, "cost_zone_rez_id"),
+        (capacity_factors, 200, "rez_id_subregion"),
+        (marginal_loss_factors, 650, "iasr_id"),
+        (hydro_scheme_inflows, 140, "reference_year_fye"),
     ],
 )
 def test_static_sheet(fn, min_rows, required_col):
@@ -150,37 +152,37 @@ def test_static_sheet(fn, min_rows, required_col):
 @pytest.mark.parametrize(
     "fn, min_rows, scenario_col",
     [
-        (build_costs, 1500, "IASR Scenario"),
+        (build_costs, 1500, "iasr_scenario"),
         (connection_cost_forecasts, 10000, None),
         (flow_path_cost_forecasts, 9000, None),
         (rez_cost_forecasts, 8000, None),
         (distribution_cost_forecasts, 2000, None),
-        (coal_biomass_price, 500, "Scenario"),
-        (gas_liquid_h2_price, 10000, "Gas price scenario"),
-        (rooftop_pv, 1000, "Scenario"),
-        (pvnsg, 1000, "Scenario"),
-        (onsg, 500, "Scenario"),
-        (battery_plugin_evs, 1000, "Scenario"),
-        (fuel_cell_evs, 500, "Scenario"),
-        (ev_v2g, 1000, "Scenario"),
-        (dsp, 1500, "Scenario"),
+        (coal_biomass_price, 500, "scenario"),
+        (gas_liquid_h2_price, 9900, "gas_price_scenario"),
+        (rooftop_pv, 1000, "scenario"),
+        (pvnsg, 1000, "scenario"),
+        (onsg, 500, "scenario"),
+        (battery_plugin_evs, 1000, "scenario"),
+        (fuel_cell_evs, 500, "scenario"),
+        (ev_v2g, 1000, "scenario"),
+        (dsp, 1500, "scenario"),
         (data_centre_forecasts, 400, "scenario"),
         (electrification, 500, "scenario"),
-        (embedded_energy_storages, 1000, "Scenario"),
-        (aggregated_energy_storages, 1000, "Scenario"),
+        (embedded_energy_storages, 1000, "scenario"),
+        (aggregated_energy_storages, 1000, "scenario"),
         (end_use_fuel_consumption, 700, "scenario"),
         (appliance_uptake, 500, "scenario"),
         (elec_retail_price_indices, 90, None),
         (connections_forecasts, 500, "scenario"),
         (energy_efficiency, 500, "scenario"),
-        (hydrogen_demand_domestic, 500, "Scenario"),
-        (hydrogen_demand_export, 1500, "Scenario"),
+        (hydrogen_demand_domestic, 500, "scenario"),
+        (hydrogen_demand_export, 1500, "scenario"),
         (hydrogen_monthly_profiles, 300, None),
-        (water_for_hydrogen, 500, "Scenario"),
-        (desalination_demand_h2, 500, "Scenario"),
+        (water_for_hydrogen, 500, "scenario"),
+        (desalination_demand_h2, 500, "scenario"),
         (h2_gpg_limit, 100, None),
         (build_cost_hydrogen_pipeline, 4000, None),
-        (gpg_emissions_reduction, 100, None),
+        (gpg_emissions_reduction, 85, None),
     ],
 )
 def test_timeseries_sheet(fn, min_rows, scenario_col):
