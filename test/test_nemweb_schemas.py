@@ -29,6 +29,7 @@ from nemdb.nemweb.schemas import (
     LOSSFACTORMODELSchema,
     LOSSMODELSchema,
     MNSP_INTERCONNECTORSchema,
+    PARTICIPANTSchema,
     RESERVESchema,
     SPDCONNECTIONPOINTCONSTRAINTSchema,
     SPDINTERCONNECTORCONSTRAINTSchema,
@@ -125,6 +126,7 @@ def test_all_schemas_have_fields():
         DUDETAILSUMMARYSchema,
         DUDETAILSchema,
         RESERVESchema,
+        PARTICIPANTSchema,
         STATIONSchema,
         STATIONOPERATINGSTATUSSchema,
         STATIONOWNERSchema,
@@ -140,7 +142,7 @@ def test_all_schemas_have_fields():
         SPDINTERCONNECTORCONSTRAINTSchema,
         ZONESUBSTATIONSchema,
     ]
-    assert len(schemas) == 26
+    assert len(schemas) == 27
     for schema_class in schemas:
         assert hasattr(schema_class, "__fields__")
         assert len(schema_class.__fields__) > 0
@@ -169,9 +171,9 @@ def test_sample_dispatch_region_sum_data():
 
 
 def test_schema_map_exists_and_is_complete():
-    """Test that SCHEMA_MAP registry exists and contains all 26 schemas."""
-    # Should have 26 entries
-    assert len(SCHEMA_MAP) == 26, f"SCHEMA_MAP has {len(SCHEMA_MAP)} entries, expected 26"
+    """Test that SCHEMA_MAP registry exists and contains all 27 schemas."""
+    # Should have 27 entries
+    assert len(SCHEMA_MAP) == 27, f"SCHEMA_MAP has {len(SCHEMA_MAP)} entries, expected 27"
 
     # All values should be schema classes
     for table_name, schema_class in SCHEMA_MAP.items():

@@ -326,7 +326,19 @@ class RESERVESchema(BasePartitionedSchema):
 # ==============
 
 
-class STATIONSchema(BasePartitionedSchema):
+class PARTICIPANTSchema(pa.DataFrameModel):
+    """Participant ID, name and class for all registered NEM participants."""
+
+    PARTICIPANTID: pl.String
+    PARTICIPANTCLASSID: pl.String | None
+    NAME: pl.String | None
+    DESCRIPTION: pl.String | None
+    ACN: pl.String | None
+    PRIMARYBUSINESS: pl.String | None
+    LASTCHANGED: pl.Datetime | None
+
+
+class STATIONSchema(pa.DataFrameModel):
     """Power station location and contact information."""
 
     STATIONID: pl.String
@@ -495,7 +507,7 @@ class ZONESUBSTATIONSchema(BasePartitionedSchema):
 # ===================
 # Maps table names to their corresponding Pandera schemas for discovery and validation
 
-SCHEMA_MAP: dict[str, type[BasePartitionedSchema]] = {
+SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
     # Dispatch Tables
     "DISPATCHREGIONSUM": DispatchRegionSumSchema,
     "DISPATCHLOAD": DispatchLoadSchema,
@@ -511,6 +523,8 @@ SCHEMA_MAP: dict[str, type[BasePartitionedSchema]] = {
     "DUDETAILSUMMARY": DUDETAILSUMMARYSchema,
     "DUDETAIL": DUDETAILSchema,
     "RESERVE": RESERVESchema,
+    # Participant Tables
+    "PARTICIPANT": PARTICIPANTSchema,
     # Station Tables
     "STATION": STATIONSchema,
     "STATIONOPERATINGSTATUS": STATIONOPERATINGSTATUSSchema,
