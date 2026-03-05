@@ -22,8 +22,8 @@ class ExistingGenerators(pa.DataFrameModel):
     maximum_capacity_mw: pl.Float64 = Field(nullable=True, coerce=True)
     storage_capacity_mwh: pl.Float64 = Field(nullable=True, coerce=True)
     summer_peak_rating_mw_2025_26: pl.Float64 = Field(nullable=True, coerce=True)
-    summer_typical_rating_mw_2032_33: pl.Float64 = Field(nullable=True, coerce=True)
-    winter_rating_mw_2033: pl.Float64 = Field(nullable=True, coerce=True)
+    summer_typical_rating_mw_2025_26: pl.Float64 = Field(nullable=True, coerce=True)
+    winter_rating_mw_2025: pl.Float64 = Field(nullable=True, coerce=True)
     minimum_stable_limit: pl.Float64 = Field(nullable=True, coerce=True)
     no_load_heat_rate: pl.Float64 = Field(nullable=True, coerce=True)
     marginal_heat_rate: pl.Float64 = Field(nullable=True, coerce=True)
@@ -502,19 +502,83 @@ class RezAugmentations(pa.DataFrameModel):
 
 
 class BuildLimitsRez(pa.DataFrameModel):
+    """Initial resource limits by REZ (wind, solar, land use)."""
+
     rez_id: pl.String = Field(nullable=True)
     rez_name: pl.String = Field(nullable=True)
-    wind_generation_total_limits_mw: pl.String = Field(nullable=True)
-    unnamed_3: pl.String = Field(nullable=True)
-    unnamed_4: pl.String = Field(nullable=True)
-    unnamed_5: pl.String = Field(nullable=True)
-    solar_pv_plus_solar_thermal_limits_mw: pl.String = Field(nullable=True)
-    rez_resource_limit_violation_penalty_factor_audm_mw: pl.String = Field(nullable=True)
-    land_use_limits_in_mw: pl.String = Field(nullable=True)
-    unnamed_9: pl.String = Field(nullable=True)
-    land_use_limits_in_mw_accelerated_transition_scenario: pl.String = Field(nullable=True)
-    unnamed_11: pl.String = Field(nullable=True)
-    land_area_km2_additional_table_note_1: pl.String = Field(nullable=True)
+    wind_generation_total_limits_mw_high: pl.Float64 = Field(nullable=True, coerce=True)
+    wind_generation_total_limits_mw_medium: pl.Float64 = Field(nullable=True, coerce=True)
+    wind_generation_total_limits_mw_offshore_fixed: pl.Float64 = Field(nullable=True, coerce=True)
+    wind_generation_total_limits_mw_offshore_floating: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    solar_pv_plus_solar_thermal_limits_mw_solar: pl.Float64 = Field(nullable=True, coerce=True)
+    rez_resource_limit_violation_penalty_factor_audm_mw: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    land_use_limits_in_mw_wind: pl.Float64 = Field(nullable=True, coerce=True)
+    land_use_limits_in_mw_solar: pl.Float64 = Field(nullable=True, coerce=True)
+    land_use_limits_in_mw_accelerated_transition_scenario_wind: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    land_use_limits_in_mw_accelerated_transition_scenario_solar: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    land_area_km2_additional_table_note_1: pl.Float64 = Field(nullable=True, coerce=True)
+    notes: pl.String = Field(nullable=True)
+
+
+class BuildLimitsRezTransmission(pa.DataFrameModel):
+    """Initial transmission limits by REZ (network limits, expansion costs)."""
+
+    rez_id: pl.String = Field(nullable=True)
+    rez_name: pl.String = Field(nullable=True)
+    additional_constraint_information: pl.String = Field(nullable=True)
+    rez_transmission_network_limit_peak_demand: pl.Float64 = Field(nullable=True, coerce=True)
+    rez_transmission_network_limit_summer_typical: pl.Float64 = Field(nullable=True, coerce=True)
+    rez_transmission_network_limit_winter_reference: pl.Float64 = Field(nullable=True, coerce=True)
+    electrolyser_import_limit: pl.String = Field(nullable=True)
+    indicative_transmission_expansion_cost_audm_mw_tranche_1: pl.String = Field(nullable=True)
+    indicative_transmission_expansion_cost_audm_mw_tranche_2: pl.String = Field(nullable=True)
+    indicative_transmission_expansion_cost_audm_mw_tranche_2_conditions: pl.String = Field(
+        nullable=True
+    )
+    indicative_transmission_expansion_cost_audm_mw_tranche_3: pl.String = Field(nullable=True)
+    indicative_transmission_expansion_cost_audm_mw_tranche_3_conditions: pl.String = Field(
+        nullable=True
+    )
+    notes: pl.String = Field(nullable=True)
+
+
+class BuildLimitsRezModifiers(pa.DataFrameModel):
+    """REZ transmission limit modifiers due to committed/anticipated augmentations."""
+
+    rez_id: pl.String = Field(nullable=True)
+    rez_name: pl.String = Field(nullable=True)
+    augmentation_name: pl.String = Field(nullable=True)
+    rez_transmission_limit_increase_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    notes: pl.String = Field(nullable=True)
+
+
+class RezGroupConstraints(pa.DataFrameModel):
+    """REZ group/transmission constraint with build limits and expansion costs.
+
+    Shared by group constraints summary, transmission limit constraints,
+    and secondary transmission limit tables.
+    """
+
+    term: pl.String = Field(nullable=True)
+    description: pl.String = Field(nullable=True)
+    group_constraint_id: pl.String = Field(nullable=True)
+    transmission_limited_total_build_summer_peak: pl.Float64 = Field(nullable=True, coerce=True)
+    transmission_limited_total_build_summer_typical: pl.Float64 = Field(nullable=True, coerce=True)
+    transmission_limited_total_build_winter_reference: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    indicative_transmission_expansion_cost_audm_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    indicative_transmission_expansion_cost_audm_mw_tranche_2: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
     notes: pl.String = Field(nullable=True)
 
 
@@ -679,7 +743,7 @@ class CoalBiomassPrice(pa.DataFrameModel):
 
 class GasLiquidH2Price(pa.DataFrameModel):
     generator: pl.String = Field(nullable=True)
-    gas_price_scenario: pl.String = Field(nullable=True)
+    price_scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
     value: pl.Float64 = Field(nullable=True, coerce=True)
     price_category: pl.String = Field(nullable=True)

@@ -21,6 +21,7 @@ dependencies = [
     "pyarrow>=22.0.0",
     "requests>=2.32.3",
     "structlog>=25.1.0",
+    "pooch>=1.8.0",
     "tqdm>=4.67.1",
 ]
 
@@ -123,6 +124,7 @@ module = [
     "geopandas.*",
     "gcsfs.*",
     "fastexcel.*",
+    "pooch.*",
     "polars.*",
     "pandera.*",
     "structlog.*",

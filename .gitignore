@@ -43,3 +43,8 @@ site/
 
 # Scratch space
 scratch/
+
+# Large artefacts — distributed via GitHub Releases + pooch
+src/nemdb/artefacts/*.zip
+src/nemdb/artefacts/*.xlsx
+src/nemdb/artefacts/.~lock.*
