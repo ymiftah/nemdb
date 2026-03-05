@@ -1619,6 +1619,16 @@ dependencies = [
     { name = "tqdm" },
 ]
 
+[package.optional-dependencies]
+grid = [
+    { name = "pandapower" },
+    { name = "scikit-learn" },
+]
+viz = [
+    { name = "nbformat" },
+    { name = "plotly" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "bandit" },
@@ -1640,14 +1650,6 @@ doc = [
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
 ]
-grid = [
-    { name = "pandapower" },
-    { name = "scikit-learn" },
-]
-viz = [
-    { name = "nbformat" },
-    { name = "plotly" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -1658,17 +1660,22 @@ requires-dist = [
     { name = "gcsfs", specifier = ">=2025.3.2" },
     { name = "geopandas", specifier = ">=1.1.2" },
     { name = "joblib", specifier = ">=1.5.2" },
+    { name = "nbformat", marker = "extra == 'viz'", specifier = ">=5.10.4" },
     { name = "networkx", specifier = ">=3.6" },
     { name = "numpy", specifier = ">=2.2.1" },
     { name = "openelectricity", git = "https://github.com/opennem/openelectricity-python?tag=v0.9.3" },
+    { name = "pandapower", marker = "extra == 'grid'", specifier = ">=3.3.2" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pandera", specifier = ">=0.26.1" },
+    { name = "plotly", marker = "extra == 'viz'", specifier = ">=6.5.2" },
     { name = "polars", specifier = ">=1.35" },
     { name = "pyarrow", specifier = ">=22.0.0" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "scikit-learn", marker = "extra == 'grid'", specifier = ">=1.7.2" },
     { name = "structlog", specifier = ">=25.1.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
+provides-extras = ["grid", "viz"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1690,14 +1697,6 @@ doc = [
     { name = "mkdocs-autoapi", specifier = ">=0.4.1" },
     { name = "mkdocs-material", specifier = ">=9.6.16" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.30.1" },
-]
-grid = [
-    { name = "pandapower", specifier = ">=3.2.0" },
-    { name = "scikit-learn", specifier = ">=1.7.2" },
-]
-viz = [
-    { name = "nbformat", specifier = ">=5.10.4" },
-    { name = "plotly", specifier = ">=6.5.2" },
 ]
 
 [[package]]

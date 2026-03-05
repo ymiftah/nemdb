@@ -1,3 +1,5 @@
+import datetime
+
 import polars as pl
 import pytest
 
@@ -15,7 +17,8 @@ from nemdb.isp.isp2025 import (
     coal_biomass_price,
     coal_min_stable_level,
     connection_cost,
-    connection_cost_forecasts,
+    connection_cost_forecasts_other,
+    connection_cost_forecasts_wind_and_solar,
     connections_forecasts,
     data_centre_forecasts,
     desalination_demand_h2,
@@ -49,6 +52,8 @@ from nemdb.isp.isp2025 import (
     hydrogen_monthly_profiles,
     lead_time_project_life,
     locational_cost_factors,
+    locational_cost_factors_phes,
+    locational_cost_factors_technology_specific,
     maintenance,
     marginal_loss_factors,
     max_ramp_rates,
@@ -69,7 +74,8 @@ from nemdb.isp.isp2025 import (
     rez_cost_forecasts,
     rooftop_pv,
     seasonal_ratings,
-    storage_properties,
+    storage_battery_properties,
+    storage_hydro_properties,
     transmission_reliability,
     variable_opex,
     water_for_hydrogen,
@@ -86,8 +92,6 @@ def test_read_sheet_returns_dataframe():
 
 
 def test_read_timeseries_unpivots_years():
-    import datetime
-
     df = read_timeseries("Build costs", header_row=9)
     assert "year" in df.columns
     assert "value" in df.columns
@@ -105,7 +109,8 @@ def test_read_timeseries_unpivots_years():
         (existing_generators, 640, "iasr_id"),
         (new_entrant_generators, 510, "iasr_id"),
         (new_electrolyser_data, 140, "iasr_id"),
-        (storage_properties, 8, "technology"),
+        (storage_battery_properties, 7, "technology"),
+        (storage_hydro_properties, 11, "power_station"),
         (maximum_capacity, 640, "iasr_id"),
         (seasonal_ratings, 640, "iasr_id"),
         (maintenance, 10, "generator_type"),
@@ -133,10 +138,12 @@ def test_read_timeseries_unpivots_years():
         (rez_augmentations, 120, "rez_constraint_id"),
         (build_limits_rez, 240, "rez_id"),
         (build_limits_phes, 10, "name"),
-        (locational_cost_factors, 210, "cost_zone_rez_id"),
+        (locational_cost_factors, 64, "cost_zone_rez_id"),
+        (locational_cost_factors_phes, 45, "subregion"),
+        (locational_cost_factors_technology_specific, 64, "cost_zone_rez_id"),
         (capacity_factors, 200, "rez_id_subregion"),
         (marginal_loss_factors, 650, "iasr_id"),
-        (hydro_scheme_inflows, 140, "reference_year_fye"),
+        (hydro_scheme_inflows, 120, "reference_year_fye"),
     ],
 )
 def test_static_sheet(fn, min_rows, required_col):
@@ -153,7 +160,8 @@ def test_static_sheet(fn, min_rows, required_col):
     "fn, min_rows, scenario_col",
     [
         (build_costs, 1500, "iasr_scenario"),
-        (connection_cost_forecasts, 10000, None),
+        (connection_cost_forecasts_wind_and_solar, 1000, None),
+        (connection_cost_forecasts_other, 1000, None),
         (flow_path_cost_forecasts, 9000, None),
         (rez_cost_forecasts, 8000, None),
         (distribution_cost_forecasts, 2000, None),

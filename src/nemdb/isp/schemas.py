@@ -9,7 +9,7 @@ from pandera import Field
 
 
 class ExistingGenerators(pa.DataFrameModel):
-    iasr_id: pl.String
+    iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     technology_type: pl.String = Field(nullable=True)
     fuel_type: pl.String = Field(nullable=True)
@@ -18,44 +18,56 @@ class ExistingGenerators(pa.DataFrameModel):
     rez_location: pl.String = Field(nullable=True)
     rez_id: pl.String = Field(nullable=True)
     status: pl.String = Field(nullable=True)
-    regional_build_cost_zone: pl.String = Field(nullable=True)
-    maximum_capacity_mw: pl.Float64 = Field(nullable=True)
-    storage_capacity_mwh: pl.Float64 = Field(nullable=True)
-    summer_peak_rating_mw: pl.String = Field(nullable=True)
-    summer_typical_rating_mw: pl.Float64 = Field(nullable=True)
-    winter_rating_mw: pl.Float64 = Field(nullable=True)
-    minimum_stable_limit: pl.Float64 = Field(nullable=True)
-    no_load_heat_rate: pl.Float64 = Field(nullable=True)
-    marginal_heat_rate: pl.Float64 = Field(nullable=True)
-    pumping_efficiency: pl.Float64 = Field(nullable=True)
-    charge_efficiency: pl.Float64 = Field(nullable=True)
-    discharge_efficiency: pl.Float64 = Field(nullable=True)
-    allowable_max_state_of_charge: pl.Float64 = Field(nullable=True)
-    allowable_min_state_of_charge: pl.Float64 = Field(nullable=True)
-    round_trip_efficiency: pl.Float64 = Field(nullable=True)
-    annual_degradation: pl.Float64 = Field(nullable=True)
-    max_ramp_up_mw_min: pl.Float64 = Field(nullable=True)
-    max_ramp_down_mw_min: pl.Float64 = Field(nullable=True)
-    maintenance_proportion_of_time_out: pl.Float64 = Field(nullable=True)
+    regional_build_cost_zone: pl.String = Field(nullable=True, coerce=True)
+    maximum_capacity_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    storage_capacity_mwh: pl.Float64 = Field(nullable=True, coerce=True)
+    summer_peak_rating_mw_2025_26: pl.Float64 = Field(nullable=True, coerce=True)
+    summer_typical_rating_mw_2032_33: pl.Float64 = Field(nullable=True, coerce=True)
+    winter_rating_mw_2033: pl.Float64 = Field(nullable=True, coerce=True)
+    minimum_stable_limit: pl.Float64 = Field(nullable=True, coerce=True)
+    no_load_heat_rate: pl.Float64 = Field(nullable=True, coerce=True)
+    marginal_heat_rate: pl.Float64 = Field(nullable=True, coerce=True)
+    pumping_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    charge_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    discharge_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    allowable_max_state_of_charge_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    allowable_min_state_of_charge_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    round_trip_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    annual_degradation_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    max_ramp_up_mw_min: pl.Float64 = Field(nullable=True, coerce=True)
+    max_ramp_down_mw_min: pl.Float64 = Field(nullable=True, coerce=True)
+    maintenance_proportion_of_time_out_pct: pl.Float64 = Field(nullable=True, coerce=True)
     maintenance_equivalent_average_days_per_year_on_planned_outage: pl.Float64 = Field(
-        nullable=True
+        nullable=True, coerce=True
     )
-    forced_outage_rate: pl.Float64 = Field(nullable=True)
-    unnamed_30: pl.Float64 = Field(nullable=True)
-    mean_time_to_repair_hrs: pl.Float64 = Field(nullable=True)
-    unnamed_32: pl.Float64 = Field(nullable=True)
-    derating_factor: pl.Float64 = Field(nullable=True)
-    fom_kw_annum: pl.Float64 = Field(nullable=True)
-    vom_mwh_sent_out: pl.Float64 = Field(nullable=True)
-    heat_rate_gj_mwh_hhv_s_o: pl.Float64 = Field(nullable=True)
-    fuel_cost_gj: pl.Float64 = Field(nullable=True)
-    scope_1_emissions_kg_mwh: pl.Float64 = Field(nullable=True)
-    mlf: pl.Float64 = Field(nullable=True)
-    auxiliary_load_of_generation: pl.Float64 = Field(nullable=True)
-    srmc_mwh: pl.Float64 = Field(nullable=True)
-    expected_closure_year_calendar_year: pl.Float64 = Field(nullable=True)
-    retirement_rehabilitation_cost_mw: pl.Float64 = Field(nullable=True)
-    fault_level_replacement_cost_m: pl.Float64 = Field(nullable=True)
+    forced_outage_rate_pct_full_outage_pct_of_time_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    forced_outage_rate_pct_partial_outage_pct_of_time_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    mean_time_to_repair_hrs_full_outage_mttr_hrs_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    mean_time_to_repair_hrs_partial_outage_mttr_hrs_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    derating_factor_pct_partial_outage_derating_factor_pct_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    fom_aud_kw_annum: pl.Float64 = Field(nullable=True, coerce=True)
+    vom_aud_mwh_sent_out: pl.Float64 = Field(nullable=True, coerce=True)
+    heat_rate_gj_mwh_hhv_so: pl.Float64 = Field(nullable=True, coerce=True)
+    fuel_cost_aud_gj_slower_growth_2025_26: pl.Float64 = Field(nullable=True, coerce=True)
+    scope_1_emissions_kg_mwh_accelerated_transition_2038_39: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    mlf: pl.Float64 = Field(nullable=True, coerce=True)
+    auxiliary_load_pct_of_generation: pl.Float64 = Field(nullable=True, coerce=True)
+    srmc_aud_mwh: pl.Float64 = Field(nullable=True, coerce=True)
+    expected_closure_year_calendar_year: pl.Float64 = Field(nullable=True, coerce=True)
+    retirement_rehabilitation_cost_aud_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    fault_level_replacement_cost_audm: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class NewEntrantGenerators(pa.DataFrameModel):
@@ -69,51 +81,67 @@ class NewEntrantGenerators(pa.DataFrameModel):
     rez_id: pl.String = Field(nullable=True)
     status: pl.String = Field(nullable=True)
     regional_build_cost_zone: pl.String = Field(nullable=True)
-    maximum_capacity_mw: pl.Float64 = Field(nullable=True)
-    storage_capacity_hours: pl.Float64 = Field(nullable=True)
-    seasonal_rating: pl.String = Field(nullable=True)
-    unnamed_13: pl.String = Field(nullable=True)
-    unnamed_14: pl.String = Field(nullable=True)
-    min_stable_level_of_nameplate: pl.Float64 = Field(nullable=True)
-    no_load_heat_rate: pl.Float64 = Field(nullable=True)
-    marginal_heat_rate: pl.Float64 = Field(nullable=True)
-    pumping_efficiency: pl.String = Field(nullable=True)
-    charge_efficiency: pl.String = Field(nullable=True)
-    discharge_efficiency: pl.String = Field(nullable=True)
-    allowable_max_state_of_charge: pl.String = Field(nullable=True)
-    allowable_min_state_of_charge: pl.String = Field(nullable=True)
-    round_trip_efficiency: pl.String = Field(nullable=True)
-    annual_degradation: pl.String = Field(nullable=True)
-    max_ramp_up_mw_min: pl.String = Field(nullable=True)
-    max_ramp_down_mw_min: pl.String = Field(nullable=True)
-    maintenance_proportion_of_time_out: pl.Float64 = Field(nullable=True)
-    maintenance_equivalent_average_days_per_year_on_planned_outage: pl.Float64 = Field(
-        nullable=True
+    maximum_capacity_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    storage_capacity_hours: pl.Float64 = Field(nullable=True, coerce=True)
+    seasonal_rating_summer_peak_rating_pct_of_nameplate: pl.Float64 = Field(
+        nullable=True, coerce=True
     )
-    forced_outage_rate: pl.String = Field(nullable=True)
-    unnamed_30: pl.String = Field(nullable=True)
-    mean_time_to_repair_hrs: pl.String = Field(nullable=True)
-    unnamed_32: pl.String = Field(nullable=True)
-    derating_factor: pl.String = Field(nullable=True)
-    locational_cost_factors: pl.Float64 = Field(nullable=True)
-    fom_kw_annum: pl.Float64 = Field(nullable=True)
-    vom_mwh_sent_out: pl.Float64 = Field(nullable=True)
-    heat_rate_gj_mwh_hhv_s_o: pl.Float64 = Field(nullable=True)
-    fuel_cost_gj_1: pl.String = Field(nullable=True)
-    scope_1_emissions_kg_mwh: pl.String = Field(nullable=True)
-    mlf: pl.Float64 = Field(nullable=True)
-    auxiliary_load_of_generation: pl.Float64 = Field(nullable=True)
-    srmc_mwh: pl.Float64 = Field(nullable=True)
-    expected_closure_year_calendar_year: pl.Date = Field(nullable=True)
-    retirement_rehabilitation_cost_mw: pl.Float64 = Field(nullable=True)
-    build_cost_kw: pl.String = Field(nullable=True)
-    connection_cost_kw: pl.String = Field(nullable=True)
-    efficient_level_of_system_strength_cost_kw: pl.String = Field(nullable=True)
-    balance_of_plant_consumption: pl.String = Field(nullable=True)
-    wacc: pl.String = Field(nullable=True)
-    total_lead_time_years: pl.Float64 = Field(nullable=True)
-    economic_life_years: pl.Float64 = Field(nullable=True)
-    technical_life_years: pl.Float64 = Field(nullable=True)
+    seasonal_rating_summer_typical_rating_pct_of_nameplate: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    seasonal_rating_winter_rating_pct_of_nameplate: pl.Float64 = Field(nullable=True, coerce=True)
+    min_stable_level_pct_of_nameplate: pl.Float64 = Field(nullable=True, coerce=True)
+    no_load_heat_rate: pl.Float64 = Field(nullable=True, coerce=True)
+    marginal_heat_rate: pl.Float64 = Field(nullable=True, coerce=True)
+    pumping_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    charge_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    discharge_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    allowable_max_state_of_charge_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    allowable_min_state_of_charge_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    round_trip_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    annual_degradation_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    max_ramp_up_mw_min: pl.Float64 = Field(nullable=True, coerce=True)
+    max_ramp_down_mw_min: pl.Float64 = Field(nullable=True, coerce=True)
+    maintenance_proportion_of_time_out_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    maintenance_equivalent_average_days_per_year_on_planned_outage: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    forced_outage_rate_pct_full_outage_pct_of_time_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    forced_outage_rate_pct_partial_outage_pct_of_time_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    mean_time_to_repair_hrs_full_outage_mttr_hrs_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    mean_time_to_repair_hrs_partial_outage_mttr_hrs_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    derating_factor_pct_partial_outage_derating_factor_pct_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    locational_cost_factors: pl.Float64 = Field(nullable=True, coerce=True)
+    fom_aud_kw_annum: pl.Float64 = Field(nullable=True, coerce=True)
+    vom_aud_mwh_sent_out: pl.Float64 = Field(nullable=True, coerce=True)
+    heat_rate_gj_mwh_hhv_so: pl.Float64 = Field(nullable=True, coerce=True)
+    fuel_cost_aud_gj1_slower_growth_2025_26: pl.Float64 = Field(nullable=True, coerce=True)
+    scope_1_emissions_kg_mwh_step_change_2051_52: pl.Float64 = Field(nullable=True, coerce=True)
+    mlf: pl.Float64 = Field(nullable=True, coerce=True)
+    auxiliary_load_pct_of_generation: pl.Float64 = Field(nullable=True, coerce=True)
+    srmc_aud_mwh: pl.Float64 = Field(nullable=True, coerce=True)
+    expected_closure_year_calendar_year: pl.Float64 = Field(nullable=True, coerce=True)
+    retirement_rehabilitation_cost_aud_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    build_cost_aud_kw_step_change_2027_28: pl.Float64 = Field(nullable=True, coerce=True)
+    connection_cost_aud_kw_step_change_2027_28: pl.Float64 = Field(nullable=True, coerce=True)
+    efficient_level_of_system_strength_cost_aud_kw_2025_26: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
+    balance_of_plant_consumption_pct_step_change: pl.Float64 = Field(nullable=True, coerce=True)
+    wacc_pct_step_change: pl.Float64 = Field(nullable=True, coerce=True)
+    total_lead_time_years: pl.Float64 = Field(nullable=True, coerce=True)
+    economic_life_years: pl.Float64 = Field(nullable=True, coerce=True)
+    technical_life_years: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class NewElectrolyserData(pa.DataFrameModel):
@@ -127,71 +155,79 @@ class NewElectrolyserData(pa.DataFrameModel):
     rez_id: pl.String = Field(nullable=True)
     status: pl.String = Field(nullable=True)
     regional_build_cost_zone: pl.String = Field(nullable=True)
-    maximum_capacity_mw: pl.Float64 = Field(nullable=True)
-    storage_capacity_hours: pl.Float64 = Field(nullable=True)
-    seasonal_rating: pl.Float64 = Field(nullable=True)
-    unnamed_13: pl.String = Field(nullable=True)
-    unnamed_14: pl.String = Field(nullable=True)
-    min_stable_level_of_nameplate: pl.Float64 = Field(nullable=True)
-    maintenance_proportion_of_time_out: pl.Float64 = Field(nullable=True)
+    maximum_capacity_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    storage_capacity_hours: pl.Float64 = Field(nullable=True, coerce=True)
+    seasonal_rating: pl.Float64 = Field(nullable=True, coerce=True)
+    col13: pl.Float64 = Field(nullable=True, coerce=True)
+    col14: pl.Float64 = Field(nullable=True, coerce=True)
+    min_stable_level_pct_of_nameplate: pl.Float64 = Field(nullable=True, coerce=True)
+    maintenance_proportion_of_time_out_pct: pl.Float64 = Field(nullable=True, coerce=True)
     maintenance_equivalent_average_days_per_year_on_planned_outage: pl.Float64 = Field(
-        nullable=True
+        nullable=True, coerce=True
     )
-    forced_outage_rate: pl.String = Field(nullable=True)
-    unnamed_19: pl.String = Field(nullable=True)
-    mean_time_to_repair_hrs: pl.String = Field(nullable=True)
-    unnamed_21: pl.String = Field(nullable=True)
-    derating_factor: pl.String = Field(nullable=True)
-    locational_cost_factors: pl.Float64 = Field(nullable=True)
-    fom_kw_annum: pl.Float64 = Field(nullable=True)
-    vom_mwh_sent_out: pl.Float64 = Field(nullable=True)
-    heat_rate_gj_mwh_hhv_s_o: pl.Float64 = Field(nullable=True)
-    scope_1_emissions_kg_mwh: pl.String = Field(nullable=True)
-    mlf: pl.Float64 = Field(nullable=True)
-    auxiliary_load_of_generation: pl.Float64 = Field(nullable=True)
-    expected_closure_year_calendar_year: pl.Date = Field(nullable=True)
-    retirement_rehabilitation_cost_mw: pl.Float64 = Field(nullable=True)
-    build_cost_kw: pl.String = Field(nullable=True)
-    associated_pipeline_cost_kw: pl.String = Field(nullable=True)
-    connection_cost_kw: pl.String = Field(nullable=True)
-    efficient_level_of_system_strength_cost_kw: pl.String = Field(nullable=True)
-    balance_of_plant_consumption: pl.String = Field(nullable=True)
-    wacc: pl.String = Field(nullable=True)
-    total_lead_time_years: pl.Float64 = Field(nullable=True)
-    economic_life_years: pl.Float64 = Field(nullable=True)
-    technical_life_years: pl.Float64 = Field(nullable=True)
-    minimum_capacity_utilization_factor: pl.String = Field(nullable=True)
+    forced_outage_rate_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    col19: pl.Float64 = Field(nullable=True, coerce=True)
+    mean_time_to_repair_hrs: pl.Float64 = Field(nullable=True, coerce=True)
+    col21: pl.Float64 = Field(nullable=True, coerce=True)
+    derating_factor_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    locational_cost_factors: pl.Float64 = Field(nullable=True, coerce=True)
+    fom_aud_kw_annum: pl.Float64 = Field(nullable=True, coerce=True)
+    vom_aud_mwh_sent_out: pl.Float64 = Field(nullable=True, coerce=True)
+    heat_rate_gj_mwh_hhv_so: pl.Float64 = Field(nullable=True, coerce=True)
+    scope_1_emissions_kg_mwh: pl.Float64 = Field(nullable=True, coerce=True)
+    mlf: pl.Float64 = Field(nullable=True, coerce=True)
+    auxiliary_load_pct_of_generation: pl.Float64 = Field(nullable=True, coerce=True)
+    expected_closure_year_calendar_year: pl.Float64 = Field(nullable=True, coerce=True)
+    retirement_rehabilitation_cost_aud_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    build_cost_aud_kw: pl.Float64 = Field(nullable=True, coerce=True)
+    associated_pipeline_cost_aud_kw: pl.Float64 = Field(nullable=True, coerce=True)
+    connection_cost_aud_kw: pl.Float64 = Field(nullable=True, coerce=True)
+    efficient_level_of_system_strength_cost_aud_kw: pl.Float64 = Field(nullable=True, coerce=True)
+    balance_of_plant_consumption_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    wacc_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    total_lead_time_years: pl.Float64 = Field(nullable=True, coerce=True)
+    economic_life_years: pl.Float64 = Field(nullable=True, coerce=True)
+    technical_life_years: pl.Float64 = Field(nullable=True, coerce=True)
+    minimum_capacity_utilization_factor_pct: pl.Float64 = Field(nullable=True, coerce=True)
 
 
-class StorageProperties(pa.DataFrameModel):
+class StorageBatteryProperties(pa.DataFrameModel):
     technology: pl.String = Field(nullable=True)
-    maximum_power1: pl.Float64 = Field(nullable=True)
-    energy_capacity2: pl.Float64 = Field(nullable=True)
-    charge_efficiency: pl.Float64 = Field(nullable=True)
-    discharge_efficiency: pl.Float64 = Field(nullable=True)
-    allowable_max_state_of_charge: pl.Float64 = Field(nullable=True)
-    allowable_min_state_of_charge: pl.Float64 = Field(nullable=True)
-    round_trip_efficiency3: pl.Float64 = Field(nullable=True)
-    annual_degradation4: pl.Float64 = Field(nullable=True)
+    maximum_power: pl.Float64 = Field(nullable=True, coerce=True)
+    energy_capacity: pl.Float64 = Field(nullable=True, coerce=True)
+    charge_efficiency: pl.Float64 = Field(nullable=True, coerce=True)
+    discharge_efficiency: pl.Float64 = Field(nullable=True, coerce=True)
+    allowable_max_state_of_charge: pl.Float64 = Field(nullable=True, coerce=True)
+    allowable_min_state_of_charge: pl.Float64 = Field(nullable=True, coerce=True)
+    round_trip_efficiency: pl.Float64 = Field(nullable=True, coerce=True)
+    annual_degradation: pl.Float64 = Field(nullable=True, coerce=True)
+
+
+class StorageHydroProperties(pa.DataFrameModel):
+    type: pl.String = Field(nullable=True)
+    power_station: pl.String = Field(nullable=True)
+    installed_capacity_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    storage_capacity_hours: pl.Float64 = Field(nullable=True, coerce=True)
+    pumping_efficiency_pct: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class MaximumCapacity(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
-    status5: pl.String = Field(nullable=True)
+    status: pl.String = Field(nullable=True)
     technology: pl.String = Field(nullable=True)
     region: pl.String = Field(nullable=True)
-    installed_capacity_mw: pl.Float64 = Field(nullable=True)
-    storage_capacity_mwh: pl.Float64 = Field(nullable=True)
-    commissioning_date: pl.Datetime = Field(nullable=True)
+    installed_capacity_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    storage_capacity_mwh: pl.Float64 = Field(nullable=True, coerce=True)
+    commissioning_date: pl.Date = Field(nullable=True)
     policy: pl.String = Field(nullable=True)
 
 
 class MaximumCapacityByTechnology(pa.DataFrameModel):
     technology_type: pl.String = Field(nullable=True)
-    unit_size_mw: pl.Float64 = Field(nullable=True)
-    number_of_units: pl.Float64 = Field(nullable=True)
-    total_plant_size_mw: pl.Float64 = Field(nullable=True)
+    unit_size_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    number_of_units: pl.Float64 = Field(nullable=True, coerce=True)
+    total_plant_size_mw: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class SeasonalRatings(pa.DataFrameModel):
@@ -199,63 +235,32 @@ class SeasonalRatings(pa.DataFrameModel):
     power_station: pl.String = Field(nullable=True)
     status: pl.String = Field(nullable=True)
     region: pl.String = Field(nullable=True)
-    col_2024_25: pl.Float64 = Field(nullable=True)
-    col_2025_26: pl.Float64 = Field(nullable=True)
-    col_2026_27: pl.Float64 = Field(nullable=True)
-    col_2027_28: pl.Float64 = Field(nullable=True)
-    col_2028_29: pl.Float64 = Field(nullable=True)
-    col_2029_30: pl.Float64 = Field(nullable=True)
-    col_2030_31: pl.Float64 = Field(nullable=True)
-    col_2031_32: pl.Float64 = Field(nullable=True)
-    col_2032_33: pl.Float64 = Field(nullable=True)
-    col_2033_34: pl.Float64 = Field(nullable=True)
-    col_2024_25_1: pl.Float64 = Field(nullable=True)
-    col_2025_26_1: pl.Float64 = Field(nullable=True)
-    col_2026_27_1: pl.Float64 = Field(nullable=True)
-    col_2027_28_1: pl.Float64 = Field(nullable=True)
-    col_2028_29_1: pl.Float64 = Field(nullable=True)
-    col_2029_30_1: pl.Float64 = Field(nullable=True)
-    col_2030_31_1: pl.Float64 = Field(nullable=True)
-    col_2031_32_1: pl.Float64 = Field(nullable=True)
-    col_2032_33_1: pl.Float64 = Field(nullable=True)
-    col_2033_34_1: pl.Float64 = Field(nullable=True)
-    col_2024: pl.Float64 = Field(nullable=True)
-    col_2025: pl.Float64 = Field(nullable=True)
-    col_2026: pl.Float64 = Field(nullable=True)
-    col_2027: pl.Float64 = Field(nullable=True)
-    col_2028: pl.Float64 = Field(nullable=True)
-    col_2029: pl.Float64 = Field(nullable=True)
-    col_2030: pl.Float64 = Field(nullable=True)
-    col_2031: pl.Float64 = Field(nullable=True)
-    col_2032: pl.Float64 = Field(nullable=True)
-    col_2033: pl.Float64 = Field(nullable=True)
+    generator_group: pl.String = Field(nullable=True)
+    technology_type: pl.String = Field(nullable=True)
+    summer_peak_pct_of_nameplate: pl.Float64 = Field(nullable=True, coerce=True)
+    summer_typical_pct_of_nameplate: pl.Float64 = Field(nullable=True, coerce=True)
+    winter_pct_of_nameplate: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class Maintenance(pa.DataFrameModel):
     generator_type: pl.String = Field(nullable=True)
-    proportion_of_time_out: pl.Float64 = Field(nullable=True)
-    equivalent_average_days_per_year_on_planned_outage: pl.Float64 = Field(nullable=True)
+    proportion_of_time_out_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    equivalent_average_days_per_year_on_planned_outage: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
 
 
 class MaintenanceByTechnology(pa.DataFrameModel):
     technology_type: pl.String = Field(nullable=True)
-    proportion_of_time_out: pl.Float64 = Field(nullable=True)
-    equivalent_average_days_per_year_on_planned_outage: pl.Float64 = Field(nullable=True)
+    proportion_of_time_out_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    equivalent_average_days_per_year_on_planned_outage: pl.Float64 = Field(
+        nullable=True, coerce=True
+    )
 
 
 class GeneratorReliability(pa.DataFrameModel):
     fuel_type: pl.String = Field(nullable=True)
     property: pl.String = Field(nullable=True)
-    col_2025_26: pl.Float64 = Field(nullable=True)
-    col_2026_27: pl.Float64 = Field(nullable=True)
-    col_2027_28: pl.Float64 = Field(nullable=True)
-    col_2028_29: pl.Float64 = Field(nullable=True)
-    col_2029_30: pl.Float64 = Field(nullable=True)
-    col_2030_31: pl.Float64 = Field(nullable=True)
-    col_2031_32: pl.Float64 = Field(nullable=True)
-    col_2032_33: pl.Float64 = Field(nullable=True)
-    col_2033_34: pl.Float64 = Field(nullable=True)
-    col_2034_35: pl.Float64 = Field(nullable=True)
 
 
 class Retirement(pa.DataFrameModel):
@@ -263,61 +268,60 @@ class Retirement(pa.DataFrameModel):
     power_station: pl.String = Field(nullable=True)
     technology_type: pl.String = Field(nullable=True)
     status: pl.String = Field(nullable=True)
-    expected_closure_year_calendar_year: pl.Date = Field(nullable=True)
-    col5: pl.String = Field(nullable=True)
+    expected_closure_year_calendar_year: pl.String = Field(nullable=True)
 
 
 class RetirementCosts(pa.DataFrameModel):
     technology_type: pl.String = Field(nullable=True)
-    retirement_mw: pl.Float64 = Field(nullable=True)
+    retirement_mw: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class HeatRates(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     technology: pl.String = Field(nullable=True)
-    heat_rate_gj_mwh: pl.Float64 = Field(nullable=True)
+    heat_rate_gj_mwh: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class HeatRatesByTechnology(pa.DataFrameModel):
     technology: pl.String = Field(nullable=True)
-    heat_rate_gj_mwh: pl.Float64 = Field(nullable=True)
+    heat_rate_gj_mwh: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class Auxiliary(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     technology: pl.String = Field(nullable=True)
-    auxiliary_load_of_generation: pl.Float64 = Field(nullable=True)
+    auxiliary_load_pct_of_generation: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class AuxiliaryByTechnology(pa.DataFrameModel):
     generator: pl.String = Field(nullable=True)
-    auxiliary_load_of_generation: pl.Float64 = Field(nullable=True)
+    auxiliary_load_pct_of_generation: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class EmissionsIntensity(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     technology: pl.String = Field(nullable=True)
-    scope_1_emissions_intensity_kg_mwh_as_gen: pl.Float64 = Field(nullable=True)
+    scope_1_emissions_intensity_kg_mwh_as_gen: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class EmissionsIntensityByTechnology(pa.DataFrameModel):
     technology: pl.String = Field(nullable=True)
-    scope_1_emissions_intensity_kg_mwh_as_gen: pl.Float64 = Field(nullable=True)
+    scope_1_emissions_intensity_kg_mwh_as_gen: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class FixedOpex(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     technology: pl.String = Field(nullable=True)
-    fixed_opex_kw_year: pl.Float64 = Field(nullable=True)
+    fixed_opex_aud_kw_year: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class FixedOpexByTechnology(pa.DataFrameModel):
     technology_type: pl.String = Field(nullable=True)
-    base_value_kw_year: pl.Float64 = Field(nullable=True)
+    base_value_kw_year: pl.Float64 = Field(nullable=True, coerce=True)
     unit: pl.String = Field(nullable=True)
 
 
@@ -325,27 +329,27 @@ class VariableOpex(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station_technology: pl.String = Field(nullable=True)
     technology: pl.String = Field(nullable=True)
-    variable_opex_mwh_sent_out_1: pl.Float64 = Field(nullable=True)
+    variable_opex_aud_mwh_sent_out: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class VariableOpexByTechnology(pa.DataFrameModel):
     generator: pl.String = Field(nullable=True)
-    base_value: pl.Float64 = Field(nullable=True)
+    base_value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class AffineHeatRates(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     technology_type: pl.String = Field(nullable=True)
-    no_load_heat_input_gj_h: pl.Float64 = Field(nullable=True)
-    marginal_heat_rate_gj_mwh: pl.Float64 = Field(nullable=True)
+    no_load_heat_input_gj_h: pl.Float64 = Field(nullable=True, coerce=True)
+    marginal_heat_rate_gj_mwh: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class AffineHeatRatesByTechnology(pa.DataFrameModel):
     technology: pl.String = Field(nullable=True)
-    unit_nominal_capacity_mw: pl.Float64 = Field(nullable=True)
-    no_load_heat_input_gj_h: pl.Float64 = Field(nullable=True)
-    marginal_heat_rate_gj_mwh: pl.Float64 = Field(nullable=True)
+    unit_nominal_capacity_mw: pl.Float64 = Field(nullable=True, coerce=True)
+    no_load_heat_input_gj_h: pl.Float64 = Field(nullable=True, coerce=True)
+    marginal_heat_rate_gj_mwh: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class MaxRampRates(pa.DataFrameModel):
@@ -366,31 +370,31 @@ class CoalMinStableLevel(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     technology_type: pl.String = Field(nullable=True)
-    iasr_2023_backcasting: pl.String = Field(nullable=True)
-    typical_lowest_band: pl.Float64 = Field(nullable=True)
-    minimum_continuous_operating_level: pl.Float64 = Field(nullable=True)
+    iasr_2023_backcasting: pl.Float64 = Field(nullable=True, coerce=True)
+    typical_lowest_band: pl.Float64 = Field(nullable=True, coerce=True)
+    minimum_continuous_operating_level: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class GpgMinStableLevel(pa.DataFrameModel):
     iasr_id: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     technology_type: pl.String = Field(nullable=True)
-    min_stable_level_mw: pl.Float64 = Field(nullable=True)
+    min_stable_level_mw: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class GpgMinStableLevelByTechnology(pa.DataFrameModel):
     technology: pl.String = Field(nullable=True)
-    min_stable_level_of_nameplate: pl.Float64 = Field(nullable=True)
+    min_stable_level_of_nameplate: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class LeadTimeProjectLife(pa.DataFrameModel):
     technology: pl.String = Field(nullable=True)
-    lead_time_for_development_years_1_2: pl.Float64 = Field(nullable=True)
-    lead_time_years_3: pl.Float64 = Field(nullable=True)
-    construction_time_years: pl.Float64 = Field(nullable=True)
-    total_lead_time_years_4_7: pl.Float64 = Field(nullable=True)
-    economic_life_years_5: pl.Float64 = Field(nullable=True)
-    technical_life_years_6: pl.Float64 = Field(nullable=True)
+    lead_time_for_development_years: pl.Float64 = Field(nullable=True, coerce=True)
+    lead_time_years: pl.Float64 = Field(nullable=True, coerce=True)
+    construction_time_years: pl.Float64 = Field(nullable=True, coerce=True)
+    total_lead_time_years: pl.Float64 = Field(nullable=True, coerce=True)
+    economic_life_years: pl.Float64 = Field(nullable=True, coerce=True)
+    technical_life_years: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class FinancialParameters(pa.DataFrameModel):
@@ -445,8 +449,8 @@ class NetworkLosses(pa.DataFrameModel):
 class TransmissionReliability(pa.DataFrameModel):
     line_flowpath: pl.String = Field(nullable=True)
     implementation: pl.String = Field(nullable=True)
-    unplanned_outage_rate: pl.Float64 = Field(nullable=True)
-    mean_time_to_repair: pl.Float64 = Field(nullable=True)
+    unplanned_outage_rate_pct: pl.Float64 = Field(nullable=True, coerce=True)
+    mean_time_to_repair: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class ConnectionCost(pa.DataFrameModel):
@@ -456,8 +460,8 @@ class ConnectionCost(pa.DataFrameModel):
     rez_network_voltage_kv: pl.String = Field(nullable=True)
     connection_capacity_mva: pl.String = Field(nullable=True)
     feeder_length_km: pl.String = Field(nullable=True)
-    total_cost_m: pl.String = Field(nullable=True)
-    kw: pl.String = Field(nullable=True)
+    total_cost_audm: pl.String = Field(nullable=True)
+    aud_kw: pl.String = Field(nullable=True)
     notes: pl.String = Field(nullable=True)
 
 
@@ -488,10 +492,10 @@ class RezAugmentations(pa.DataFrameModel):
     pre_requisite_options: pl.String = Field(nullable=True)
     additional_network_capacity_mw: pl.String = Field(nullable=True)
     additional_import_capacity_mw: pl.String = Field(nullable=True)
-    expected_cost_2025_million: pl.String = Field(nullable=True)
+    expected_cost_aud2025_million: pl.String = Field(nullable=True)
     cost_estimate_source: pl.String = Field(nullable=True)
     cost_estimate_class: pl.String = Field(nullable=True)
-    m_mw: pl.String = Field(nullable=True)
+    audm_mw: pl.String = Field(nullable=True)
     easement_length_km: pl.String = Field(nullable=True)
     lead_time: pl.String = Field(nullable=True)
     notes: pl.String = Field(nullable=True)
@@ -505,7 +509,7 @@ class BuildLimitsRez(pa.DataFrameModel):
     unnamed_4: pl.String = Field(nullable=True)
     unnamed_5: pl.String = Field(nullable=True)
     solar_pv_plus_solar_thermal_limits_mw: pl.String = Field(nullable=True)
-    rez_resource_limit_violation_penalty_factor_m_mw: pl.String = Field(nullable=True)
+    rez_resource_limit_violation_penalty_factor_audm_mw: pl.String = Field(nullable=True)
     land_use_limits_in_mw: pl.String = Field(nullable=True)
     unnamed_9: pl.String = Field(nullable=True)
     land_use_limits_in_mw_accelerated_transition_scenario: pl.String = Field(nullable=True)
@@ -528,7 +532,44 @@ class LocationalCostFactors(pa.DataFrameModel):
     fuel_connection_costs: pl.String = Field(nullable=True)
     cost_of_land_and_development_2: pl.String = Field(nullable=True)
     installation_costs: pl.String = Field(nullable=True)
-    o_m_costs_3: pl.String = Field(nullable=True)
+    om_costs: pl.String = Field(nullable=True)
+
+
+class LocationalCostFactorsPhes(pa.DataFrameModel):
+    subregion: pl.String = Field(nullable=True)
+    duration: pl.String = Field(nullable=True)
+    equipment_and_installation_costs: pl.Float64 = Field(nullable=True, coerce=True)
+    fuel_connection_costs: pl.Float64 = Field(nullable=True, coerce=True)
+    cost_of_land_and_development: pl.Float64 = Field(nullable=True, coerce=True)
+    installation_costs: pl.Float64 = Field(nullable=True, coerce=True)
+    topographical_cost: pl.Float64 = Field(nullable=True, coerce=True)
+    om_costs: pl.Float64 = Field(nullable=True, coerce=True)
+
+
+class LocationalCostFactorsTechnologySpecific(pa.DataFrameModel):
+    cost_zone_rez_id: pl.String = Field(nullable=True)
+    rez_name_description: pl.String = Field(nullable=True)
+    ocgt_small_gt: pl.Float64 = Field(nullable=True, coerce=True)
+    ocgt_large_gt: pl.Float64 = Field(nullable=True, coerce=True)
+    ccgt: pl.Float64 = Field(nullable=True, coerce=True)
+    ccgt_with_ccs: pl.Float64 = Field(nullable=True, coerce=True)
+    biomass: pl.Float64 = Field(nullable=True, coerce=True)
+    large_scale_solar_pv: pl.Float64 = Field(nullable=True, coerce=True)
+    solar_thermal_16hrs_storage: pl.Float64 = Field(nullable=True, coerce=True)
+    battery_storage_1hr_storage: pl.Float64 = Field(nullable=True, coerce=True)
+    battery_storage_2hrs_storage: pl.Float64 = Field(nullable=True, coerce=True)
+    battery_storage_4hrs_storage: pl.Float64 = Field(nullable=True, coerce=True)
+    battery_storage_8hrs_storage: pl.Float64 = Field(nullable=True, coerce=True)
+    wind: pl.Float64 = Field(nullable=True, coerce=True)
+    wind_offshore_fixed: pl.Float64 = Field(nullable=True, coerce=True)
+    wind_offshore_floating: pl.Float64 = Field(nullable=True, coerce=True)
+    pumped_hydro_10hrs_storage: pl.Float64 = Field(nullable=True, coerce=True)
+    pumped_hydro_24hrs_storage: pl.Float64 = Field(nullable=True, coerce=True)
+    pumped_hydro_48hrs_storage: pl.Float64 = Field(nullable=True, coerce=True)
+    distributed_resources_solar: pl.Float64 = Field(nullable=True, coerce=True)
+    distributed_resources_batteries: pl.Float64 = Field(nullable=True, coerce=True)
+    alkaline_electrolyser: pl.Float64 = Field(nullable=True, coerce=True)
+    botn_cethana: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class CapacityFactors(pa.DataFrameModel):
@@ -536,23 +577,10 @@ class CapacityFactors(pa.DataFrameModel):
     rez_name_subregion_name: pl.String = Field(nullable=True)
     technology: pl.String = Field(nullable=True)
     region: pl.String = Field(nullable=True)
-    col_2010_11: pl.Float64 = Field(nullable=True)
-    col_2011_12: pl.Float64 = Field(nullable=True)
-    col_2012_13: pl.Float64 = Field(nullable=True)
-    col_2013_14: pl.Float64 = Field(nullable=True)
-    col_2014_15: pl.Float64 = Field(nullable=True)
-    col_2015_16: pl.Float64 = Field(nullable=True)
-    col_2016_17: pl.Float64 = Field(nullable=True)
-    col_2017_18: pl.Float64 = Field(nullable=True)
-    col_2018_19: pl.Float64 = Field(nullable=True)
-    col_2019_20: pl.Float64 = Field(nullable=True)
-    col_2020_21: pl.Float64 = Field(nullable=True)
-    col_2021_22: pl.Float64 = Field(nullable=True)
-    col_2022_23: pl.Float64 = Field(nullable=True)
-    col_2023_24: pl.Float64 = Field(nullable=True)
-    col_2024_25: pl.Float64 = Field(nullable=True)
-    avg_of_reference_years: pl.Float64 = Field(nullable=True)
+    avg_of_reference_years: pl.Float64 = Field(nullable=True, coerce=True)
     comment: pl.String = Field(nullable=True)
+    year: pl.Date = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class MarginalLossFactors(pa.DataFrameModel):
@@ -560,50 +588,59 @@ class MarginalLossFactors(pa.DataFrameModel):
     tni_code: pl.String = Field(nullable=True)
     power_station: pl.String = Field(nullable=True)
     status: pl.String = Field(nullable=True)
-    mlf: pl.String = Field(nullable=True)
+    mlf: pl.Float64 = Field(nullable=True, coerce=True)
     shadow_connection_point: pl.String = Field(nullable=True)
     generator_group: pl.String = Field(nullable=True)
 
 
 class HydroSchemeInflows(pa.DataFrameModel):
     reference_year_fye: pl.String = Field(nullable=True)
-    jul: pl.String = Field(nullable=True)
-    aug: pl.String = Field(nullable=True)
-    sep: pl.String = Field(nullable=True)
-    oct: pl.String = Field(nullable=True)
-    nov: pl.String = Field(nullable=True)
-    dec: pl.String = Field(nullable=True)
-    jan: pl.String = Field(nullable=True)
-    feb: pl.String = Field(nullable=True)
-    mar: pl.String = Field(nullable=True)
-    apr: pl.String = Field(nullable=True)
-    may: pl.String = Field(nullable=True)
-    jun: pl.String = Field(nullable=True)
-    annual_total: pl.String = Field(nullable=True)
+    jul: pl.Float64 = Field(nullable=True, coerce=True)
+    aug: pl.Float64 = Field(nullable=True, coerce=True)
+    sep: pl.Float64 = Field(nullable=True, coerce=True)
+    oct: pl.Float64 = Field(nullable=True, coerce=True)
+    nov: pl.Float64 = Field(nullable=True, coerce=True)
+    dec: pl.Float64 = Field(nullable=True, coerce=True)
+    jan: pl.Float64 = Field(nullable=True, coerce=True)
+    feb: pl.Float64 = Field(nullable=True, coerce=True)
+    mar: pl.Float64 = Field(nullable=True, coerce=True)
+    apr: pl.Float64 = Field(nullable=True, coerce=True)
+    may: pl.Float64 = Field(nullable=True, coerce=True)
+    jun: pl.Float64 = Field(nullable=True, coerce=True)
+    annual_total: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class BuildCosts(pa.DataFrameModel):
-    technology1: pl.String = Field(nullable=True)
+    technology: pl.String = Field(nullable=True)
     gencost_scenario: pl.String = Field(nullable=True)
     iasr_scenario: pl.String = Field(nullable=True)
     source: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
-class ConnectionCostForecasts(pa.DataFrameModel):
+class ConnectionCostForecastsWindSolar(pa.DataFrameModel):
     rez_id: pl.String = Field(nullable=True)
     rez_names: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
-    notes: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
+    cost_type: pl.String = Field(nullable=True)
+
+
+class ConnectionCostForecastsOther(pa.DataFrameModel):
+    generator_type: pl.String = Field(nullable=True)
+    region: pl.String = Field(nullable=True)
+    scenario: pl.String = Field(nullable=True)
+    year: pl.Date = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
+    cost_type: pl.String = Field(nullable=True)
 
 
 class ConnectionCostOtherGeneration(pa.DataFrameModel):
     generator_type: pl.String = Field(nullable=True)
     region: pl.String = Field(nullable=True)
-    cost_aud_kw: pl.Float64 = Field(nullable=True)
+    cost_aud_kw: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class FlowPathCostForecasts(pa.DataFrameModel):
@@ -611,7 +648,7 @@ class FlowPathCostForecasts(pa.DataFrameModel):
     option: pl.String = Field(nullable=True)
     status: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class RezCostForecasts(pa.DataFrameModel):
@@ -620,7 +657,7 @@ class RezCostForecasts(pa.DataFrameModel):
     option: pl.String = Field(nullable=True)
     status: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class DistributionCostForecasts(pa.DataFrameModel):
@@ -629,14 +666,14 @@ class DistributionCostForecasts(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     notes: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class CoalBiomassPrice(pa.DataFrameModel):
     generator: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
     fuel_type: pl.String = Field(nullable=True)
 
 
@@ -644,7 +681,7 @@ class GasLiquidH2Price(pa.DataFrameModel):
     generator: pl.String = Field(nullable=True)
     gas_price_scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
     price_category: pl.String = Field(nullable=True)
 
 
@@ -653,7 +690,7 @@ class RooftopPv(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class Pvnsg(pa.DataFrameModel):
@@ -661,7 +698,7 @@ class Pvnsg(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class Onsg(pa.DataFrameModel):
@@ -669,7 +706,7 @@ class Onsg(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class BatteryPluginEvs(pa.DataFrameModel):
@@ -677,7 +714,7 @@ class BatteryPluginEvs(pa.DataFrameModel):
     subregion: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class FuelCellEvs(pa.DataFrameModel):
@@ -685,7 +722,7 @@ class FuelCellEvs(pa.DataFrameModel):
     subregion: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class EvV2g(pa.DataFrameModel):
@@ -693,7 +730,7 @@ class EvV2g(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class Dsp(pa.DataFrameModel):
@@ -702,21 +739,21 @@ class Dsp(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     season: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class DataCentreForecasts(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     state: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class Electrification(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     state: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class EmbeddedEnergyStorages(pa.DataFrameModel):
@@ -724,7 +761,7 @@ class EmbeddedEnergyStorages(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class AggregatedEnergyStorages(pa.DataFrameModel):
@@ -732,34 +769,34 @@ class AggregatedEnergyStorages(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class EndUseFuelConsumption(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     fuel_sector: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class ApplianceUptake(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     state: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class ElecRetailPriceIndices(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class ConnectionsForecasts(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     state: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class EnergyEfficiency(pa.DataFrameModel):
@@ -767,7 +804,7 @@ class EnergyEfficiency(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     state: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class HydrogenDemandDomestic(pa.DataFrameModel):
@@ -775,7 +812,7 @@ class HydrogenDemandDomestic(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class HydrogenDemandExport(pa.DataFrameModel):
@@ -783,14 +820,14 @@ class HydrogenDemandExport(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class HydrogenMonthlyProfiles(pa.DataFrameModel):
     month: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class WaterForHydrogen(pa.DataFrameModel):
@@ -798,7 +835,7 @@ class WaterForHydrogen(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class DesalinationDemandH2(pa.DataFrameModel):
@@ -806,14 +843,14 @@ class DesalinationDemandH2(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class H2GpgLimit(pa.DataFrameModel):
     region: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class BuildCostHydrogenPipeline(pa.DataFrameModel):
@@ -821,15 +858,15 @@ class BuildCostHydrogenPipeline(pa.DataFrameModel):
     demand_location: pl.String = Field(nullable=True)
     scenario: pl.String = Field(nullable=True)
     rez: pl.String = Field(nullable=True)
-    length_km: pl.Float64 = Field(nullable=True)
+    length_km: pl.Float64 = Field(nullable=True, coerce=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class GpgEmissionsReduction(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class FuelPriceSummary(pa.DataFrameModel):
@@ -840,7 +877,7 @@ class FuelPriceSummary(pa.DataFrameModel):
     rez_sub_region: pl.String = Field(nullable=True)
     fuel_cost_mapping: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    price_gj: pl.Float64 = Field(nullable=True)
+    price_gj: pl.Float64 = Field(nullable=True, coerce=True)
     generator_status: pl.String = Field(nullable=True)
 
 
@@ -849,7 +886,7 @@ class EconomicGrowthForecasts(pa.DataFrameModel):
     scenario: pl.String = Field(nullable=True)
     state: pl.String = Field(nullable=True)
     year: pl.Date = Field(nullable=True)
-    value: pl.Float64 = Field(nullable=True)
+    value: pl.Float64 = Field(nullable=True, coerce=True)
 
 
 class PowerSystemSecurity(pa.DataFrameModel):

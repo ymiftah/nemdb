@@ -24,6 +24,7 @@ Almost every data sheet shares this preamble structure:
 **Year columns:** Time-series sheets use financial year labels as column headers spanning **2025-26 to 2054-55** (30 years), read as strings like `"2025-26"`.
 
 **Scenarios:** Three modelling scenarios appear throughout:
+
 - `Slower Growth`
 - `Step Change`
 - `Accelerated Transition`
@@ -94,6 +95,7 @@ One row per generator or technology. No year columns. Key identifier column in c
 | Transmission Reliability | 13×4 | ~5 | Flow path | Reliability limits |
 
 #### Existing Gen Data Summary — selected columns
+
 `IASR ID`, `Power Station`, `Technology Type`, `Fuel Type`, `Region`, `Sub-region`, `REZ Location`, `REZ ID`, `Status`, `REZ`, `Max capacity (MW)`, `Seasonal rating summer peak (MW)`, `Heat rate (GJ/MWh)`, `Fuel cost ($/GJ)`, `MLF`, `Auxiliary (%)`, `Fixed OPEX ($/kW/year)`, `Variable OPEX ($/MWh)`, `Emissions intensity (tCO2-e/MWh)`, `Expected retirement year`, `Connection cost ($)`, `SRMC ($/MWh)`
 
 ---
@@ -129,7 +131,8 @@ One row per entity, year columns from 2025-26 to 2054-55. Header row immediately
 The most common pattern for demand-side and DER forecasts. Each sheet has **multiple tables** stacked vertically, one per scenario (and sometimes per metric). The scenario label appears as a row above the header row for each sub-table.
 
 **General layout:**
-```
+
+```text
 row 0:  "Go to Assumptions Summary"
 row 1:  Sheet title
 row 2-N: Notes
@@ -181,6 +184,7 @@ Similar to Pattern F but split by jurisdiction rather than scenario.
 | Carbon Budgets | 31×6 | NEM-wide + state budgets | State |
 
 **Energy Policy Targets structure:**
+
 - Rows 12–112: National (Australia) targets
 - Rows 113–194: NSW
 - Rows 195–202: QLD

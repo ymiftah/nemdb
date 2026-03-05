@@ -23,12 +23,16 @@ def _to_snake_case(name: str) -> str:
     name = re.sub(r"[\s\-/\n]+", "_", name)
     # Remove parentheses, periods, commas
     name = re.sub(r"[().,]", "", name)
+    # Replace $ signs by aud
+    name = re.sub(r"\$", "aud", name)
     # Convert to lowercase
     name = name.lower()
     # Remove leading/trailing underscores
     name = name.strip("_")
     # Replace multiple underscores with single
     name = re.sub(r"_+", "_", name)
+    # Replace multiple underscores with single
+    name = re.sub(r"\%", "pct", name)
     return name
 
 
@@ -137,6 +141,40 @@ def _read_sheet_block(
     return data
 
 
+def _read_multiheader_block(
+    raw: pl.DataFrame, header_rows: list[int], data_start: int
+) -> pl.DataFrame:
+    """Extract a block whose header spans multiple Excel rows.
+
+    Flattens all header rows into a single combined column name per column.
+    The first header row is forward-filled to handle merged cells.
+    Data rows run from `data_start` to the end of the sheet.
+    """
+    n_cols = raw.shape[1]
+    rows = [list(raw.row(r)) for r in header_rows]
+
+    # Forward-fill the first header row for merged cells
+    last_l1 = None
+    for i in range(n_cols):
+        if rows[0][i] is not None:
+            last_l1 = rows[0][i]
+        elif any(rows[j][i] is not None for j in range(1, len(rows))):
+            rows[0][i] = last_l1
+
+    # Combine non-None parts from all levels into one name per column
+    col_names = []
+    for i in range(n_cols):
+        parts = [str(rows[j][i]).strip() for j in range(len(rows)) if rows[j][i] is not None]
+        col_names.append(_to_snake_case(" ".join(parts)) if parts else f"_col{i}")
+
+    data = raw.slice(data_start, raw.shape[0] - data_start)
+    data.columns = col_names
+    keep = [c for c in col_names if not (c.startswith("_col") and data[c].is_null().all())]
+    data = data.select(keep)
+    # Treat empty strings as null (Excel empty cells arrive as "" with header_row=None)
+    return data.with_columns(pl.col(pl.String).replace("", None))
+
+
 def _parse_timeseries_block(
     raw: pl.DataFrame, header_row: int, data_start: int, data_end: int
 ) -> pl.DataFrame:
@@ -166,29 +204,102 @@ def _parse_timeseries_block(
 # ── Generator registry ────────────────────────────────────────────────────────
 
 
-# @check_types
+@check_types
 def existing_generators() -> DataFrame[schemas.ExistingGenerators]:
-    df = read_sheet("Existing Gen Data Summary", 9)
-    # Filter out header explanation rows that appear before actual data
-    return df.filter(pl.col("iasr_id").is_not_null())  # type: ignore
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("Existing Gen Data Summary", header_row=None)
+        .to_polars()
+    )
+    df = _read_multiheader_block(raw, header_rows=[9, 10, 11], data_start=12)
+    df = df.filter(pl.col("iasr_id").is_not_null())
+    _sentinels = ["not found", "-", "Assumed sufficiently high"]
+    return df.with_columns(pl.col(pl.String).replace(_sentinels, None))  # type: ignore
 
 
+@check_types
 def new_entrant_generators() -> DataFrame[schemas.NewEntrantGenerators]:
-    df = read_sheet("New Entrant Data Summary", 8)
-    # Filter out header explanation rows that appear before actual data
-    return df.filter(pl.col("iasr_id").is_not_null())  # type: ignore
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("New Entrant Data Summary", header_row=None)
+        .to_polars()
+    )
+    df = _read_multiheader_block(raw, header_rows=[8, 9, 10], data_start=11)
+    df = df.filter(pl.col("iasr_id").is_not_null())
+    _sentinels = [
+        "not found",
+        "-",
+        "Assumed sufficiently high",
+        "At the end of technical life",
+        "Not Applicable",
+    ]
+    return df.with_columns(pl.col(pl.String).replace(_sentinels, None))  # type: ignore
 
 
+@check_types
 def new_electrolyser_data() -> DataFrame[schemas.NewElectrolyserData]:
-    return read_sheet("New Electrolyser Data Summary", 4)  # type: ignore
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("New Electrolyser Data Summary", header_row=None)
+        .to_polars()
+    )
+    df = _read_sheet_block(raw, 4, 7, 158)
+    df = df.filter(pl.col("iasr_id").is_not_null())
+    _sentinels = [
+        "not found",
+        "-",
+        "Assumed sufficiently high",
+        "At the end of technical life",
+        "Not Applicable",
+    ]
+    return df.with_columns(pl.col(pl.String).replace(_sentinels, None))  # type: ignore
 
 
 # ── Generator technical ───────────────────────────────────────────────────────
 
 
 @check_types
-def storage_properties() -> DataFrame[schemas.StorageProperties]:
-    return read_sheet("Storage properties", 3)  # type: ignore
+def storage_battery_properties() -> DataFrame[schemas.StorageBatteryProperties]:
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("Storage properties", header_row=None)
+        .to_polars()
+    )
+    df = _read_sheet_block(raw, 3, 5, 12)  # battery data rows 5-11; skip units row 4
+    return df.rename(
+        {
+            "maximum_power1": "maximum_power",
+            "energy_capacity2": "energy_capacity",
+            "round_trip_efficiency3": "round_trip_efficiency",
+            "annual_degradation4": "annual_degradation",
+        }
+    )  # type: ignore
+
+
+@check_types
+def storage_hydro_properties() -> DataFrame[schemas.StorageHydroProperties]:
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("Storage properties", header_row=None)
+        .to_polars()
+    )
+    existing = _read_sheet_block(raw.select(raw.columns[:4]), 20, 21, 28).with_columns(
+        pl.lit("existing").alias("type")
+    )
+    new_entrant = (
+        _read_sheet_block(raw.select(raw.columns[5:9]), 20, 21, 25)
+        .rename({"power_station_technology": "power_station"})
+        .with_columns(pl.lit("new_entrant").alias("type"))
+    )
+    return pl.concat([existing, new_entrant], how="diagonal").select(
+        [
+            "type",
+            "power_station",
+            "installed_capacity_mw",
+            "storage_capacity_hours",
+            "pumping_efficiency_pct",
+        ]
+    )  # type: ignore
 
 
 @check_types
@@ -204,7 +315,16 @@ def maximum_capacity() -> DataFrame[schemas.MaximumCapacity]:
         .to_polars()
     )
     df = _read_sheet_block(raw, 8, 9, 652)
-    return df.select(df.columns[:9])  # type: ignore
+    df = df.select(df.columns[:9])
+    return (
+        df.rename({"status5": "status"})
+        .with_columns(pl.col(pl.String).replace([""], None))
+        .with_columns(
+            pl.col("commissioning_date")
+            .str.to_datetime(format="%Y-%m-%d %H:%M:%S", strict=False)
+            .cast(pl.Date)
+        )
+    )  # type: ignore
 
 
 @check_types
@@ -359,7 +479,7 @@ def fixed_opex() -> DataFrame[schemas.FixedOpex]:
     """
     raw = fastexcel.read_excel(_ISP).load_sheet_by_name("Fixed OPEX", header_row=None).to_polars()
     df = _read_sheet_block(raw, 5, 6, 650)
-    return df.select(df.columns[:4])  # type: ignore
+    return df.select(df.columns[:4]).drop_nulls()  # type: ignore
 
 
 @check_types
@@ -384,7 +504,11 @@ def variable_opex() -> DataFrame[schemas.VariableOpex]:
         fastexcel.read_excel(_ISP).load_sheet_by_name("Variable OPEX", header_row=None).to_polars()
     )
     df = _read_sheet_block(raw, 5, 6, 650)
-    return df.select(df.columns[:4])  # type: ignore
+    return (
+        df.select(df.columns[:4])
+        .rename({"variable_opex_aud_mwh_sent_out1": "variable_opex_aud_mwh_sent_out"})
+        .drop_nulls()
+    )  # type: ignore
 
 
 @check_types
@@ -413,12 +537,7 @@ def affine_heat_rates() -> DataFrame[schemas.AffineHeatRates]:
         .to_polars()
     )
     df = _read_sheet_block(raw, 6, 7, 188)
-    return df.select(df.columns[:5]).with_columns(
-        pl.exclude(
-            "iasr_id",
-            "power_stationtechnology_type",
-        ).cast(float, strict=False)
-    )  # type: ignore
+    return df.select(df.columns[:5])  # type: ignore
 
 
 @check_types
@@ -452,7 +571,10 @@ def max_ramp_rates() -> DataFrame[schemas.MaxRampRates]:
         fastexcel.read_excel(_ISP).load_sheet_by_name("Max Ramp Rates", header_row=None).to_polars()
     )
     df = _read_sheet_block(raw, 7, 8, 189)
-    return df.select(df.columns[:5])  # type: ignore
+    return df.select(df.columns[:5]).with_columns(
+        pl.col("max_ramp_up_mw_min").cast(pl.Float64, strict=False),
+        pl.col("max_ramp_down_mw_min").cast(pl.Float64, strict=False),
+    )  # type: ignore
 
 
 @check_types
@@ -544,23 +666,38 @@ def gpg_min_stable_level_by_technology() -> DataFrame[schemas.GpgMinStableLevelB
 
 @check_types
 def capacity_factors() -> DataFrame[schemas.CapacityFactors]:
-    return read_sheet("Capacity Factors ", 6)  # note trailing space in sheet name  # type: ignore
+    return read_timeseries(
+        "Capacity Factors ", 6
+    )  # note trailing space in sheet name  # type: ignore
 
 
 @check_types
 def hydro_scheme_inflows() -> DataFrame[schemas.HydroSchemeInflows]:
     """Hydro scheme monthly inflows by reference year. Trailing blank columns are excluded."""
     df = read_sheet("Hydro Scheme Inflows", 9)
-    return df.select(df.columns[:14])  # type: ignore
+    df = df.select(df.columns[:14])
+    # Keep only actual data rows: those where reference_year_fye starts with a digit (year)
+    return df.filter(pl.col("reference_year_fye").str.contains(r"^\d"))  # type: ignore
 
 
 # ── Costs / finance ───────────────────────────────────────────────────────────
 
 
+@check_types
 def lead_time_project_life() -> DataFrame[schemas.LeadTimeProjectLife]:
-    return read_sheet("Lead time and project life", 5)  # type: ignore
+    df = read_sheet("Lead time and project life", 5)
+    return df.rename(
+        {
+            "lead_time_for_development_years1_2": "lead_time_for_development_years",
+            "lead_time_years3": "lead_time_years",
+            "total_lead_time_years47": "total_lead_time_years",
+            "economic_life_years5": "economic_life_years",
+            "technical_life_years6": "technical_life_years",
+        }
+    )  # type: ignore
 
 
+@check_types
 def financial_parameters() -> DataFrame[schemas.FinancialParameters]:
     """Financial parameters (discount rate and WACC by technology/scenario).
 
@@ -571,12 +708,46 @@ def financial_parameters() -> DataFrame[schemas.FinancialParameters]:
     return df.drop("unnamed_5").rename({"unnamed_0": "parameter"})  # type: ignore
 
 
+@check_types
 def locational_cost_factors() -> DataFrame[schemas.LocationalCostFactors]:
-    """Locational cost factors by cost zone / REZ. Trailing blank and image columns are excluded."""
-    df = read_sheet("Locational Cost Factors", 9)
-    return df.select(df.columns[:7])  # type: ignore
+    """Locational cost factors for non-PHES technologies by cost zone / REZ."""
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("Locational Cost Factors", header_row=None)
+        .to_polars()
+    )
+    df = _read_sheet_block(raw, 9, 10, 74)
+    return df.select(df.columns[:7]).rename({"o&m_costs_3": "om_costs"})  # type: ignore
 
 
+@check_types
+def locational_cost_factors_phes() -> DataFrame[schemas.LocationalCostFactorsPhes]:
+    """Locational cost factors for pumped hydro energy storage (PHES) by subregion and duration."""
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("Locational Cost Factors", header_row=None)
+        .to_polars()
+    )
+    df = _read_sheet_block(raw, 82, 83, 128)
+    return df.rename({"o&m_costs_2": "om_costs"})  # type: ignore
+
+
+@check_types
+def locational_cost_factors_technology_specific() -> DataFrame[
+    schemas.LocationalCostFactorsTechnologySpecific
+]:
+    """Technology-specific locational cost factors by cost zone / REZ and technology."""
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("Locational Cost Factors", header_row=None)
+        .to_polars()
+    )
+    df = _read_sheet_block(raw, 160, 161, 225)
+    _not_applicable = ["Not Applicable", "Not applicable", "N/A"]
+    return df.with_columns(pl.col(pl.String).replace(_not_applicable, None))  # type: ignore
+
+
+@check_types
 def connection_cost() -> DataFrame[schemas.ConnectionCost]:
     """Connection costs ($/kW) for REZ projects by technology and REZ ID.
 
@@ -591,6 +762,7 @@ def connection_cost() -> DataFrame[schemas.ConnectionCost]:
     return _read_sheet_block(raw, 6, 7, 56)  # type: ignore
 
 
+@check_types
 def connection_cost_other_generation() -> DataFrame[schemas.ConnectionCostOtherGeneration]:
     """Connection costs ($/kW) for non-REZ generation by generator type and region.
 
@@ -610,6 +782,7 @@ def connection_cost_other_generation() -> DataFrame[schemas.ConnectionCostOtherG
     )  # type: ignore
 
 
+@check_types
 def gas_system_properties() -> DataFrame[schemas.GasSystemProperties]:
     """Gas system properties by facility. Trailing blank columns are excluded."""
     df = read_sheet("Gas System Properties", 10)
@@ -620,6 +793,9 @@ def gas_system_properties() -> DataFrame[schemas.GasSystemProperties]:
 
 
 # TODO Trailing footnotees to cleanup
+
+
+@check_types
 def renewable_energy_zones() -> DataFrame[schemas.RenewableEnergyZones]:
     """Renewable Energy Zones reference table. Trailing blank columns are excluded."""
     df = read_sheet("Renewable energy zones", 5)
@@ -627,6 +803,9 @@ def renewable_energy_zones() -> DataFrame[schemas.RenewableEnergyZones]:
 
 
 # TODO Adjust the column names
+
+
+@check_types
 def network_capability() -> DataFrame[schemas.NetworkCapability]:
     """Transfer capability (MW) by flow path/season/direction.
 
@@ -677,12 +856,26 @@ def network_capability() -> DataFrame[schemas.NetworkCapability]:
 
     sub_regional = _extract(7, 25, "sub_regional")
     interconnector = _extract(35, 42, "interconnector")
-    return pl.concat([sub_regional, interconnector], how="diagonal_relaxed").pipe(
-        _normalize_columns
+    return (
+        pl.concat([sub_regional, interconnector], how="diagonal_relaxed")
+        .pipe(_normalize_columns)
+        .rename(
+            {
+                "forward_direction_capability_approximation_mw_notes_12&3_peak_demand": "forward_peak_demand_mw",
+                "forward_direction_capability_approximation_mw_notes_12&3_summer_typical": "forward_summer_typical_mw",
+                "forward_direction_capability_approximation_mw_notes_12&3_winter_refernce": "forward_winter_reference_mw",
+                "reverse_direction_capability_approximation_mw_notes_12&3_peak_demand": "reverse_peak_demand_mw",
+                "reverse_direction_capability_approximation_mw_notes_12&3_summer_typical": "reverse_summer_typical_mw",
+                "reverse_direction_capability_approximation_mw_notes_12&3_winter_refernce": "reverse_winter_reference_mw",
+                "dominant_constraints_forward_direction": "dominant_constraints_forward",
+                "dominant_constraints_reverse_direction": "dominant_constraints_reverse",
+            }
+        )
     )  # type: ignore
 
 
 # TODO all wrong
+@check_types
 def network_losses() -> DataFrame[schemas.NetworkLosses]:
     """Loss factors by flow path/direction.
 
@@ -706,10 +899,12 @@ def network_losses() -> DataFrame[schemas.NetworkLosses]:
     return pl.concat([existing, committed, development], how="diagonal_relaxed")  # type: ignore
 
 
+@check_types
 def transmission_reliability() -> DataFrame[schemas.TransmissionReliability]:
     return read_sheet("Transmission Reliability", 6)  # type: ignore
 
 
+@check_types
 def flow_path_augmentation() -> DataFrame[schemas.FlowPathAugmentation]:
     """Flow path augmentation options with transfer level increase (MW) by direction.
 
@@ -746,20 +941,41 @@ def flow_path_augmentation() -> DataFrame[schemas.FlowPathAugmentation]:
     data = data.pipe(_normalize_columns)
     # Filter: keep only rows with a real Development path value (drops sub-headers,
     # repeated header rows, section-label rows, and all-null separators)
-    return data.filter(
+    data = data.filter(
         pl.col("development_path").is_not_null()
         & (pl.col("development_path") != "development_path")
+    )
+    # Rename long compound column names to short schema-friendly names
+    _fwd_long = next(
+        c
+        for c in data.columns
+        if c.startswith("notional_transfer") and c.endswith("forward_direction")
+    )
+    _rev_long = next(
+        c
+        for c in data.columns
+        if c.startswith("notional_transfer") and c.endswith("reverse_direction")
+    )
+    return data.rename(
+        {
+            _fwd_long: "notional_transfer_level_increase_forward_mw",
+            _rev_long: "notional_transfer_level_increase_reverse_mw",
+            "indicative_cost_estimate_aud2025_aud_million": "indicative_cost_estimate_2025_million",
+        }
     )  # type: ignore
 
 
+@check_types
 def rez_augmentations() -> DataFrame[schemas.RezAugmentations]:
     return read_sheet("REZ augmentations options", 10)  # type: ignore
 
 
+@check_types
 def build_limits_rez() -> DataFrame[schemas.BuildLimitsRez]:
     return read_sheet("Build limits - REZs", 5)  # type: ignore
 
 
+@check_types
 def build_limits_phes() -> DataFrame[schemas.BuildLimitsPhes]:
     """Pumped hydro build limits by site. Trailing blank columns are excluded."""
     df = read_sheet("Build limits - PHES", 7)
@@ -769,6 +985,7 @@ def build_limits_phes() -> DataFrame[schemas.BuildLimitsPhes]:
 # ── Retirement — main table (cols 0-5) + side table (cols 7-8) ───────────────
 
 
+@check_types
 def retirement() -> DataFrame[schemas.Retirement]:
     raw = fastexcel.read_excel(_ISP).load_sheet_by_name("Retirement", header_row=None).to_polars()
     header_row = 12
@@ -779,6 +996,7 @@ def retirement() -> DataFrame[schemas.Retirement]:
     return data.filter(pl.col(data.columns[0]).is_not_null())  # type: ignore
 
 
+@check_types
 def retirement_costs() -> DataFrame[schemas.RetirementCosts]:
     """Technology-level retirement cost lookup ($/MW). Side table on 'Retirement' sheet."""
     raw = fastexcel.read_excel(_ISP).load_sheet_by_name("Retirement", header_row=None).to_polars()
@@ -794,7 +1012,7 @@ def retirement_costs() -> DataFrame[schemas.RetirementCosts]:
 # ── Marginal Loss Factors — existing (cols 0-11) + new entrant (cols 12-17) ──
 
 
-# TODO REVIEW
+@check_types
 def marginal_loss_factors() -> DataFrame[schemas.MarginalLossFactors]:
     """MLFs for existing, new entrant, and new entrant electrolyser generators.
 
@@ -823,19 +1041,29 @@ def marginal_loss_factors() -> DataFrame[schemas.MarginalLossFactors]:
     existing = _group(0, 6, "Existing")
     new_entrant = _group(7, 12, "New Entrant")
     electrolysers = _group(13, 18, "New Entrant Electrolysers")
-    return pl.concat([existing, new_entrant, electrolysers], how="diagonal_relaxed").pipe(
-        _normalize_columns
+    return (
+        pl.concat([existing, new_entrant, electrolysers], how="diagonal_relaxed")
+        .pipe(_normalize_columns)
+        .with_columns(pl.col("mlf").cast(pl.Float64, strict=False))
     )  # type: ignore
 
 
 # ── Build / capital costs ─────────────────────────────────────────────────────
 
 
+@check_types
 def build_costs() -> DataFrame[schemas.BuildCosts]:
-    return read_timeseries("Build costs", 9)  # type: ignore
+    return (
+        read_timeseries("Build costs", 9)
+        .drop_nulls("gencost_scenario")
+        .rename({"technology1": "technology"})
+    )  # type: ignore
 
 
-def connection_cost_forecasts() -> DataFrame[schemas.ConnectionCostForecasts]:
+@check_types
+def connection_cost_forecasts_wind_and_solar() -> DataFrame[
+    schemas.ConnectionCostForecastsWindSolar
+]:
     """Connection cost forecasts (real 2025 $) by technology/scenario/year.
 
     The sheet holds two stacked tables with different key columns:
@@ -856,26 +1084,50 @@ def connection_cost_forecasts() -> DataFrame[schemas.ConnectionCostForecasts]:
         .drop("notes")
         .with_columns(pl.lit("wind_solar").alias("cost_type"))
     )
+    return rez
+
+
+@check_types
+def connection_cost_forecasts_other() -> DataFrame[schemas.ConnectionCostForecastsOther]:
+    """Connection cost forecasts (real 2025 $) by technology/scenario/year.
+
+    The sheet holds two stacked tables with different key columns:
+    - 'wind_solar': keyed by REZ ID and REZ names
+    - 'other_generation': keyed by Generator Type and Region
+
+    A 'cost_type' column distinguishes them. The Notes column (all null for
+    data rows) is dropped. Rows with null first key column (blank region
+    separators) are filtered out by _parse_timeseries_block.
+    """
+    raw = (
+        fastexcel.read_excel(_ISP)
+        .load_sheet_by_name("Connection cost forecasts", header_row=None)
+        .to_polars()
+    )
     other = (
         _parse_timeseries_block(raw, 144, 145, 385)
         .drop("notes")
         .with_columns(pl.lit("other_generation").alias("cost_type"))
     )
-    return pl.concat([rez, other], how="diagonal_relaxed")  # type: ignore
+    return other
 
 
+@check_types
 def flow_path_cost_forecasts() -> DataFrame[schemas.FlowPathCostForecasts]:
     return read_timeseries("Flow path cost forecasts", 11)  # type: ignore
 
 
+@check_types
 def rez_cost_forecasts() -> DataFrame[schemas.RezCostForecasts]:
     return read_timeseries("REZ cost forecasts", 12)  # type: ignore
 
 
+@check_types
 def distribution_cost_forecasts() -> DataFrame[schemas.DistributionCostForecasts]:
     return read_timeseries("Distribution cost forecasts", 5)  # type: ignore
 
 
+@check_types
 def build_cost_hydrogen_pipeline() -> DataFrame[schemas.BuildCostHydrogenPipeline]:
     return read_timeseries("Build Cost - Hydrogen pipeline", 5)  # type: ignore
 
@@ -909,6 +1161,7 @@ def coal_biomass_price() -> DataFrame[schemas.CoalBiomassPrice]:
 
 
 # TODO REVIEW
+@check_types
 def gas_liquid_h2_price() -> DataFrame[schemas.GasLiquidH2Price]:
     """Gas, liquid fuel, and H2/biomethane prices ($/GJ) by entity/scenario/year.
 
@@ -951,6 +1204,7 @@ def gas_liquid_h2_price() -> DataFrame[schemas.GasLiquidH2Price]:
     return pl.concat(parts, how="diagonal_relaxed")  # type: ignore
 
 
+@check_types
 def gpg_emissions_reduction() -> DataFrame[schemas.GpgEmissionsReduction]:
     """GPG emissions reduction factor (fraction) by scenario/year due to biomethane blending.
 
@@ -1140,10 +1394,12 @@ def elec_retail_price_indices() -> DataFrame[schemas.ElecRetailPriceIndices]:
     return _parse_timeseries_block(raw, 8, 9, 12).rename({"col0": "scenario"})  # type: ignore
 
 
+@check_types
 def hydrogen_demand_domestic() -> DataFrame[schemas.HydrogenDemandDomestic]:
     return read_timeseries("Hydrogen demand - Domestic", 7)  # type: ignore
 
 
+@check_types
 def hydrogen_demand_export() -> DataFrame[schemas.HydrogenDemandExport]:
     return read_timeseries("Hydrogen demand-Export&Commod", 6)  # type: ignore
 
@@ -1201,6 +1457,7 @@ def electrification() -> DataFrame[schemas.Electrification]:
     )  # type: ignore
 
 
+@check_types
 def appliance_uptake() -> DataFrame[schemas.ApplianceUptake]:
     """Residential appliance uptake by scenario/state/year (TWh)."""
     return _stacked_blocks(
@@ -1213,6 +1470,7 @@ def appliance_uptake() -> DataFrame[schemas.ApplianceUptake]:
     )  # type: ignore
 
 
+@check_types
 def connections_forecasts() -> DataFrame[schemas.ConnectionsForecasts]:
     """Residential connections by scenario/state/year."""
     return _stacked_blocks(
@@ -1225,6 +1483,7 @@ def connections_forecasts() -> DataFrame[schemas.ConnectionsForecasts]:
     )  # type: ignore
 
 
+@check_types
 def end_use_fuel_consumption() -> DataFrame[schemas.EndUseFuelConsumption]:
     """End-use fuel consumption by scenario/fuel sector/year (PJ).
 
@@ -1302,18 +1561,22 @@ def energy_efficiency() -> DataFrame[schemas.EnergyEfficiency]:
     return pl.DataFrame(parts).pipe(_parse_year_columns).pipe(_normalize_columns)  # type: ignore
 
 
+@check_types
 def hydrogen_monthly_profiles() -> DataFrame[schemas.HydrogenMonthlyProfiles]:
     return read_timeseries("Hydrogen monthly profiles", 7)  # type: ignore
 
 
+@check_types
 def water_for_hydrogen() -> DataFrame[schemas.WaterForHydrogen]:
     return read_timeseries("Water for Hydrogen", 6)  # type: ignore
 
 
+@check_types
 def desalination_demand_h2() -> DataFrame[schemas.DesalinationDemandH2]:
     return read_timeseries("Desalination demand for H2", 6)  # type: ignore
 
 
+@check_types
 def h2_gpg_limit() -> DataFrame[schemas.H2GpgLimit]:
     return read_timeseries("H2 as fuel for GPG Limit", 5)  # type: ignore
 
@@ -1585,6 +1848,17 @@ class ISP2025:
     @property
     def locational_cost_factors(self):
         return self._get("locational_cost_factors", locational_cost_factors)
+
+    @property
+    def locational_cost_factors_phes(self):
+        return self._get("locational_cost_factors_phes", locational_cost_factors_phes)
+
+    @property
+    def locational_cost_factors_technology_specific(self):
+        return self._get(
+            "locational_cost_factors_technology_specific",
+            locational_cost_factors_technology_specific,
+        )
 
     @property
     def financial_parameters(self):
