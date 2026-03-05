@@ -89,6 +89,7 @@ from nemdb.isp.isp2025 import (
 # ── Core helpers ──────────────────────────────────────────────────────────────
 
 
+@pytest.mark.slow
 def test_read_sheet_returns_dataframe():
     df = read_sheet("Heat rates", header_row=7)
     assert isinstance(df, pl.DataFrame)
@@ -96,6 +97,7 @@ def test_read_sheet_returns_dataframe():
     assert "iasr_id" in df.columns
 
 
+@pytest.mark.slow
 def test_read_timeseries_unpivots_years():
     df = read_timeseries("Build costs", header_row=9)
     assert "year" in df.columns
@@ -108,6 +110,7 @@ def test_read_timeseries_unpivots_years():
 # ── Static sheets ─────────────────────────────────────────────────────────────
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "fn, min_rows, required_col",
     [
@@ -166,6 +169,7 @@ def test_static_sheet(fn, min_rows, required_col):
 # ── Time-series sheets ────────────────────────────────────────────────────────
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "fn, min_rows, scenario_col",
     [
@@ -215,6 +219,7 @@ def test_timeseries_sheet(fn, min_rows, scenario_col):
 # ── Bespoke sheets ────────────────────────────────────────────────────────────
 
 
+@pytest.mark.slow
 def test_fuel_price_summary():
     df = fuel_price_summary()
     assert "generator_status" in df.columns
@@ -223,6 +228,7 @@ def test_fuel_price_summary():
     assert df.shape[0] > 30_000
 
 
+@pytest.mark.slow
 def test_economic_growth_forecasts():
     df = economic_growth_forecasts()
     assert set(df["scenario"].unique().to_list()) == {
@@ -234,6 +240,7 @@ def test_economic_growth_forecasts():
     assert "NSW" in df["state"].unique().to_list()
 
 
+@pytest.mark.slow
 def test_power_system_security():
     df = power_system_security()
     assert df.shape[0] > 0
