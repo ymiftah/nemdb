@@ -17,7 +17,7 @@ CLI flags:
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--location` | `~/.nemweb_cache` | Directory to store Parquet files |
+| `--location` | `~/.nemdb_cache` | Directory to store Parquet files |
 | `--filesystem` | `file` | Storage backend (`file`, `gcs`, etc.) |
 | `--date_range` | *(required)* | Date range as `YYYY-MM-DD->YYYY-MM-DD` |
 | `--table` | `all` | Table name or `all` |

@@ -12,7 +12,7 @@ from nemdb.nemweb import NEMWEBManager
     "--location",
     prompt="location",
     help="Where to write the data.",
-    default=Path.home() / ".nemweb_cache",
+    default=Path.home() / ".nemdb_cache",
 )
 @click.option("--filesystem", default="file", help="filesystem to use")
 @click.option(

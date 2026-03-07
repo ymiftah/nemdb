@@ -9,11 +9,13 @@ import pooch
 from pandera import check_types
 from pandera.typing.polars import DataFrame
 
+from nemdb.config import Config
+
 from . import schemas
 
 _ISP_SHA256 = "b1cbb764b7d9cfb0189f589da7998f65ff26516343bc1ee3b86c144a6f6c2d1b"
 _ISP_FETCHER = pooch.create(
-    path=pooch.os_cache("nemdb"),
+    path=Config.CACHE_DIR,
     base_url="https://github.com/ymiftah/nemdb/releases/download/data-v1/",
     registry={"ISP_2025.zip": f"sha256:{_ISP_SHA256}"},
 )

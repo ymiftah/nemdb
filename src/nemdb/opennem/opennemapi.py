@@ -1,6 +1,8 @@
 import datetime
+import os
 
 import polars as pl
+import pooch
 from joblib import Memory
 from openelectricity import AsyncOEClient, UnitFueltechType, UnitStatusType
 from openelectricity.types import (
@@ -14,6 +16,36 @@ from openelectricity.types import (
 from nemdb.config import Config
 
 memory = Memory(location=Config.TEMP_DIR, verbose=1)
+
+_FACILITIES_SHA256 = "826c88b656d7d6f9e82e74faa46951fe61f67cd2f1d096112c1143b4f3488b6e"
+
+_FACILITIES_FETCHER = pooch.create(
+    path=Config.CACHE_DIR,
+    base_url="https://github.com/ymiftah/nemdb/releases/download/data-v2/",
+    registry={"facilities_nem.parquet": f"sha256:{_FACILITIES_SHA256}"},
+)
+
+
+def read_facilities_cached() -> pl.DataFrame:
+    """Return the pre-built NEM facilities table fetched via pooch.
+
+    The parquet file is hosted as a GitHub release asset (``data-v2``) and
+    cached locally under ``NEMDB_CACHE_DIR`` (default ``~/.nemdb_cache``).
+    No OpenElectricity account is required.
+
+    To use a local file instead, set the ``NEMDB_FACILITIES`` environment
+    variable to an absolute path to a parquet file.
+
+    Returns:
+        Polars DataFrame with one row per facility unit, matching the schema
+        produced by :func:`read_facilities`.
+    """
+
+    local = os.environ.get("NEMDB_FACILITIES")
+    if local:
+        return pl.read_parquet(local)
+    path = _FACILITIES_FETCHER.fetch("facilities_nem.parquet")
+    return pl.read_parquet(path)
 
 
 @memory.cache

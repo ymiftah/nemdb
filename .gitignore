@@ -54,3 +54,4 @@ docs/plans/
 src/nemdb/artefacts/*.zip
 src/nemdb/artefacts/*.xlsx
 src/nemdb/artefacts/.~lock.*
+*.code-workspace
