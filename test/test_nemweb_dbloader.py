@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-import pandera as pa
+import pandera.polars as pa
 import polars as pl
 import pytest
 
@@ -219,8 +219,8 @@ def test_data_source_populate(mocker, mock_config):
     """Test DataSource populate method."""
 
     class SimpleSchema(pa.DataFrameModel):
-        a: pl.Int64
-        b: pl.Int64
+        a: pl.Int64 = pa.Field()
+        b: pl.Int64 = pa.Field()
 
     mock_add_data = mocker.patch("nemdb.nemweb.dbloader.DataSource.add_data")
     ds = DataSource(mock_config, "TABLE", schema_class=SimpleSchema, table_primary_keys=["a"])
@@ -232,8 +232,8 @@ def test_by_settlement_date(mocker, mock_config):
     """Test BySettlementDate get_data method."""
 
     class SimpleSettlementSchema(pa.DataFrameModel):
-        SETTLEMENTDATE: pl.Datetime
-        a: pl.Int64
+        SETTLEMENTDATE: pl.Datetime = pa.Field()
+        a: pl.Int64 = pa.Field()
 
     ds = BySettlementDate(
         mock_config, "TABLE", schema_class=SimpleSettlementSchema, table_primary_keys=["a"]
@@ -250,8 +250,8 @@ def test_by_interval_date(mocker, mock_config):
     """Test ByIntervalDate get_data method."""
 
     class SimpleIntervalSchema(pa.DataFrameModel):
-        INTERVAL_DATETIME: pl.Datetime
-        a: pl.Int64
+        INTERVAL_DATETIME: pl.Datetime = pa.Field()
+        a: pl.Int64 = pa.Field()
 
     ds = ByIntervalDate(
         mock_config, "TABLE", schema_class=SimpleIntervalSchema, table_primary_keys=["a"]
@@ -268,8 +268,8 @@ def test_by_settlement_day(mocker, mock_config):
     """Test BySettlementDay get_data method."""
 
     class SimpleSettlementDaySchema(pa.DataFrameModel):
-        SETTLEMENTDATE: pl.Date
-        a: pl.Int64
+        SETTLEMENTDATE: pl.Date = pa.Field()
+        a: pl.Int64 = pa.Field()
 
     ds = BySettlementDay(
         mock_config, "TABLE", schema_class=SimpleSettlementDaySchema, table_primary_keys=["a"]
@@ -286,9 +286,9 @@ def test_by_start_end(mocker, mock_config):
     """Test ByStartEnd get_data method."""
 
     class SimpleStartEndSchema(pa.DataFrameModel):
-        START_DATE: pl.Date
-        END_DATE: pl.Date
-        a: pl.Int64
+        START_DATE: pl.Date = pa.Field()
+        END_DATE: pl.Date = pa.Field()
+        a: pl.Int64 = pa.Field()
 
     ds = ByStartEnd(
         mock_config, "TABLE", schema_class=SimpleStartEndSchema, table_primary_keys=["a"]
@@ -309,9 +309,9 @@ def test_by_effective_date_version_no(mocker, mock_config):
     """Test ByEffectiveDateVersionNo get_data method."""
 
     class SimpleEffectiveDateSchema(pa.DataFrameModel):
-        EFFECTIVEDATE: pl.Date
-        VERSIONNO: pl.Int64
-        a: pl.Int64
+        EFFECTIVEDATE: pl.Date = pa.Field()
+        VERSIONNO: pl.Int64 = pa.Field()
+        a: pl.Int64 = pa.Field()
 
     ds = ByEffectiveDateVersionNo(
         mock_config, "TABLE", schema_class=SimpleEffectiveDateSchema, table_primary_keys=["a"]

@@ -5,6 +5,16 @@ import networkx as nx
 import pandapower as pp
 import pandas as pd
 import shapely as shp
+from pandapower.diagnostic.diagnostic_functions import (
+    DeviationFromStdType,
+    DisconnectedElements,
+    ImplausibleImpedanceValues,
+    InvalidValues,
+    MissingBusIndices,
+    MultipleVoltageControllingElementsPerBus,
+    NoExtGrid,
+    NominalVoltagesMismatch,
+)
 from sklearn.cluster import DBSCAN
 
 from nemdb.geodata.geodata import (
@@ -1237,17 +1247,16 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
 
     # Checks that don't require parameters
     simple_checks = {
-        "different_voltage_levels_connected": pp.different_voltage_levels_connected,
-        "invalid_values": pp.invalid_values,
-        "missing_bus_indices": pp.missing_bus_indices,
-        "multiple_voltage_controlling_elements_per_bus": pp.multiple_voltage_controlling_elements_per_bus,
-        "no_ext_grid": pp.no_ext_grid,
-        "deviation_from_std_type": pp.deviation_from_std_type,
+        "invalid_values": InvalidValues(),
+        "missing_bus_indices": MissingBusIndices(),
+        "multiple_voltage_controlling_elements_per_bus": MultipleVoltageControllingElementsPerBus(),
+        "no_ext_grid": NoExtGrid(),
+        "deviation_from_std_type": DeviationFromStdType(),
     }
 
-    for name, check_func in simple_checks.items():
+    for name, checker in simple_checks.items():
         try:
-            errors = check_func(net)
+            errors = checker.diagnostic(net)
             results[name] = errors
             _log_check_result(name, errors, issues_found)
         except Exception as e:
@@ -1259,7 +1268,7 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
     # Spatial fragments are now filtered during bus/line extraction (_cleanup_disconnected_fragments).
     # Any remaining disconnections indicate voltage-level isolation after transformer assignment.
     try:
-        disconnected = pp.disconnected_elements(net) or []
+        disconnected = DisconnectedElements().diagnostic(net) or []
         results["disconnected_elements"] = disconnected
         if isinstance(disconnected, dict) and len(disconnected) > 0:
             issues_found[0] = True
@@ -1281,8 +1290,7 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
 
     # Checks that require parameters - use sensible defaults
     try:
-        # Implausible impedance values with typical ranges
-        errors = pp.implausible_impedance_values(
+        errors = ImplausibleImpedanceValues().diagnostic(
             net, min_r_ohm=0.0, min_x_ohm=0.0, max_r_ohm=100.0, max_x_ohm=100.0
         )
         results["implausible_impedance_values"] = errors
@@ -1293,8 +1301,7 @@ def sanity_checks(net: pp.auxiliary.pandapowerNet) -> dict:
         _log_check_result("implausible_impedance_values", error_msg, issues_found)
 
     try:
-        # Nominal voltages mismatch with 5% tolerance
-        errors = pp.nominal_voltages_dont_match(net, nom_voltage_tolerance=0.05)
+        errors = NominalVoltagesMismatch().diagnostic(net, nom_voltage_tolerance=0.05)
         results["nominal_voltages_mismatch"] = errors
         _log_check_result("nominal_voltages_mismatch", errors, issues_found)
     except Exception as e:

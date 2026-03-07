@@ -40,279 +40,287 @@ from typing import Optional  # noqa: F401
 
 import pandera.polars as pa
 import polars as pl
+from pandera import Field
+
 
 # Dispatch Tables
 # ===============
+class BasePartitionedSchema(pa.DataFrameModel):
+    """Base schema for partitioned tables with common columns."""
+
+    archive_month: pl.Date = Field(nullable=False)
 
 
-class DispatchRegionSumSchema(pa.DataFrameModel):
+class DispatchRegionSumSchema(BasePartitionedSchema):
     """Daily region dispatch summary with demand and supply data."""
 
-    SETTLEMENTDATE: pl.Datetime
-    REGIONID: pl.Categorical
-    TOTALDEMAND: pl.Float32 | None
-    DEMANDFORECAST: pl.Float32 | None
-    DISPATCHABLELOAD: pl.Float32 | None
-    INITIALSUPPLY: pl.Float32 | None
-    SS_SOLAR_AVAILABILITY: pl.Float32 | None
-    SS_WIND_AVAILABILITY: pl.Float32 | None
-    AVAILABLEGENERATION: pl.Float32 | None
-    AVAILABLELOAD: pl.Float32 | None
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    REGIONID: pl.Categorical = Field(nullable=False)
+    TOTALDEMAND: pl.Float32 | None = Field(nullable=True)
+    DEMANDFORECAST: pl.Float32 | None = Field(nullable=True)
+    DISPATCHABLELOAD: pl.Float32 | None = Field(nullable=True)
+    INITIALSUPPLY: pl.Float32 | None = Field(nullable=True)
+    SS_SOLAR_AVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    SS_WIND_AVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    AVAILABLEGENERATION: pl.Float32 | None = Field(nullable=True)
+    AVAILABLELOAD: pl.Float32 | None = Field(nullable=True)
 
 
-class DispatchLoadSchema(pa.DataFrameModel):
+class DispatchLoadSchema(BasePartitionedSchema):
     """Dispatch load and availability data for generators."""
 
-    SETTLEMENTDATE: pl.Datetime
-    DUID: pl.Categorical
-    DISPATCHMODE: pl.Int8 | None
-    AGCSTATUS: pl.Int8 | None
-    INITIALMW: pl.Float32 | None
-    TOTALCLEARED: pl.Float32 | None
-    RAMPDOWNRATE: pl.Float32 | None
-    RAMPUPRATE: pl.Float32 | None
-    AVAILABILITY: pl.Float32 | None
-    RAISEREGENABLEMENTMAX: pl.Float32 | None
-    RAISEREGENABLEMENTMIN: pl.Float32 | None
-    LOWERREGENABLEMENTMAX: pl.Float32 | None
-    LOWERREGENABLEMENTMIN: pl.Float32 | None
-    SEMIDISPATCHCAP: pl.Float32 | None
-    LOWER5MIN: pl.Float32 | None
-    LOWER60SEC: pl.Float32 | None
-    LOWER6SEC: pl.Float32 | None
-    LOWER1SEC: pl.Float32 | None
-    RAISE5MIN: pl.Float32 | None
-    RAISE60SEC: pl.Float32 | None
-    RAISE6SEC: pl.Float32 | None
-    RAISE1SEC: pl.Float32 | None
-    LOWERREG: pl.Float32 | None
-    RAISEREG: pl.Float32 | None
-    RAISEREGAVAILABILITY: pl.Float32 | None
-    RAISE6SECACTUALAVAILABILITY: pl.Float32 | None
-    RAISE1SECACTUALAVAILABILITY: pl.Float32 | None
-    RAISE60SECACTUALAVAILABILITY: pl.Float32 | None
-    RAISE5MINACTUALAVAILABILITY: pl.Float32 | None
-    RAISEREGACTUALAVAILABILITY: pl.Float32 | None
-    LOWER6SECACTUALAVAILABILITY: pl.Float32 | None
-    LOWER1SECACTUALAVAILABILITY: pl.Float32 | None
-    UIGF: pl.Float32 | None
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    DUID: pl.Categorical = Field(nullable=False)
+    DISPATCHMODE: pl.Int8 | None = Field(nullable=True)
+    AGCSTATUS: pl.Int8 | None = Field(nullable=True)
+    INITIALMW: pl.Float32 | None = Field(nullable=True)
+    TOTALCLEARED: pl.Float32 | None = Field(nullable=True)
+    RAMPDOWNRATE: pl.Float32 | None = Field(nullable=True)
+    RAMPUPRATE: pl.Float32 | None = Field(nullable=True)
+    AVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    RAISEREGENABLEMENTMAX: pl.Float32 | None = Field(nullable=True)
+    RAISEREGENABLEMENTMIN: pl.Float32 | None = Field(nullable=True)
+    LOWERREGENABLEMENTMAX: pl.Float32 | None = Field(nullable=True)
+    LOWERREGENABLEMENTMIN: pl.Float32 | None = Field(nullable=True)
+    SEMIDISPATCHCAP: pl.Float32 | None = Field(nullable=True)
+    LOWER5MIN: pl.Float32 | None = Field(nullable=True)
+    LOWER60SEC: pl.Float32 | None = Field(nullable=True)
+    LOWER6SEC: pl.Float32 | None = Field(nullable=True)
+    LOWER1SEC: pl.Float32 | None = Field(nullable=True)
+    RAISE5MIN: pl.Float32 | None = Field(nullable=True)
+    RAISE60SEC: pl.Float32 | None = Field(nullable=True)
+    RAISE6SEC: pl.Float32 | None = Field(nullable=True)
+    RAISE1SEC: pl.Float32 | None = Field(nullable=True)
+    LOWERREG: pl.Float32 | None = Field(nullable=True)
+    RAISEREG: pl.Float32 | None = Field(nullable=True)
+    RAISEREGAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    RAISE6SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    RAISE1SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    RAISE60SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    RAISE5MINACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    RAISEREGACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    LOWER6SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    LOWER1SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    UIGF: pl.Float32 | None = Field(nullable=True)
 
 
-class DispatchPriceSchema(pa.DataFrameModel):
+class DispatchPriceSchema(BasePartitionedSchema):
     """Regional dispatch pricing for energy and reserve products."""
 
-    SETTLEMENTDATE: pl.Datetime
-    REGIONID: pl.Categorical
-    RRP: pl.Float32 | None
-    ROP: pl.Float32 | None
-    RAISE6SECROP: pl.Float32 | None
-    RAISE1SECROP: pl.Float32 | None
-    RAISE60SECROP: pl.Float32 | None
-    RAISE5MINROP: pl.Float32 | None
-    RAISEREGROP: pl.Float32 | None
-    LOWER6SECROP: pl.Float32 | None
-    LOWER1SECROP: pl.Float32 | None
-    LOWER60SECROP: pl.Float32 | None
-    LOWER5MINROP: pl.Float32 | None
-    LOWERREGROP: pl.Float32 | None
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    REGIONID: pl.Categorical = Field(nullable=False)
+    RRP: pl.Float32 | None = Field(nullable=True)
+    ROP: pl.Float32 | None = Field(nullable=True)
+    RAISE6SECROP: pl.Float32 | None = Field(nullable=True)
+    RAISE1SECROP: pl.Float32 | None = Field(nullable=True)
+    RAISE60SECROP: pl.Float32 | None = Field(nullable=True)
+    RAISE5MINROP: pl.Float32 | None = Field(nullable=True)
+    RAISEREGROP: pl.Float32 | None = Field(nullable=True)
+    LOWER6SECROP: pl.Float32 | None = Field(nullable=True)
+    LOWER1SECROP: pl.Float32 | None = Field(nullable=True)
+    LOWER60SECROP: pl.Float32 | None = Field(nullable=True)
+    LOWER5MINROP: pl.Float32 | None = Field(nullable=True)
+    LOWERREGROP: pl.Float32 | None = Field(nullable=True)
 
 
-class DispatchConstraintSchema(pa.DataFrameModel):
+class DispatchConstraintSchema(BasePartitionedSchema):
     """Dispatch constraint violations and marginal values."""
 
-    SETTLEMENTDATE: pl.Datetime
-    CONSTRAINTID: pl.Categorical
-    DUID: pl.Categorical | None
-    RHS: pl.Float32 | None
-    GENCONID_EFFECTIVEDATE: pl.Date | None
-    GENCONID_VERSIONNO: pl.Int32 | None
-    LHS: pl.Float32 | None
-    VIOLATIONDEGREE: pl.Float32 | None
-    MARGINALVALUE: pl.Float32 | None
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    CONSTRAINTID: pl.Categorical = Field(nullable=False)
+    DUID: pl.Categorical | None = Field(nullable=True)
+    RHS: pl.Float32 | None = Field(nullable=True)
+    GENCONID_EFFECTIVEDATE: pl.Date | None = Field(nullable=True)
+    GENCONID_VERSIONNO: pl.Int32 | None = Field(nullable=True)
+    LHS: pl.Float32 | None = Field(nullable=True)
+    VIOLATIONDEGREE: pl.Float32 | None = Field(nullable=True)
+    MARGINALVALUE: pl.Float32 | None = Field(nullable=True)
 
 
-class DispatchInterconnectorResSchema(pa.DataFrameModel):
+class DispatchInterconnectorResSchema(BasePartitionedSchema):
     """Interconnector flow and losses during dispatch."""
 
-    INTERCONNECTORID: pl.Categorical
-    SETTLEMENTDATE: pl.Datetime
-    MWFLOW: pl.Float32 | None
-    MWLOSSES: pl.Float32 | None
+    INTERCONNECTORID: pl.Categorical = Field(nullable=False)
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    MWFLOW: pl.Float32 | None = Field(nullable=True)
+    MWLOSSES: pl.Float32 | None = Field(nullable=True)
+    EXPORTLIMIT: pl.Float32 | None = Field(nullable=True)
+    IMPORTLIMIT: pl.Float32 | None = Field(nullable=True)
 
 
 # Bid Tables
 # ==========
 
 
-class BidDayOfferDSchema(pa.DataFrameModel):
+class BidDayOfferDSchema(BasePartitionedSchema):
     """Daily energy bid offers by generators."""
 
-    DUID: pl.Categorical
-    SETTLEMENTDATE: pl.Datetime
-    BIDTYPE: pl.Categorical
-    DIRECTION: pl.Categorical
-    VERSIONNO: pl.Int32 | None
-    PARTICIPANTID: pl.Categorical | None
-    DAILYENERGYCONSTRAINT: pl.Float32 | None
-    PRICEBAND1: pl.Float32 | None
-    PRICEBAND2: pl.Float32 | None
-    PRICEBAND3: pl.Float32 | None
-    PRICEBAND4: pl.Float32 | None
-    PRICEBAND5: pl.Float32 | None
-    PRICEBAND6: pl.Float32 | None
-    PRICEBAND7: pl.Float32 | None
-    PRICEBAND8: pl.Float32 | None
-    PRICEBAND9: pl.Float32 | None
-    PRICEBAND10: pl.Float32 | None
-    MINIMUMLOAD: pl.Float32 | None
-    T1: pl.Float32 | None
-    T2: pl.Float32 | None
-    T3: pl.Float32 | None
-    T4: pl.Float32 | None
-    NORMALSTATUS: pl.String | None
-    ENTRYTYPE: pl.Categorical | None
+    DUID: pl.Categorical = Field(nullable=False)
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    BIDTYPE: pl.Categorical = Field(nullable=False)
+    DIRECTION: pl.Categorical = Field(nullable=False)
+    VERSIONNO: pl.Int32 | None = Field(nullable=True)
+    PARTICIPANTID: pl.Categorical | None = Field(nullable=True)
+    DAILYENERGYCONSTRAINT: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND1: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND2: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND3: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND4: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND5: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND6: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND7: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND8: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND9: pl.Float32 | None = Field(nullable=True)
+    PRICEBAND10: pl.Float32 | None = Field(nullable=True)
+    MINIMUMLOAD: pl.Float32 | None = Field(nullable=True)
+    T1: pl.Float32 | None = Field(nullable=True)
+    T2: pl.Float32 | None = Field(nullable=True)
+    T3: pl.Float32 | None = Field(nullable=True)
+    T4: pl.Float32 | None = Field(nullable=True)
+    NORMALSTATUS: pl.String | None = Field(nullable=True)
+    ENTRYTYPE: pl.Categorical | None = Field(nullable=True)
 
 
-class BidPerOfferDSchema(pa.DataFrameModel):
+class BidPerOfferDSchema(BasePartitionedSchema):
     """Interval-level bid offers with availability and constraints."""
 
-    DUID: pl.Categorical
-    SETTLEMENTDATE: pl.Datetime
-    BIDTYPE: pl.Categorical
-    DIRECTION: pl.Categorical
-    VERSIONNO: pl.Int32 | None
-    INTERVAL_DATETIME: pl.Datetime
-    MAXAVAIL: pl.Float32 | None
-    FIXEDLOAD: pl.Float32 | None
-    ROCUP: pl.Float32 | None
-    ROCDOWN: pl.Float32 | None
-    ENABLEMENTMIN: pl.Float32 | None
-    ENABLEMENTMAX: pl.Float32 | None
-    LOWBREAKPOINT: pl.Float32 | None
-    HIGHBREAKPOINT: pl.Float32 | None
-    BANDAVAIL1: pl.Float32 | None
-    BANDAVAIL2: pl.Float32 | None
-    BANDAVAIL3: pl.Float32 | None
-    BANDAVAIL4: pl.Float32 | None
-    BANDAVAIL5: pl.Float32 | None
-    BANDAVAIL6: pl.Float32 | None
-    BANDAVAIL7: pl.Float32 | None
-    BANDAVAIL8: pl.Float32 | None
-    BANDAVAIL9: pl.Float32 | None
-    BANDAVAIL10: pl.Float32 | None
-    ENERGYLIMIT: pl.Float32 | None
-    LASTCHANGED: pl.Datetime | None
+    DUID: pl.Categorical = Field(nullable=False)
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    BIDTYPE: pl.Categorical = Field(nullable=False)
+    DIRECTION: pl.Categorical = Field(nullable=False)
+    VERSIONNO: pl.Int32 | None = Field(nullable=True)
+    INTERVAL_DATETIME: pl.Datetime = Field(nullable=False)
+    MAXAVAIL: pl.Float32 | None = Field(nullable=True)
+    FIXEDLOAD: pl.Float32 | None = Field(nullable=True)
+    ROCUP: pl.Float32 | None = Field(nullable=True)
+    ROCDOWN: pl.Float32 | None = Field(nullable=True)
+    ENABLEMENTMIN: pl.Float32 | None = Field(nullable=True)
+    ENABLEMENTMAX: pl.Float32 | None = Field(nullable=True)
+    LOWBREAKPOINT: pl.Float32 | None = Field(nullable=True)
+    HIGHBREAKPOINT: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL1: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL2: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL3: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL4: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL5: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL6: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL7: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL8: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL9: pl.Float32 | None = Field(nullable=True)
+    BANDAVAIL10: pl.Float32 | None = Field(nullable=True)
+    ENERGYLIMIT: pl.Float32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
 
 
 # Generation Unit Tables
 # ======================
 
 
-class DUALLOCSchema(pa.DataFrameModel):
+class DUALLOCSchema(BasePartitionedSchema):
     """Dispatch unit to generation set allocation."""
 
-    DUID: pl.Categorical
-    GENSETID: pl.Categorical
-    LASTCHANGED: pl.Datetime | None
-    VERSIONNO: pl.Int32 | None
+    DUID: pl.Categorical = Field(nullable=False)
+    GENSETID: pl.Categorical = Field(nullable=False)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
+    VERSIONNO: pl.Int32 | None = Field(nullable=True)
 
 
-class GENUNITSSchema(pa.DataFrameModel):
+class GENUNITSSchema(BasePartitionedSchema):
     """Generation unit characteristics and capabilities."""
 
-    GENSETID: pl.Categorical
-    STATIONID: pl.String
-    VOLTLEVEL: pl.Float32 | None
-    DISPATCHTYPE: pl.Categorical
-    STARTTYPE: pl.String | None
-    NORMALSTATUS: pl.String | None
-    MAXCAPACITY: pl.Float32 | None
-    GENSETTYPE: pl.String | None
-    GENSETNAME: pl.String | None
-    LOWERREG: pl.Float32 | None
-    CO2E_EMISSIONS_FACTOR: pl.Float32 | None
-    CO2E_ENERGY_SOURCE: pl.String | None
-    CO2E_DATA_SOURCE: pl.String | None
-    MINCAPACITY: pl.Float32 | None
-    REGISTEREDMINCAPACITY: pl.Float32 | None
-    LASTCHANGED: pl.Datetime | None
+    GENSETID: pl.Categorical = Field(nullable=False)
+    STATIONID: pl.String = Field(nullable=False)
+    VOLTLEVEL: pl.Float32 | None = Field(nullable=True)
+    DISPATCHTYPE: pl.Categorical = Field(nullable=False)
+    STARTTYPE: pl.String | None = Field(nullable=True)
+    NORMALSTATUS: pl.String | None = Field(nullable=True)
+    MAXCAPACITY: pl.Float32 | None = Field(nullable=True)
+    GENSETTYPE: pl.String | None = Field(nullable=True)
+    GENSETNAME: pl.String | None = Field(nullable=True)
+    LOWERREG: pl.Float32 | None = Field(nullable=True)
+    CO2E_EMISSIONS_FACTOR: pl.Float32 | None = Field(nullable=True)
+    CO2E_ENERGY_SOURCE: pl.String | None = Field(nullable=True)
+    CO2E_DATA_SOURCE: pl.String | None = Field(nullable=True)
+    MINCAPACITY: pl.Float32 | None = Field(nullable=True)
+    REGISTEREDMINCAPACITY: pl.Float32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
 
 
-class DUDETAILSUMMARYSchema(pa.DataFrameModel):
+class DUDETAILSUMMARYSchema(BasePartitionedSchema):
     """Dispatch unit summary with operational dates and limits."""
 
-    DUID: pl.Categorical
-    START_DATE: pl.Date
-    END_DATE: pl.Date
-    DISPATCHTYPE: pl.Categorical | None
-    CONNECTIONPOINTID: pl.Categorical | None
-    REGIONID: pl.Categorical | None
-    STATIONID: pl.String | None
-    TRANSMISSIONLOSSFACTOR: pl.Float32 | None
-    STARTTYPE: pl.String | None
-    DISTRIBUTIONLOSSFACTOR: pl.Float32 | None
-    MINIMUM_ENERGY_PRICE: pl.Float32 | None
-    MAXIMUM_ENERGY_PRICE: pl.Float32 | None
-    SCHEDULE_TYPE: pl.Categorical | None
-    MIN_RAMP_RATE_UP: pl.Float32 | None
-    MIN_RAMP_RATE_DOWN: pl.Float32 | None
-    MAX_RAMP_RATE_UP: pl.Float32 | None
-    MAX_RAMP_RATE_DOWN: pl.Float32 | None
-    IS_AGGREGATED: pl.Boolean | None
-    LOAD_MINIMUM_ENERGY_PRICE: pl.Float32 | None
-    LOAD_MAXIMUM_ENERGY_PRICE: pl.Float32 | None
-    LOAD_MIN_RAMP_RATE_UP: pl.Float32 | None
-    LOAD_MIN_RAMP_RATE_DOWN: pl.Float32 | None
-    LOAD_MAX_RAMP_RATE_UP: pl.Float32 | None
-    LOAD_MAX_RAMP_RATE_DOWN: pl.Float32 | None
-    SECONDARY_TLF: pl.Float32 | None
+    DUID: pl.Categorical = Field(nullable=False)
+    START_DATE: pl.Date = Field(nullable=False)
+    END_DATE: pl.Date = Field(nullable=False)
+    DISPATCHTYPE: pl.Categorical | None = Field(nullable=True)
+    CONNECTIONPOINTID: pl.Categorical | None = Field(nullable=True)
+    REGIONID: pl.Categorical | None = Field(nullable=True)
+    STATIONID: pl.String | None = Field(nullable=True)
+    TRANSMISSIONLOSSFACTOR: pl.Float32 | None = Field(nullable=True)
+    STARTTYPE: pl.String | None = Field(nullable=True)
+    DISTRIBUTIONLOSSFACTOR: pl.Float32 | None = Field(nullable=True)
+    MINIMUM_ENERGY_PRICE: pl.Float32 | None = Field(nullable=True)
+    MAXIMUM_ENERGY_PRICE: pl.Float32 | None = Field(nullable=True)
+    SCHEDULE_TYPE: pl.Categorical | None = Field(nullable=True)
+    MIN_RAMP_RATE_UP: pl.Float32 | None = Field(nullable=True)
+    MIN_RAMP_RATE_DOWN: pl.Float32 | None = Field(nullable=True)
+    MAX_RAMP_RATE_UP: pl.Float32 | None = Field(nullable=True)
+    MAX_RAMP_RATE_DOWN: pl.Float32 | None = Field(nullable=True)
+    IS_AGGREGATED: pl.Boolean | None = Field(nullable=True)
+    LOAD_MINIMUM_ENERGY_PRICE: pl.Float32 | None = Field(nullable=True)
+    LOAD_MAXIMUM_ENERGY_PRICE: pl.Float32 | None = Field(nullable=True)
+    LOAD_MIN_RAMP_RATE_UP: pl.Float32 | None = Field(nullable=True)
+    LOAD_MIN_RAMP_RATE_DOWN: pl.Float32 | None = Field(nullable=True)
+    LOAD_MAX_RAMP_RATE_UP: pl.Float32 | None = Field(nullable=True)
+    LOAD_MAX_RAMP_RATE_DOWN: pl.Float32 | None = Field(nullable=True)
+    SECONDARY_TLF: pl.Float32 | None = Field(nullable=True)
 
 
-class DUDETAILSchema(pa.DataFrameModel):
+class DUDETAILSchema(BasePartitionedSchema):
     """Dispatch unit detailed technical specifications."""
 
-    DUID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    CONNECTIONPOINTID: pl.Categorical | None
-    VOLTLEVEL: pl.Float32 | None
-    REGISTEREDCAPACITY: pl.Float32 | None
-    AGCCAPABILITY: pl.String | None
-    DISPATCHTYPE: pl.Categorical | None
-    MAXCAPACITY: pl.Float32 | None
-    STARTTYPE: pl.String | None
-    NORMALLYONFLAG: pl.String | None
-    SPINNINGRESERVEFLAG: pl.String | None
-    INTERMITTENTFLAG: pl.String | None
-    SEMISCHEDULE_FLAG: pl.String | None
-    MAXRATEOFCHANGEUP: pl.Float32 | None
-    MAXRATEOFCHANGEDOWN: pl.Float32 | None
-    ADG_ID: pl.String | None
-    MINCAPACITY: pl.Float32 | None
-    REGISTEREDMINCAPACITY: pl.Float32 | None
-    MAXRATEOFCHANGEUP_LOAD: pl.Float32 | None
-    MAXRATEOFCHANGEDOWN_LOAD: pl.Float32 | None
-    MAXSTORAGECAPACITY: pl.Float32 | None
-    STORAGEIMPORTEFFICIENCYFACTOR: pl.Float32 | None
-    STORAGEEXPORTEFFICIENCYFACTOR: pl.Float32 | None
-    MIN_RAMP_RATE_UP: pl.Float32 | None
-    MIN_RAMP_RATE_DOWN: pl.Float32 | None
-    LOAD_MIN_RAMP_RATE_UP: pl.Float32 | None
-    LOAD_MIN_RAMP_RATE_DOWN: pl.Float32 | None
-    AGGREGATED: pl.String | None
+    DUID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    CONNECTIONPOINTID: pl.Categorical | None = Field(nullable=True)
+    VOLTLEVEL: pl.Float32 | None = Field(nullable=True)
+    REGISTEREDCAPACITY: pl.Float32 | None = Field(nullable=True)
+    AGCCAPABILITY: pl.String | None = Field(nullable=True)
+    DISPATCHTYPE: pl.Categorical | None = Field(nullable=True)
+    MAXCAPACITY: pl.Float32 | None = Field(nullable=True)
+    STARTTYPE: pl.String | None = Field(nullable=True)
+    NORMALLYONFLAG: pl.String | None = Field(nullable=True)
+    SPINNINGRESERVEFLAG: pl.String | None = Field(nullable=True)
+    INTERMITTENTFLAG: pl.String | None = Field(nullable=True)
+    SEMISCHEDULE_FLAG: pl.String | None = Field(nullable=True)
+    MAXRATEOFCHANGEUP: pl.Float32 | None = Field(nullable=True)
+    MAXRATEOFCHANGEDOWN: pl.Float32 | None = Field(nullable=True)
+    ADG_ID: pl.String | None = Field(nullable=True)
+    MINCAPACITY: pl.Float32 | None = Field(nullable=True)
+    REGISTEREDMINCAPACITY: pl.Float32 | None = Field(nullable=True)
+    MAXRATEOFCHANGEUP_LOAD: pl.Float32 | None = Field(nullable=True)
+    MAXRATEOFCHANGEDOWN_LOAD: pl.Float32 | None = Field(nullable=True)
+    MAXSTORAGECAPACITY: pl.Float32 | None = Field(nullable=True)
+    STORAGEIMPORTEFFICIENCYFACTOR: pl.Float32 | None = Field(nullable=True)
+    STORAGEEXPORTEFFICIENCYFACTOR: pl.Float32 | None = Field(nullable=True)
+    MIN_RAMP_RATE_UP: pl.Float32 | None = Field(nullable=True)
+    MIN_RAMP_RATE_DOWN: pl.Float32 | None = Field(nullable=True)
+    LOAD_MIN_RAMP_RATE_UP: pl.Float32 | None = Field(nullable=True)
+    LOAD_MIN_RAMP_RATE_DOWN: pl.Float32 | None = Field(nullable=True)
+    AGGREGATED: pl.String | None = Field(nullable=True)
 
 
-class RESERVESchema(pa.DataFrameModel):
+class RESERVESchema(BasePartitionedSchema):
     """Regional reserve requirements and availability."""
 
-    SETTLEMENTDATE: pl.Datetime
-    VERSIONNO: pl.Int32 | None
-    REGIONID: pl.Categorical
-    PERIODID: pl.Int32 | None
-    LOWER5MIN: pl.Float32 | None
-    RAISE5MIN: pl.Float32 | None
-    RAISEREG: pl.Float32 | None
-    LOWERREG: pl.Float32 | None
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    VERSIONNO: pl.Int32 | None = Field(nullable=True)
+    REGIONID: pl.Categorical = Field(nullable=False)
+    PERIODID: pl.Int32 | None = Field(nullable=True)
+    LOWER5MIN: pl.Float32 | None = Field(nullable=True)
+    RAISE5MIN: pl.Float32 | None = Field(nullable=True)
+    RAISEREG: pl.Float32 | None = Field(nullable=True)
+    LOWERREG: pl.Float32 | None = Field(nullable=True)
 
 
 # Station Tables
@@ -322,163 +330,163 @@ class RESERVESchema(pa.DataFrameModel):
 class PARTICIPANTSchema(pa.DataFrameModel):
     """Participant ID, name and class for all registered NEM participants."""
 
-    PARTICIPANTID: pl.String
-    PARTICIPANTCLASSID: pl.String | None
-    NAME: pl.String | None
-    DESCRIPTION: pl.String | None
-    ACN: pl.String | None
-    PRIMARYBUSINESS: pl.String | None
-    LASTCHANGED: pl.Datetime | None
+    PARTICIPANTID: pl.String = Field(nullable=False)
+    PARTICIPANTCLASSID: pl.String | None = Field(nullable=True)
+    NAME: pl.String | None = Field(nullable=True)
+    DESCRIPTION: pl.String | None = Field(nullable=True)
+    ACN: pl.String | None = Field(nullable=True)
+    PRIMARYBUSINESS: pl.String | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
 
 
 class STATIONSchema(pa.DataFrameModel):
     """Power station location and contact information."""
 
-    STATIONID: pl.String
-    STATIONNAME: pl.String | None
-    ADDRESS1: pl.String | None
-    ADDRESS2: pl.String | None
-    ADDRESS3: pl.String | None
-    ADDRESS4: pl.String | None
-    CITY: pl.String | None
-    STATE: pl.String | None
-    POSTCODE: pl.String | None
+    STATIONID: pl.String = Field(nullable=False)
+    STATIONNAME: pl.String | None = Field(nullable=True)
+    ADDRESS1: pl.String | None = Field(nullable=True)
+    ADDRESS2: pl.String | None = Field(nullable=True)
+    ADDRESS3: pl.String | None = Field(nullable=True)
+    ADDRESS4: pl.String | None = Field(nullable=True)
+    CITY: pl.String | None = Field(nullable=True)
+    STATE: pl.String | None = Field(nullable=True)
+    POSTCODE: pl.String | None = Field(nullable=True)
 
 
-class STATIONOPERATINGSTATUSSchema(pa.DataFrameModel):
+class STATIONOPERATINGSTATUSSchema(BasePartitionedSchema):
     """Station operating status over time."""
 
-    EFFECTIVEDATE: pl.Date
-    STATIONID: pl.String
-    VERSIONNO: pl.Int32 | None
-    STATUS: pl.String | None
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    STATIONID: pl.String = Field(nullable=False)
+    VERSIONNO: pl.Int32 | None = Field(nullable=True)
+    STATUS: pl.String | None = Field(nullable=True)
 
 
-class STATIONOWNERSchema(pa.DataFrameModel):
+class STATIONOWNERSchema(BasePartitionedSchema):
     """Station ownership and participant information."""
 
-    EFFECTIVEDATE: pl.Date
-    PARTICIPANTID: pl.Categorical
-    STATIONID: pl.String
-    VERSIONNO: pl.Int32 | None
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    PARTICIPANTID: pl.Categorical = Field(nullable=False)
+    STATIONID: pl.String = Field(nullable=False)
+    VERSIONNO: pl.Int32 | None = Field(nullable=True)
 
 
-class STADUALLOCSchema(pa.DataFrameModel):
+class STADUALLOCSchema(BasePartitionedSchema):
     """Station to dispatch unit allocation."""
 
-    DUID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    STATIONID: pl.String
-    VERSIONNO: pl.Int32
+    DUID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    STATIONID: pl.String = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
 
 
 # Interconnector Tables
 # =====================
 
 
-class INTERCONNECTORSchema(pa.DataFrameModel):
+class INTERCONNECTORSchema(BasePartitionedSchema):
     """Interconnector corridor definitions with region endpoints."""
 
-    INTERCONNECTORID: pl.Categorical
-    REGIONFROM: pl.Categorical
-    REGIONTO: pl.Categorical
+    INTERCONNECTORID: pl.Categorical = Field(nullable=False)
+    REGIONFROM: pl.Categorical = Field(nullable=False)
+    REGIONTO: pl.Categorical = Field(nullable=False)
 
 
-class INTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
+class INTERCONNECTORCONSTRAINTSchema(BasePartitionedSchema):
     """Interconnector technical constraints and limits."""
 
-    INTERCONNECTORID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    FROMREGIONLOSSSHARE: pl.Float32 | None
-    ICTYPE: pl.Categorical | None
-    LOSSCONSTANT: pl.Float32 | None
-    LOSSFLOWCOEFFICIENT: pl.Float32 | None
-    IMPORTLIMIT: pl.Float32 | None
-    EXPORTLIMIT: pl.Float32 | None
-    MAXMWIN: pl.Float32 | None
-    MAXMWOUT: pl.Float32 | None
+    INTERCONNECTORID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    FROMREGIONLOSSSHARE: pl.Float32 | None = Field(nullable=True)
+    ICTYPE: pl.Categorical | None = Field(nullable=True)
+    LOSSCONSTANT: pl.Float32 | None = Field(nullable=True)
+    LOSSFLOWCOEFFICIENT: pl.Float32 | None = Field(nullable=True)
+    IMPORTLIMIT: pl.Float32 | None = Field(nullable=True)
+    EXPORTLIMIT: pl.Float32 | None = Field(nullable=True)
+    MAXMWIN: pl.Float32 | None = Field(nullable=True)
+    MAXMWOUT: pl.Float32 | None = Field(nullable=True)
 
 
-class LOSSMODELSchema(pa.DataFrameModel):
+class LOSSMODELSchema(BasePartitionedSchema):
     """Loss model segments for interconnectors."""
 
-    INTERCONNECTORID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    LOSSSEGMENT: pl.Int32 | None
-    MWBREAKPOINT: pl.Float32 | None
+    INTERCONNECTORID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    LOSSSEGMENT: pl.Int32 | None = Field(nullable=True)
+    MWBREAKPOINT: pl.Float32 | None = Field(nullable=True)
 
 
-class LOSSFACTORMODELSchema(pa.DataFrameModel):
+class LOSSFACTORMODELSchema(BasePartitionedSchema):
     """Loss factors by region on interconnectors."""
 
-    INTERCONNECTORID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    REGIONID: pl.Categorical | None
-    DEMANDCOEFFICIENT: pl.Float32 | None
+    INTERCONNECTORID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    REGIONID: pl.Categorical | None = Field(nullable=True)
+    DEMANDCOEFFICIENT: pl.Float32 | None = Field(nullable=True)
 
 
-class MNSP_INTERCONNECTORSchema(pa.DataFrameModel):
+class MNSP_INTERCONNECTORSchema(BasePartitionedSchema):
     """Market Network Service Provider interconnector details."""
 
-    INTERCONNECTORID: pl.Categorical
-    LINKID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    FROMREGION: pl.Categorical | None
-    TOREGION: pl.Categorical | None
-    FROM_REGION_TLF: pl.Float32 | None
-    TO_REGION_TLF: pl.Float32 | None
-    LHSFACTOR: pl.Float32 | None
-    MAXCAPACITY: pl.Float32 | None
+    INTERCONNECTORID: pl.Categorical = Field(nullable=False)
+    LINKID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    FROMREGION: pl.Categorical | None = Field(nullable=True)
+    TOREGION: pl.Categorical | None = Field(nullable=True)
+    FROM_REGION_TLF: pl.Float32 | None = Field(nullable=True)
+    TO_REGION_TLF: pl.Float32 | None = Field(nullable=True)
+    LHSFACTOR: pl.Float32 | None = Field(nullable=True)
+    MAXCAPACITY: pl.Float32 | None = Field(nullable=True)
 
 
 # Constraint Tables
 # =================
 
 
-class GENCONDATASchema(pa.DataFrameModel):
+class GENCONDATASchema(BasePartitionedSchema):
     """Generic constraint definitions and weighting."""
 
-    GENCONID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    CONSTRAINTTYPE: pl.Categorical | None
-    GENERICCONSTRAINTWEIGHT: pl.Float32 | None
+    GENCONID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    CONSTRAINTTYPE: pl.Categorical | None = Field(nullable=True)
+    GENERICCONSTRAINTWEIGHT: pl.Float32 | None = Field(nullable=True)
 
 
-class SPDREGIONCONSTRAINTSchema(pa.DataFrameModel):
+class SPDREGIONCONSTRAINTSchema(BasePartitionedSchema):
     """Regional constraints on specific dispatch unit types."""
 
-    REGIONID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    GENCONID: pl.Categorical
-    BIDTYPE: pl.Categorical
-    FACTOR: pl.Float32 | None
+    REGIONID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    GENCONID: pl.Categorical = Field(nullable=False)
+    BIDTYPE: pl.Categorical = Field(nullable=False)
+    FACTOR: pl.Float32 | None = Field(nullable=True)
 
 
-class SPDCONNECTIONPOINTCONSTRAINTSchema(pa.DataFrameModel):
+class SPDCONNECTIONPOINTCONSTRAINTSchema(BasePartitionedSchema):
     """Connection point constraints on specific dispatch unit types."""
 
-    CONNECTIONPOINTID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    GENCONID: pl.Categorical
-    BIDTYPE: pl.Categorical
-    FACTOR: pl.Float32 | None
+    CONNECTIONPOINTID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    GENCONID: pl.Categorical = Field(nullable=False)
+    BIDTYPE: pl.Categorical = Field(nullable=False)
+    FACTOR: pl.Float32 | None = Field(nullable=True)
 
 
-class SPDINTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
+class SPDINTERCONNECTORCONSTRAINTSchema(BasePartitionedSchema):
     """Interconnector constraints on specific dispatch unit types."""
 
-    INTERCONNECTORID: pl.Categorical
-    EFFECTIVEDATE: pl.Date
-    VERSIONNO: pl.Int32
-    GENCONID: pl.Categorical
-    FACTOR: pl.Float32 | None
+    INTERCONNECTORID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    GENCONID: pl.Categorical = Field(nullable=False)
+    FACTOR: pl.Float32 | None = Field(nullable=True)
 
 
 # DNSP Tables (Not in standard DTYPES)
@@ -490,10 +498,10 @@ class SPDINTERCONNECTORCONSTRAINTSchema(pa.DataFrameModel):
 class ZONESUBSTATIONSchema(pa.DataFrameModel):
     """Distribution network zone substation data from DNSP operators."""
 
-    time: pl.String | None  # DNSP-specific, not in standard DTYPES
-    zss: pl.String | None  # DNSP-specific, not in standard DTYPES
-    MW: pl.Float32 | None
-    network: pl.String | None
+    time: pl.String | None = Field(nullable=True)  # DNSP-specific, not in standard DTYPES
+    zss: pl.String | None = Field(nullable=True)  # DNSP-specific, not in standard DTYPES
+    MW: pl.Float32 | None = Field(nullable=True)
+    network: pl.String | None = Field(nullable=True)
 
 
 # SCHEMA_MAP Registry
@@ -543,10 +551,10 @@ SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
 # ==============
 
 
-def _schema_to_dtypes(schema_class: type[pa.DataFrameModel]) -> dict[str, type]:
+def _schema_to_dtypes(schema_class: type[BasePartitionedSchema]) -> dict[str, type]:
     """Extract Polars column types from a Pandera schema, unwrapping optional unions.
 
-    Pandera schemas use `pl.X | None` for optional fields. This function extracts
+    Pandera schemas use `pl.X | None = Field(nullable=True)` for optional fields. This function extracts
     the bare Polars type (e.g., `pl.Float32`) for use in `.cast()` operations.
     Required fields like `pl.Datetime` are returned as-is.
 
@@ -554,11 +562,11 @@ def _schema_to_dtypes(schema_class: type[pa.DataFrameModel]) -> dict[str, type]:
         schema_class: A Pandera DataFrameModel subclass
 
     Returns:
-        dict mapping column name -> bare Polars type (without | None wrapper)
+        dict mapping column name -> bare Polars type (without | None = Field(nullable=True) wrapper)
 
     Example:
         >>> dtypes = _schema_to_dtypes(DispatchRegionSumSchema)
-        >>> dtypes['TOTALDEMAND']  # returns pl.Float32, not pl.Float32 | None
+        >>> dtypes['TOTALDEMAND']  # returns pl.Float32, not pl.Float32 | None = Field(nullable=True)
         <polars.datatypes.Float32 object>
     """
     result = {}
@@ -569,7 +577,7 @@ def _schema_to_dtypes(schema_class: type[pa.DataFrameModel]) -> dict[str, type]:
         if annotation is None:
             continue
         origin = typing.get_origin(annotation)
-        # Handle X | None (types.UnionType) or typing.Union[X, None]
+        # Handle X | None = Field(nullable=True) (types.UnionType) or typing.Union[X, None]
         if origin is types.UnionType or origin is typing.Union:
             # Get union args and filter out NoneType
             args = [a for a in typing.get_args(annotation) if a is not type(None)]
@@ -586,7 +594,7 @@ def _schema_to_dtypes(schema_class: type[pa.DataFrameModel]) -> dict[str, type]:
 
 def validate_against_schema(
     df: pl.DataFrame,
-    schema_class: type[pa.DataFrameModel],
+    schema_class: type[BasePartitionedSchema],
     raise_on_error: bool = False,
 ) -> bool:
     """

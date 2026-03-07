@@ -157,7 +157,7 @@ class NEMWEBManager:
 
     """
 
-    def __init__(self, config: type[Config]):
+    def __init__(self, config: Config):
         self.config = config
         self._active_tables = [
             "BIDDAYOFFER_D",
@@ -652,7 +652,7 @@ class DataSource:
 
     def __init__(
         self,
-        config: type[Config],
+        config: Config,
         table_name: str,
         schema_class: type[pa_polars.DataFrameModel],
         table_primary_keys: list[str] | None = None,
@@ -673,7 +673,7 @@ class DataSource:
         self.table_name = table_name
         self.schema_class = schema_class
         # Derive table_columns from schema
-        self.table_columns = list(schema_class.__fields__.keys())
+        self.table_columns = list(schema_class.empty().columns)
         # Extract types from schema (unwrapping X | None unions to bare types)
         self._dtypes = _schema_to_dtypes(schema_class)
         self.table_primary_keys = table_primary_keys if table_primary_keys is not None else []
