@@ -8,7 +8,8 @@ import pandas as pd
 import polars as pl
 import requests
 
-from nemdb import Config, log
+from nemdb.config import config
+from nemdb.logger import log
 
 
 def download_file(url, path, stream=True):
@@ -57,12 +58,12 @@ def cache_to_parquet(file_path, *, type_: Any = pl.DataFrame):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            if Config.FILESYSTEM == "local":
+            if config.filesystem == "local":
                 # For local filesystem, construct a Path object
-                full_path = Path(Config.CACHE_DIR) / file_path
+                full_path = Path(config.cache_dir) / file_path
             else:
                 # For other filesystems (e.g., S3), construct a URI string
-                base_uri = str(Config.CACHE_DIR).rstrip("/")
+                base_uri = str(config.cache_dir).rstrip("/")
                 full_path = f"{base_uri}/{file_path}"
 
             try:
@@ -73,7 +74,7 @@ def cache_to_parquet(file_path, *, type_: Any = pl.DataFrame):
 
                 result = func(*args, **kwargs)
 
-                if Config.FILESYSTEM == "local":
+                if config.filesystem == "local":
                     # Ensure the parent directory exists for local files
                     assert isinstance(full_path, Path)
                     full_path.parent.mkdir(parents=True, exist_ok=True)

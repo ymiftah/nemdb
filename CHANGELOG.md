@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Global config singleton**: `NEMWEBManager` and `DataSource` no longer accept a `config`
+  argument — they read from the module-level `config` singleton (`nemdb.config`) directly.
+  Tests that need an isolated cache directory should mutate `config.cache_dir` / `config.temp_dir`
+  and restore them on teardown (a `conftest.py` autouse fixture is provided for this).
 - **Partitioned schema layout** in `src/nemdb/nemweb/schemas.py`: reorganised schema definitions
   into logical groups for improved readability
 - **`isp2025.py` parsing improvements**: refined column type handling and parsing logic across

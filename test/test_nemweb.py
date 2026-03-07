@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from nemdb import Config
 from nemdb.nemweb.dbloader import NEMWEBManager
 
 
@@ -22,6 +21,6 @@ def __select_date():
 def test_db_dispatch_load(date):
     year, month, _ = date
 
-    pds = NEMWEBManager(Config)
+    pds = NEMWEBManager()
     pds.DISPATCHLOAD.add_data(year, month)
     assert pds.DISPATCHLOAD.scan().head().collect().shape[0] > 0

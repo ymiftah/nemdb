@@ -1,25 +1,27 @@
-import os
 from pathlib import Path
 from tempfile import gettempdir
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .logger import log
 
 
-class Config:
-    """Global configuration class for the application."""
+class Config(BaseSettings):
+    """Global configuration — reads from environment variables with NEMDB_ prefix."""
 
-    CACHE_DIR = os.getenv("NEMDB_CACHE_DIR", Path.home() / ".nemdb_cache")
-    FILESYSTEM = os.getenv("NEMDB_FILESYSTEM", "local")
-    TEMP_DIR = Path(gettempdir()) / ".nemweb_temp"
+    model_config = SettingsConfigDict(env_prefix="NEMDB_", frozen=False)
 
-    @classmethod
-    def set_cache_dir(cls, cache_dir):
-        """Sets the cache directory location."""
-        cls.CACHE_DIR = cache_dir.rstrip("/")
-        log.info("Set cache directory to %s", cls.CACHE_DIR)
+    cache_dir: Path = Path.home() / ".nemdb_cache"
+    filesystem: str = "local"
+    temp_dir: Path = Path(gettempdir()) / ".nemweb_temp"
 
-    @classmethod
-    def set_filesystem(cls, filesystem):
-        """Sets the cache directory location."""
-        cls.FILESYSTEM = filesystem
-        log.info("Set filesystem to %s", cls.FILESYSTEM)
+    def set_cache_dir(self, cache_dir: str | Path) -> None:
+        self.cache_dir = Path(str(cache_dir).rstrip("/"))
+        log.info("Set cache directory to %s", self.cache_dir)
+
+    def set_filesystem(self, filesystem: str) -> None:
+        self.filesystem = filesystem
+        log.info("Set filesystem to %s", self.filesystem)
+
+
+config = Config()

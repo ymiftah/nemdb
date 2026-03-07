@@ -8,7 +8,7 @@ import pandera.polars as pa
 import polars as pl
 import pytest
 
-from nemdb import Config
+from nemdb.config import config
 from nemdb.nemweb.dbloader import DataSource, NEMWEBManager
 from nemdb.nemweb.schemas import (
     SCHEMA_MAP,
@@ -186,10 +186,9 @@ def test_schema_map_exists_and_is_complete():
 def test_schema_fields_match_table_columns():
     """Verify table_columns are correctly derived from schema in DataSource."""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        config = Config()
-        config.CACHE_DIR = Path(tmp_dir)
-        config.TEMP_DIR = Path(tmp_dir)
-        manager = NEMWEBManager(config)
+        config.set_cache_dir(tmp_dir)
+        config.temp_dir = Path(tmp_dir)
+        manager = NEMWEBManager()
 
         # For each DataSource with a schema, verify table_columns match schema fields
         for ds_attr in dir(manager):
@@ -218,10 +217,9 @@ def test_schema_fields_match_table_columns():
 def test_datasource_schema_class_attribute():
     """Verify all NEMWEBManager DataSources have schema_class attribute (now required)."""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        config = Config()
-        config.CACHE_DIR = Path(tmp_dir)
-        config.TEMP_DIR = Path(tmp_dir)
-        manager = NEMWEBManager(config)
+        config.set_cache_dir(tmp_dir)
+        config.temp_dir = Path(tmp_dir)
+        manager = NEMWEBManager()
 
         # Check all DataSources in manager
         checked_count = 0
