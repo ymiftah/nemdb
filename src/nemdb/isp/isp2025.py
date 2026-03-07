@@ -1608,12 +1608,9 @@ def power_system_security() -> DataFrame[schemas.PowerSystemSecurity]:
     """Coal generator fault-level replacement costs ($M)."""
     raw = _open_isp().load_sheet_by_name("Power System Security", header_row=None).to_polars()
     header_row = 4
-    header = [
-        str(raw[header_row, c]) if raw[header_row, c] is not None else f"_col{c}" for c in range(3)
-    ]
     data = raw.slice(header_row + 1).select(raw.columns[:3])
-    data.columns = header
-    return data.filter(pl.col(data.columns[0]).is_not_null())  # type: ignore
+    data.columns = ["duid", "generator_name", "fault_level_replacement_cost_m"]
+    return data.filter(pl.col("duid").is_not_null())  # type: ignore
 
 
 # ── Convenience class ─────────────────────────────────────────────────────────

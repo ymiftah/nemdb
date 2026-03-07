@@ -169,7 +169,6 @@ def test_static_sheet(fn, min_rows, required_col):
 # ── Time-series sheets ────────────────────────────────────────────────────────
 
 
-@pytest.mark.slow
 @pytest.mark.parametrize(
     "fn, min_rows, scenario_col",
     [
@@ -180,7 +179,7 @@ def test_static_sheet(fn, min_rows, required_col):
         (rez_cost_forecasts, 8000, None),
         (distribution_cost_forecasts, 2000, None),
         (coal_biomass_price, 500, "scenario"),
-        (gas_liquid_h2_price, 9900, "gas_price_scenario"),
+        (gas_liquid_h2_price, 9900, "price_scenario"),
         (rooftop_pv, 1000, "scenario"),
         (pvnsg, 1000, "scenario"),
         (onsg, 500, "scenario"),
@@ -219,7 +218,6 @@ def test_timeseries_sheet(fn, min_rows, scenario_col):
 # ── Bespoke sheets ────────────────────────────────────────────────────────────
 
 
-@pytest.mark.slow
 def test_fuel_price_summary():
     df = fuel_price_summary()
     assert "generator_status" in df.columns
@@ -228,7 +226,6 @@ def test_fuel_price_summary():
     assert df.shape[0] > 30_000
 
 
-@pytest.mark.slow
 def test_economic_growth_forecasts():
     df = economic_growth_forecasts()
     assert set(df["scenario"].unique().to_list()) == {
@@ -240,7 +237,6 @@ def test_economic_growth_forecasts():
     assert "NSW" in df["state"].unique().to_list()
 
 
-@pytest.mark.slow
 def test_power_system_security():
     df = power_system_security()
     assert df.shape[0] > 0

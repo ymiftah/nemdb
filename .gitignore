@@ -44,6 +44,12 @@ site/
 # Scratch space
 scratch/
 
+# Dev/generation scripts
+scripts/
+
+# Local planning docs
+docs/plans/
+
 # Large artefacts — distributed via GitHub Releases + pooch
 src/nemdb/artefacts/*.zip
 src/nemdb/artefacts/*.xlsx
