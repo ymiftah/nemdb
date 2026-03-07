@@ -495,7 +495,7 @@ class SPDINTERCONNECTORCONSTRAINTSchema(BasePartitionedSchema):
 # Types derived from usage in DNSPDataSource.
 
 
-class ZONESUBSTATIONSchema(BasePartitionedSchema):
+class ZONESUBSTATIONSchema(pa.DataFrameModel):
     """Distribution network zone substation data from DNSP operators."""
 
     time: pl.String | None = Field(nullable=True)  # DNSP-specific, not in standard DTYPES
