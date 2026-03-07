@@ -1613,6 +1613,25 @@ def power_system_security() -> DataFrame[schemas.PowerSystemSecurity]:
     return data.filter(pl.col("duid").is_not_null())  # type: ignore
 
 
+@check_types
+def summary_mapping() -> DataFrame[schemas.SummaryMapping]:
+    """Assumption mapping keys for all generators (existing, committed, anticipated, new entrant).
+
+    Each row maps one generator unit to the lookup keys used to find its assumptions
+    in other sheets (heat rates, outage rates, fuel costs, connection costs, etc.).
+
+    The sheet has two labelled sections ('Existing, Committed, Anticipated' and
+    'New Entrant') separated by blank rows; both are returned in one DataFrame.
+    'Not Applicable' sentinel values are replaced with null.
+    """
+    raw = _open_isp().load_sheet_by_name("Summary Mapping", header_row=None).to_polars()
+    df = _read_multiheader_block(raw, header_rows=[3, 4, 5], data_start=6)
+    df = df.filter(pl.col("rowid").is_not_null())
+    return df.with_columns(
+        pl.col(pl.String).replace(["Not Applicable", "Not applicable", "N/A"], None)
+    )  # type: ignore
+
+
 # ── Convenience class ─────────────────────────────────────────────────────────
 
 

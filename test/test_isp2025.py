@@ -81,6 +81,7 @@ from nemdb.isp.isp2025 import (
     seasonal_ratings,
     storage_battery_properties,
     storage_hydro_properties,
+    summary_mapping,
     transmission_reliability,
     variable_opex,
     water_for_hydrogen,
@@ -157,6 +158,7 @@ def test_read_timeseries_unpivots_years():
         (capacity_factors, 200, "rez_id_subregion"),
         (marginal_loss_factors, 650, "iasr_id"),
         (hydro_scheme_inflows, 120, "reference_year_fye"),
+        (summary_mapping, 1300, "iasr_id_dlt_names"),
     ],
 )
 def test_static_sheet(fn, min_rows, required_col):
