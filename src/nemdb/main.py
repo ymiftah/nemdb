@@ -28,9 +28,10 @@ def populate(location, filesystem, date_range, table, force_new):
     from_date = datetime.strptime(from_date.strip(), "%Y-%m-%d")
     to_date = datetime.strptime(to_date.strip(), "%Y-%m-%d")
 
-    Config.set_cache_dir(location)
-    Config.set_filesystem(filesystem)
-    dbs = NEMWEBManager(Config)
+    config = Config()
+    config.set_cache_dir(location)
+    config.set_filesystem(filesystem)
+    dbs = NEMWEBManager(config)
     if table == "all":
         dbs.populate(slice(from_date, to_date), force_new=force_new)
     else:
@@ -41,5 +42,6 @@ def populate(location, filesystem, date_range, table, force_new):
 if __name__ == "__main__":
     from_date, to_date = ["2025-01-01", "2025-01-02"]
     force_new = False
-    dbs = NEMWEBManager(Config)
+    config = Config()
+    dbs = NEMWEBManager(config)
     dbs.populate(slice(from_date, to_date), force_new=force_new)

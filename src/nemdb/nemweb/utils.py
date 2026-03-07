@@ -70,7 +70,7 @@ def cache_response_zip(url: str) -> str:
     if path.exists():
         logger.info("reading from cache: %s", path)
         return str(path)
-    logger.info("Requesting file form %s", url)
+    logger.info("Requesting file from %s", url)
     response = requests.get(url)
     if response.status_code != 200:
         raise ValueError(f"Failed to download {url}")
