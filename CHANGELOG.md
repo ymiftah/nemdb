@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **ISP 2025 Sheet Extraction** (`src/nemdb/isp/isp2025.py`): Full extraction layer for
+  all 73 extractable sheets from `ISP_2025.xlsm`
+  - `read_sheet(name, header_row)` — plain DataFrame extraction with automatic preamble skipping
+  - `read_timeseries(name, header_row)` — unpivots financial-year columns to tidy long format
+  - ~55 sheet-specific functions covering dispatch, generation, fuel prices, economic growth,
+    network constraints, storage, electrification, and more
+  - Bespoke parsers for structurally irregular sheets (stacked tables, null-column year rows,
+    stacked-scenario Pattern F sheets)
+  - `ISP2025` convenience class with cached property access for all sheets
+  - Support for reading directly from the zipped `.xlsm` file
+- **ISP 2025 Pandera Schemas** (`src/nemdb/isp/schemas.py`): 69 `pa.DataFrameModel` subclasses,
+  one per extracted table, with typed fields and `pa.Field(alias=...)` for non-identifier columns
+- **ISP 2025 Reference Documentation** (`docs/reference/isp-2025-sheet-structure.md`): Describes
+  the sheet structure and extraction patterns
+- **73 tests** in `test/test_isp2025.py` covering all sheet extraction functions
+- **Pooch-based ISP 2025 spreadsheet distribution**: The `ISP_2025.xlsm` workbook is hosted as
+  a GitHub release asset (`data-v1`) and fetched on demand via `pooch`, with SHA-256 integrity
+  verification. The file is cached in the OS cache directory (`pooch.os_cache("nemdb")`) and can
+  be overridden locally by setting the `NEMDB_ISP_2025` environment variable to a local zip path.
+
+### Changed
+
+- **Partitioned schema layout** in `src/nemdb/nemweb/schemas.py`: reorganised schema definitions
+  into logical groups for improved readability
+- **`isp2025.py` parsing improvements**: refined column type handling and parsing logic across
+  multiple sheet types
+
 ## [0.3.0] - 2026-02-25
 
 ### Added
