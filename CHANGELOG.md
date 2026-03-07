@@ -26,8 +26,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **73 tests** in `test/test_isp2025.py` covering all sheet extraction functions
 - **Pooch-based ISP 2025 spreadsheet distribution**: The `ISP_2025.xlsm` workbook is hosted as
   a GitHub release asset (`data-v1`) and fetched on demand via `pooch`, with SHA-256 integrity
-  verification. The file is cached in the OS cache directory (`pooch.os_cache("nemdb")`) and can
+  verification. The file is cached under `NEMDB_CACHE_DIR` (default `~/.nemdb_cache`) and can
   be overridden locally by setting the `NEMDB_ISP_2025` environment variable to a local zip path.
+- **Pooch-based NEM facilities distribution** (`src/nemdb/opennem/opennemapi.py`): A pre-built
+  snapshot of the OpenElectricity NEM facilities table is hosted as a GitHub release asset
+  (`data-v2`, `facilities_nem.parquet`) and fetched on demand via `pooch` — no OpenElectricity
+  account required.
+  - `read_facilities_cached()` — loads the parquet snapshot via pooch; respects a
+    `NEMDB_FACILITIES` environment variable override for local files.
+  - `match_facilities_to_gis()` gains a `source` parameter (`"pooch"` | `"api"`, default
+    `"pooch"`) controlling whether facilities are fetched from the cached parquet or live from
+    the OpenElectricity API.
+  - `get_pandapower_model_with_opennem()` and `create_pandapower_network()` expose the same
+    `source` parameter, making the previously hidden HTTP dependency explicit.
+  - `scripts/extract_facilities.py` — one-off script to regenerate the parquet snapshot from
+    the API and print the SHA-256 for updating the registry.
 
 ### Changed
 

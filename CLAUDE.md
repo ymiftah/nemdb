@@ -55,5 +55,5 @@ src/nemdb/
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `NEMDB_CACHE_DIR` | `~/.nemweb_cache` | Local parquet cache root |
+| `NEMDB_CACHE_DIR` | `~/.nemdb_cache` | Local parquet cache root |
 | `NEMDB_FILESYSTEM` | `local` | fsspec filesystem (`gcs` for cloud) |

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 import geopandas as gpd
 import networkx as nx
@@ -883,6 +883,7 @@ def _get_gens_from_opennem(
 
 def get_pandapower_model_with_opennem(
     matched_facilities: gpd.GeoDataFrame | None = None,
+    source: Literal["pooch", "api"] = "pooch",
 ) -> dict:
     """Build a pandapower model dict using OpenNEM facilities as generators.
 
@@ -891,13 +892,18 @@ def get_pandapower_model_with_opennem(
 
     Args:
         matched_facilities: Pre-computed matched facilities GeoDataFrame.
-            If None, calls ``nemdb.near.match_facilities_to_gis()``.
+            When *None*, facilities are fetched according to ``source`` and
+            matched via :func:`~nemdb.geodata.matching.match_facilities_to_gis`.
+        source: How to obtain facilities when ``matched_facilities`` is *None*.
+            ``"pooch"`` (default) downloads the pre-built parquet from the
+            GitHub release — no account required.  ``"api"`` calls the
+            OpenElectricity API (requires an API key).
 
     Returns:
         dict with keys ``buses``, ``lines``, ``trafos``, ``gens``, ``loads``.
     """
     if matched_facilities is None:
-        matched_facilities = match_facilities_to_gis()
+        matched_facilities = match_facilities_to_gis(source=source)
 
     lines, buses, mapping = _get_buses_and_lines()
 
@@ -986,19 +992,30 @@ _DEFAULT_LINE_PARAMS = {
 }
 
 
-def create_pandapower_network(use_opennem: bool = False, model: dict | None = None) -> Any:
+def create_pandapower_network(
+    use_opennem: bool = False,
+    model: dict | None = None,
+    source: Literal["pooch", "api"] = "pooch",
+) -> Any:
     """Convert a model dict into a pandapower Network object.
 
     Args:
         use_opennem: If True, uses ``get_pandapower_model_with_opennem()``
             instead of ``get_pandapower_model()``.
         model: Pre-computed model dict. If None, one is built from scratch.
+        source: Facilities data source when ``use_opennem`` is True and
+            ``model`` is None.  ``"pooch"`` (default) fetches the pre-built
+            parquet; ``"api"`` calls the OpenElectricity API.
 
     Returns:
         A ``pandapower.auxiliary.pandapowerNet`` network object.
     """
     if model is None:
-        model = get_pandapower_model_with_opennem() if use_opennem else get_pandapower_model()
+        model = (
+            get_pandapower_model_with_opennem(source=source)
+            if use_opennem
+            else get_pandapower_model()
+        )
 
     net = pp.create_empty_network(name="NEM")
     bus_idx_map = _add_buses_to_network(net, model["buses"])

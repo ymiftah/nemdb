@@ -1,11 +1,12 @@
 import asyncio
+from typing import Literal
 
 import geopandas as gpd
 import pandas as pd
 import polars as pl
 
 from nemdb.geodata.geodata import read_major_powerstations, read_substations
-from nemdb.opennem.opennemapi import read_facilities
+from nemdb.opennem.opennemapi import read_facilities, read_facilities_cached
 
 METRIC_CRS = "EPSG:7856"
 
@@ -150,6 +151,7 @@ def match_facilities_to_gis(
     facilities: pl.DataFrame | None = None,
     powerstations: gpd.GeoDataFrame | None = None,
     substations: gpd.GeoDataFrame | None = None,
+    source: Literal["pooch", "api"] = "pooch",
 ) -> gpd.GeoDataFrame:
     """Match OpenNEM facilities to the nearest GIS power station or substation.
 
@@ -157,16 +159,25 @@ def match_facilities_to_gis(
     substations, and keeps whichever match is closer for each facility.
 
     Args:
-        facilities: OpenNEM facilities DataFrame (fetched if None).
+        facilities: OpenNEM facilities DataFrame.  When *None* the data is
+            fetched automatically according to ``source``.
         powerstations: GA powerstations GeoDataFrame (fetched if None).
         substations: GA substations GeoDataFrame (fetched if None).
+        source: How to obtain facilities when ``facilities`` is *None*.
+            ``"pooch"`` (default) downloads the pre-built parquet from the
+            GitHub release — no account required.  ``"api"`` calls the
+            OpenElectricity API via :func:`read_facilities` (requires an API
+            key).
 
     Returns:
         GeoDataFrame with facility info plus ``gis_name``, ``match_type``
         ("powerstation" or "substation"), and ``distance_m``.
     """
     if facilities is None:
-        facilities = asyncio.run(read_facilities(network_id=["NEM"]))
+        if source == "api":
+            facilities = asyncio.run(read_facilities(network_id=["NEM"]))
+        else:
+            facilities = read_facilities_cached()
     if powerstations is None:
         powerstations = read_major_powerstations().query("state in @NEM_STATES")
     if substations is None:
