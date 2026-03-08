@@ -13,17 +13,19 @@ from openelectricity.types import (
     NetworkCode,
 )
 
-from nemdb.config import Config
+from nemdb.config import config
 
-memory = Memory(location=Config.TEMP_DIR, verbose=1)
+memory = Memory(location=config.temp_dir, verbose=1)
 
 _FACILITIES_SHA256 = "826c88b656d7d6f9e82e74faa46951fe61f67cd2f1d096112c1143b4f3488b6e"
 
-_FACILITIES_FETCHER = pooch.create(
-    path=Config.CACHE_DIR,
-    base_url="https://github.com/ymiftah/nemdb/releases/download/data-v2/",
-    registry={"facilities_nem.parquet": f"sha256:{_FACILITIES_SHA256}"},
-)
+
+def _get_facilities_fetcher() -> pooch.Pooch:
+    return pooch.create(
+        path=config.cache_dir,
+        base_url="https://github.com/ymiftah/nemdb/releases/download/data-v2/",
+        registry={"facilities_nem.parquet": f"sha256:{_FACILITIES_SHA256}"},
+    )
 
 
 def read_facilities_cached() -> pl.DataFrame:
@@ -44,7 +46,7 @@ def read_facilities_cached() -> pl.DataFrame:
     local = os.environ.get("NEMDB_FACILITIES")
     if local:
         return pl.read_parquet(local)
-    path = _FACILITIES_FETCHER.fetch("facilities_nem.parquet")
+    path = _get_facilities_fetcher().fetch("facilities_nem.parquet")
     return pl.read_parquet(path)
 
 

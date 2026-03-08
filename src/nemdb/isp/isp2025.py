@@ -9,16 +9,11 @@ import pooch
 from pandera import check_types
 from pandera.typing.polars import DataFrame
 
-from nemdb.config import Config
+from nemdb.config import config
 
 from . import schemas
 
 _ISP_SHA256 = "b1cbb764b7d9cfb0189f589da7998f65ff26516343bc1ee3b86c144a6f6c2d1b"
-_ISP_FETCHER = pooch.create(
-    path=Config.CACHE_DIR,
-    base_url="https://github.com/ymiftah/nemdb/releases/download/data-v1/",
-    registry={"ISP_2025.zip": f"sha256:{_ISP_SHA256}"},
-)
 _YEAR = re.compile(r"^\d{4}[-_]\d{2}$")  # Matches YYYY-YY or YYYY_YY (after normalization)
 
 
@@ -27,7 +22,12 @@ def _get_isp_path() -> str:
     local = os.environ.get("NEMDB_ISP_2025")
     if local:
         return local
-    return str(_ISP_FETCHER.fetch("ISP_2025.zip"))
+    fetcher = pooch.create(
+        path=config.cache_dir,
+        base_url="https://github.com/ymiftah/nemdb/releases/download/data-v1/",
+        registry={"ISP_2025.zip": f"sha256:{_ISP_SHA256}"},
+    )
+    return str(fetcher.fetch("ISP_2025.zip"))
 
 
 def _open_isp() -> fastexcel.ExcelReader:

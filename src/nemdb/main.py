@@ -3,7 +3,7 @@ from pathlib import Path
 
 import click
 
-from nemdb import Config
+from nemdb.config import config
 from nemdb.nemweb import NEMWEBManager
 
 
@@ -28,10 +28,9 @@ def populate(location, filesystem, date_range, table, force_new):
     from_date = datetime.strptime(from_date.strip(), "%Y-%m-%d")
     to_date = datetime.strptime(to_date.strip(), "%Y-%m-%d")
 
-    config = Config()
     config.set_cache_dir(location)
     config.set_filesystem(filesystem)
-    dbs = NEMWEBManager(config)
+    dbs = NEMWEBManager()
     if table == "all":
         dbs.populate(slice(from_date, to_date), force_new=force_new)
     else:
@@ -42,6 +41,5 @@ def populate(location, filesystem, date_range, table, force_new):
 if __name__ == "__main__":
     from_date, to_date = ["2025-01-01", "2025-01-02"]
     force_new = False
-    config = Config()
-    dbs = NEMWEBManager(config)
+    dbs = NEMWEBManager()
     dbs.populate(slice(from_date, to_date), force_new=force_new)

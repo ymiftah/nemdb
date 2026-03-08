@@ -17,8 +17,8 @@ import pandera.polars as pa_polars
 import polars as pl
 from tqdm import tqdm
 
-from nemdb import Config
 from nemdb import log as logger
+from nemdb.config import config
 from nemdb.dnsp import DNSPDataSource
 from nemdb.nemweb.schemas import (
     BidDayOfferDSchema,
@@ -69,15 +69,13 @@ class NEMWEBManager:
 
     Attributes
     ----------
-    config : Config
-        The configuration object for the NEMWEBManager.
     tables : list[str]
         A list of available table names.
 
     Examples
     --------
-    >>> from nemdb import NEMWEBManager, Config
-    >>> nemweb = NEMWEBManager(Config)
+    >>> from nemdb import NEMWEBManager
+    >>> nemweb = NEMWEBManager()
     >>> nemweb.populate(slice("2024-01-01", "2024-01-31"))
     >>> df = nemweb.DISPATCHREGIONSUM.get_data("2024/01/01 12:00:00")
 
@@ -157,8 +155,7 @@ class NEMWEBManager:
 
     """
 
-    def __init__(self, config: Config):
-        self.config = config
+    def __init__(self):
         self._active_tables = [
             "BIDDAYOFFER_D",
             "BIDPEROFFER_D",
@@ -188,7 +185,6 @@ class NEMWEBManager:
             # "ZONE_SUBSTATION",
         ]
         self.ZONE_SUBSTATION = DNSPDataSource(
-            config=config,
             table_name="ZONE_SUBSTATION",
             table_columns=[
                 "time",
@@ -200,109 +196,91 @@ class NEMWEBManager:
             table_primary_keys=["zss", "time"],
         )
         self.DUALLOC = DataSource(
-            config=config,
             table_name="DUALLOC",
             schema_class=DUALLOCSchema,
         )
         self.GENUNITS = DataSource(
-            config=config,
             table_name="GENUNITS",
             table_primary_keys=["STATIONID", "LASTCHANGED"],
             schema_class=GENUNITSSchema,
         )
         self.RESERVE = BySettlementDate(
-            config=config,
             table_name="RESERVE",
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
             schema_class=RESERVESchema,
         )
         self.DISPATCHREGIONSUM = BySettlementDate(
-            config=config,
             table_name="DISPATCHREGIONSUM",
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
             schema_class=DispatchRegionSumSchema,
         )
         self.DISPATCHLOAD = BySettlementDate(
-            config=config,
             table_name="DISPATCHLOAD",
             table_primary_keys=["SETTLEMENTDATE", "DUID"],
             schema_class=DispatchLoadSchema,
         )
         self.DISPATCHPRICE = BySettlementDate(
-            config=config,
             table_name="DISPATCHPRICE",
             table_primary_keys=["SETTLEMENTDATE", "REGIONID"],
             schema_class=DispatchPriceSchema,
         )
         self.DUDETAILSUMMARY = ByStartEnd(
-            config=config,
             table_name="DUDETAILSUMMARY",
             table_primary_keys=["END_DATE", "REGIONID", "DUID"],
             schema_class=DUDETAILSUMMARYSchema,
         )
         self.DUDETAIL = ByEffectiveDateVersionNo(
-            config=config,
             table_name="DUDETAIL",
             table_primary_keys=["DUID", "VERSIONNO"],
             schema_class=DUDETAILSchema,
         )
         self.PARTICIPANT = DataSource(
-            config=config,
             table_name="PARTICIPANT",
             table_primary_keys=["PARTICIPANTID", "LASTCHANGED"],
             schema_class=PARTICIPANTSchema,
         )
         self.STATION = DataSource(
-            config=config,
             table_name="STATION",
             table_primary_keys=["STATIONID"],
             schema_class=STATIONSchema,
         )
         self.STATIONOPERATINGSTATUS = DataSource(
-            config=config,
             table_name="STATIONOPERATINGSTATUS",
             table_primary_keys=["STATIONID", "EFFECTIVEDATE"],
             schema_class=STATIONOPERATINGSTATUSSchema,
         )
         self.STATIONOWNER = DataSource(
-            config=config,
             table_name="STATIONOWNER",
             table_primary_keys=["STATIONID", "EFFECTIVEDATE"],
             schema_class=STATIONOWNERSchema,
         )
         self.STADUALLOC = DataSource(
-            config=config,
             table_name="STADUALLOC",
             table_primary_keys=["DUID", "EFFECTIVEDATE", "STATIONID", "VERSIONNO"],
             schema_class=STADUALLOCSchema,
         )
         self.BIDDAYOFFER_D = BySettlementDate(
-            config=config,
             table_name="BIDDAYOFFER_D",
             table_primary_keys=["SETTLEMENTDATE", "DUID", "VERSIONNO"],
             schema_class=BidDayOfferDSchema,
         )
         self.BIDPEROFFER_D = BySettlementDate(
-            config=config,
             table_name="BIDPEROFFER_D",
             table_primary_keys=["SETTLEMENTDATE", "DUID", "INTERVAL_DATETIME"],
             low_memory=True,
             schema_class=BidPerOfferDSchema,
         )
         self.DISPATCHCONSTRAINT = BySettlementDate(
-            config=config,
             table_name="DISPATCHCONSTRAINT",
             table_primary_keys=["SETTLEMENTDATE", "CONSTRAINTID"],
             schema_class=DispatchConstraintSchema,
         )
         self.GENCONDATA = ByEffectiveDateVersionNo(
-            config=config,
             table_name="GENCONDATA",
             table_primary_keys=["GENCONID", "EFFECTIVEDATE", "VERSIONNO"],
             schema_class=GENCONDATASchema,
         )
         self.SPDREGIONCONSTRAINT = ByEffectiveDateVersionNo(
-            config=config,
             table_name="SPDREGIONCONSTRAINT",
             table_primary_keys=[
                 "REGIONID",
@@ -314,7 +292,6 @@ class NEMWEBManager:
             schema_class=SPDREGIONCONSTRAINTSchema,
         )
         self.SPDCONNECTIONPOINTCONSTRAINT = ByEffectiveDateVersionNo(
-            config=config,
             table_name="SPDCONNECTIONPOINTCONSTRAINT",
             table_primary_keys=[
                 "CONNECTIONPOINTID",
@@ -326,7 +303,6 @@ class NEMWEBManager:
             schema_class=SPDCONNECTIONPOINTCONSTRAINTSchema,
         )
         self.SPDINTERCONNECTORCONSTRAINT = ByEffectiveDateVersionNo(
-            config=config,
             table_name="SPDINTERCONNECTORCONSTRAINT",
             table_primary_keys=[
                 "INTERCONNECTORID",
@@ -337,37 +313,31 @@ class NEMWEBManager:
             schema_class=SPDINTERCONNECTORCONSTRAINTSchema,
         )
         self.INTERCONNECTOR = ByEffectiveDateVersionNo(
-            config=config,
             table_name="INTERCONNECTOR",
             table_primary_keys=["INTERCONNECTORID"],
             schema_class=INTERCONNECTORSchema,
         )
         self.INTERCONNECTORCONSTRAINT = ByEffectiveDateVersionNo(
-            config=config,
             table_name="INTERCONNECTORCONSTRAINT",
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
             schema_class=INTERCONNECTORCONSTRAINTSchema,
         )
         self.LOSSMODEL = ByEffectiveDateVersionNo(
-            config=config,
             table_name="LOSSMODEL",
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
             schema_class=LOSSMODELSchema,
         )
         self.LOSSFACTORMODEL = ByEffectiveDateVersionNo(
-            config=config,
             table_name="LOSSFACTORMODEL",
             table_primary_keys=["INTERCONNECTORID", "EFFECTIVEDATE", "VERSIONNO"],
             schema_class=LOSSFACTORMODELSchema,
         )
         self.DISPATCHINTERCONNECTORRES = BySettlementDate(
-            config=config,
             table_name="DISPATCHINTERCONNECTORRES",
             table_primary_keys=["INTERCONNECTORID", "SETTLEMENTDATE"],
             schema_class=DispatchInterconnectorResSchema,
         )
         self.MNSP_INTERCONNECTOR = ByEffectiveDateVersionNo(
-            config=config,
             table_name="MNSP_INTERCONNECTOR",
             table_primary_keys=[
                 "INTERCONNECTORID",
@@ -379,7 +349,7 @@ class NEMWEBManager:
         )
 
     def __repr__(self):
-        source = self.config.CACHE_DIR
+        source = config.cache_dir
         return "\n".join(
             (
                 f"DBManager at {source}, with tables:",
@@ -639,7 +609,6 @@ class DataSource:
     caching, and accessing data.
 
     Args:
-        config (Config): The configuration object.
         table_name (str): The name of the table.
         schema_class: Pandera DataFrameModel schema for this table.
         table_primary_keys (list[str], optional): A list of primary key
@@ -652,7 +621,6 @@ class DataSource:
 
     def __init__(
         self,
-        config: Config,
         table_name: str,
         schema_class: type[pa_polars.DataFrameModel],
         table_primary_keys: list[str] | None = None,
@@ -662,14 +630,12 @@ class DataSource:
         """Creates a parquet dataset.
 
         Args:
-            config: Configuration class for cache and filesystem settings
             table_name: Name of the table (used as subdirectory in cache)
             schema_class: Pandera DataFrameModel schema for this table (defines columns and types)
             table_primary_keys: Optional list of primary key column names
             add_partitions: Optional list of additional partition columns
             low_memory: Whether to use lower memory mode for reading
         """
-        self.config = config
         self.table_name = table_name
         self.schema_class = schema_class
         # Derive table_columns from schema
@@ -682,9 +648,9 @@ class DataSource:
         )
         self.low_memory = low_memory
 
-        self.path = f"{config.CACHE_DIR}/{table_name}/"
-        self.fs = fsspec.filesystem(config.FILESYSTEM)
-        self.fs.makedirs(f"{config.CACHE_DIR}/{table_name}", exist_ok=True)
+        self.path = f"{config.cache_dir}/{table_name}/"
+        self.fs = fsspec.filesystem(config.filesystem)
+        self.fs.makedirs(f"{config.cache_dir}/{table_name}", exist_ok=True)
 
     def scan(self, *args, **kwargs) -> pl.LazyFrame:
         """Scans the parquet dataset with polars.

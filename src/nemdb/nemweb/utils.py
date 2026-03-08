@@ -3,7 +3,7 @@ from time import sleep
 
 import requests
 
-from nemdb import Config
+from nemdb.config import config
 from nemdb.logger import log as logger
 
 
@@ -66,7 +66,7 @@ def cache_response_zip(url: str) -> str:
         ValueError: If the file fails to download.
     """
     base_name = Path(url).name
-    path = Path(Config.TEMP_DIR) / base_name
+    path = Path(config.temp_dir) / base_name
     if path.exists():
         logger.info("reading from cache: %s", path)
         return str(path)

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import polars as pl
 
-from nemdb import Config
+from nemdb.config import config
 
 RENAME = {
     "state": "state",
@@ -31,7 +31,7 @@ def _read_rename(file, method):
     return df
 
 
-DIR = Path(Config.CACHE_DIR) / "DER_REGISTER"
+DIR = Path(config.cache_dir) / "DER_REGISTER"
 csv_files = [str(f) for f in DIR.iterdir() if f.suffix == ".csv"]
 xlsx_files = [str(f) for f in DIR.iterdir() if f.suffix == ".xlsx"]
 

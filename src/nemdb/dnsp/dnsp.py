@@ -5,7 +5,7 @@ import pandas as pd
 import polars as pl
 from tqdm import tqdm
 
-from nemdb import log
+from nemdb.config import config
 from nemdb.dnsp import (
     ausgrid,
     cppal,
@@ -18,6 +18,7 @@ from nemdb.dnsp import (
     tasnetworks,
     united_energy,
 )
+from nemdb.logger import log
 
 
 def read_all_zss(year: int):
@@ -45,7 +46,6 @@ def read_all_zss(year: int):
 class DNSPDataSource:
     def __init__(
         self,
-        config,
         table_name,
         table_columns,
         table_primary_keys=None,
@@ -55,16 +55,15 @@ class DNSPDataSource:
         """
         Creates a parquet dataset
         """
-        self.config = config
         self.table_name = table_name
         self.table_columns = table_columns
         self.table_primary_keys = table_primary_keys
         self.partitions = [*add_partitions, "year"] if add_partitions else ["year"]
         self.low_memory = False
 
-        self.path = f"{config.CACHE_DIR}/{table_name}"
-        self.fs = fsspec.filesystem(config.FILESYSTEM)
-        self.fs.makedirs(f"{config.CACHE_DIR}/{table_name}", exist_ok=True)
+        self.path = f"{config.cache_dir}/{table_name}"
+        self.fs = fsspec.filesystem(config.filesystem)
+        self.fs.makedirs(f"{config.cache_dir}/{table_name}", exist_ok=True)
 
     def scan(self, *args, **kwargs):
         """scans the parquet dataset with polars"""

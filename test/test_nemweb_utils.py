@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import polars as pl
 import pytest
 
-from nemdb import Config
+from nemdb.config import config
 from nemdb.nemweb.utils import cache_response_zip, retry
 from nemdb.utils import cache_to_parquet
 
@@ -12,8 +12,10 @@ from nemdb.utils import cache_to_parquet
 @pytest.fixture
 def temp_dir(tmp_path):
     """Create a temporary directory for testing."""
-    Config.TEMP_DIR = Path(tmp_path)
-    return tmp_path
+    original_temp_dir = config.temp_dir
+    config.temp_dir = Path(tmp_path)
+    yield tmp_path
+    config.temp_dir = original_temp_dir
 
 
 def test_cache_response_zip_new_file(temp_dir):
