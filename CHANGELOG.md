@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-07
+
 ### Added
 
 - **ISP 2025 Sheet Extraction** (`src/nemdb/isp/isp2025.py`): Full extraction layer for
@@ -52,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   into logical groups for improved readability
 - **`isp2025.py` parsing improvements**: refined column type handling and parsing logic across
   multiple sheet types
+- **Doc fix**: removed stale `config` parameter from `DataSource` docstrings after config
+  singleton refactor
 
 ## [0.3.0] - 2026-02-25
 

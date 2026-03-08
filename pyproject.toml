@@ -1,6 +1,6 @@
 [project]
 name = "nemdb"
-version = "0.1.0"
+version = "0.4.0"
 description = "Utilities to process NEMWEB data"
 readme = "README.md"
 requires-python = ">=3.13"
