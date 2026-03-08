@@ -609,7 +609,6 @@ class DataSource:
     caching, and accessing data.
 
     Args:
-        config (Config): The configuration object.
         table_name (str): The name of the table.
         schema_class: Pandera DataFrameModel schema for this table.
         table_primary_keys (list[str], optional): A list of primary key
@@ -631,7 +630,6 @@ class DataSource:
         """Creates a parquet dataset.
 
         Args:
-            config: Configuration class for cache and filesystem settings
             table_name: Name of the table (used as subdirectory in cache)
             schema_class: Pandera DataFrameModel schema for this table (defines columns and types)
             table_primary_keys: Optional list of primary key column names
