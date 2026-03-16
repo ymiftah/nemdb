@@ -28,6 +28,7 @@ from nemdb.nemweb.schemas import (
     DispatchLoadSchema,
     DispatchPriceSchema,
     DispatchRegionSumSchema,
+    DispatchUnitScadaSchema,
     DUALLOCSchema,
     DUDETAILSchema,
     DUDETAILSUMMARYSchema,
@@ -164,6 +165,7 @@ class NEMWEBManager:
             "DISPATCHLOAD",
             "DISPATCHREGIONSUM",
             "DISPATCHPRICE",
+            "DISPATCH_UNIT_SCADA",
             "DUDETAILSUMMARY",
             "DUDETAIL",
             "DUALLOC",
@@ -336,6 +338,11 @@ class NEMWEBManager:
             table_name="DISPATCHINTERCONNECTORRES",
             table_primary_keys=["INTERCONNECTORID", "SETTLEMENTDATE"],
             schema_class=DispatchInterconnectorResSchema,
+        )
+        self.DISPATCH_UNIT_SCADA = BySettlementDate(
+            table_name="DISPATCH_UNIT_SCADA",
+            table_primary_keys=["SETTLEMENTDATE", "DUID"],
+            schema_class=DispatchUnitScadaSchema,
         )
         self.MNSP_INTERCONNECTOR = ByEffectiveDateVersionNo(
             table_name="MNSP_INTERCONNECTOR",
