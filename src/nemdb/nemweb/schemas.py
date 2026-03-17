@@ -479,6 +479,7 @@ class GENCONDATASchema(BasePartitionedSchema):
     VERSIONNO: pl.Int32 = Field(nullable=False)
     CONSTRAINTTYPE: pl.Categorical | None = Field(nullable=True)
     GENERICCONSTRAINTWEIGHT: pl.Float32 | None = Field(nullable=True)
+    DESCRIPTION: pl.String | None = Field(nullable=True)
 
 
 class SPDREGIONCONSTRAINTSchema(BasePartitionedSchema):
