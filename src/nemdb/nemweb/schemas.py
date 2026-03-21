@@ -73,6 +73,7 @@ class DispatchLoadSchema(BasePartitionedSchema):
     DUID: pl.Categorical = Field(nullable=False)
     DISPATCHMODE: pl.Int8 | None = Field(nullable=True)
     AGCSTATUS: pl.Int8 | None = Field(nullable=True)
+    INTERVENTION: pl.Float32 | None = Field(nullable=True)
     INITIALMW: pl.Float32 | None = Field(nullable=True)
     TOTALCLEARED: pl.Float32 | None = Field(nullable=True)
     RAMPDOWNRATE: pl.Float32 | None = Field(nullable=True)
@@ -121,17 +122,32 @@ class DispatchPriceSchema(BasePartitionedSchema):
     LOWER60SECROP: pl.Float32 | None = Field(nullable=True)
     LOWER5MINROP: pl.Float32 | None = Field(nullable=True)
     LOWERREGROP: pl.Float32 | None = Field(nullable=True)
+    # FCAS Regional Reference Prices (clearing prices per service)
+    RAISE6SECRRP: pl.Float32 | None = Field(nullable=True)
+    RAISE1SECRRP: pl.Float32 | None = Field(nullable=True)
+    RAISE60SECRRP: pl.Float32 | None = Field(nullable=True)
+    RAISE5MINRRP: pl.Float32 | None = Field(nullable=True)
+    RAISEREGRRP: pl.Float32 | None = Field(nullable=True)
+    LOWER6SECRRP: pl.Float32 | None = Field(nullable=True)
+    LOWER1SECRRP: pl.Float32 | None = Field(nullable=True)
+    LOWER60SECRRP: pl.Float32 | None = Field(nullable=True)
+    LOWER5MINRRP: pl.Float32 | None = Field(nullable=True)
+    LOWERREGRRP: pl.Float32 | None = Field(nullable=True)
+    # Intervention flag (0/1)
+    INTERVENTION: pl.Float32 | None = Field(nullable=True)
 
 
 class DispatchConstraintSchema(BasePartitionedSchema):
     """Dispatch constraint violations and marginal values."""
 
-    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
     CONSTRAINTID: pl.Categorical = Field(nullable=False)
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
     DUID: pl.Categorical | None = Field(nullable=True)
-    RHS: pl.Float32 | None = Field(nullable=True)
+    INTERVENTION: pl.Float32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Date = Field(nullable=False)
     GENCONID_EFFECTIVEDATE: pl.Date | None = Field(nullable=True)
     GENCONID_VERSIONNO: pl.Int32 | None = Field(nullable=True)
+    RHS: pl.Float32 | None = Field(nullable=True)
     LHS: pl.Float32 | None = Field(nullable=True)
     VIOLATIONDEGREE: pl.Float32 | None = Field(nullable=True)
     MARGINALVALUE: pl.Float32 | None = Field(nullable=True)
@@ -146,6 +162,14 @@ class DispatchInterconnectorResSchema(BasePartitionedSchema):
     MWLOSSES: pl.Float32 | None = Field(nullable=True)
     EXPORTLIMIT: pl.Float32 | None = Field(nullable=True)
     IMPORTLIMIT: pl.Float32 | None = Field(nullable=True)
+
+
+class DispatchUnitScadaSchema(BasePartitionedSchema):
+    """Actual SCADA MW readings per DUID per dispatch interval."""
+
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    DUID: pl.Categorical = Field(nullable=False)
+    SCADAVALUE: pl.Float32 | None = Field(nullable=True)
 
 
 # Bid Tables
@@ -455,6 +479,7 @@ class GENCONDATASchema(BasePartitionedSchema):
     VERSIONNO: pl.Int32 = Field(nullable=False)
     CONSTRAINTTYPE: pl.Categorical | None = Field(nullable=True)
     GENERICCONSTRAINTWEIGHT: pl.Float32 | None = Field(nullable=True)
+    DESCRIPTION: pl.String | None = Field(nullable=True)
 
 
 class SPDREGIONCONSTRAINTSchema(BasePartitionedSchema):
@@ -515,6 +540,7 @@ SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
     "DISPATCHPRICE": DispatchPriceSchema,
     "DISPATCHCONSTRAINT": DispatchConstraintSchema,
     "DISPATCHINTERCONNECTORRES": DispatchInterconnectorResSchema,
+    "DISPATCH_UNIT_SCADA": DispatchUnitScadaSchema,
     # Bid Tables
     "BIDDAYOFFER_D": BidDayOfferDSchema,
     "BIDPEROFFER_D": BidPerOfferDSchema,
