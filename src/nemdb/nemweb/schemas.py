@@ -514,6 +514,54 @@ class SPDINTERCONNECTORCONSTRAINTSchema(BasePartitionedSchema):
     FACTOR: pl.Float32 | None = Field(nullable=True)
 
 
+class GENCONSETSchema(BasePartitionedSchema):
+    """Maps generic constraint sets to individual constraint equations (GENCONID)."""
+
+    GENCONSETID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    GENCONID: pl.Categorical = Field(nullable=False)
+    LASTCHANGED: pl.Date | None = Field(nullable=True)
+
+
+class GENCONSETINVOKESchema(BasePartitionedSchema):
+    """Active constraint set invocations with start/end interval datetime windows.
+
+    THE key table for determining which constraints are active per dispatch interval.
+    Filter: STARTAUTHORISEDBY IS NOT NULL (non-null = active invocation).
+    """
+
+    INVOCATION_ID: pl.Int64 = Field(nullable=False)
+    STARTDATE: pl.Date | None = Field(nullable=True)
+    STARTPERIOD: pl.Int32 | None = Field(nullable=True)
+    GENCONSETID: pl.Categorical | None = Field(nullable=True)
+    ENDDATE: pl.Date | None = Field(nullable=True)
+    ENDPERIOD: pl.Int32 | None = Field(nullable=True)
+    STARTAUTHORISEDBY: pl.Utf8 | None = Field(nullable=True)
+    ENDAUTHORISEDBY: pl.Utf8 | None = Field(nullable=True)
+    INTERVENTION: pl.Utf8 | None = Field(nullable=True)
+    ASCONSTRAINTTYPE: pl.Utf8 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
+    STARTINTERVALDATETIME: pl.Datetime | None = Field(nullable=True)
+    ENDINTERVALDATETIME: pl.Datetime | None = Field(nullable=True)
+    SYSTEMNORMAL: pl.Utf8 | None = Field(nullable=True)
+
+
+class GENCONSETTRKSchema(BasePartitionedSchema):
+    """Constraint set version tracking — helps resolve the correct version in GENCONSETINVOKE."""
+
+    GENCONSETID: pl.Categorical = Field(nullable=False)
+    EFFECTIVEDATE: pl.Date = Field(nullable=False)
+    VERSIONNO: pl.Int32 = Field(nullable=False)
+    DESCRIPTION: pl.Utf8 | None = Field(nullable=True)
+    AUTHORISEDBY: pl.Utf8 | None = Field(nullable=True)
+    AUTHORISEDDATE: pl.Date | None = Field(nullable=True)
+    LASTCHANGED: pl.Date | None = Field(nullable=True)
+    COVERAGE: pl.Utf8 | None = Field(nullable=True)
+    SYSTEMNORMAL: pl.Utf8 | None = Field(nullable=True)
+    OUTAGE: pl.Utf8 | None = Field(nullable=True)
+
+
 # DNSP Tables (Not in standard DTYPES)
 # ====================================
 # Note: ZONE_SUBSTATION uses DNSP-specific columns not in DTYPES.
@@ -568,6 +616,9 @@ SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
     "SPDREGIONCONSTRAINT": SPDREGIONCONSTRAINTSchema,
     "SPDCONNECTIONPOINTCONSTRAINT": SPDCONNECTIONPOINTCONSTRAINTSchema,
     "SPDINTERCONNECTORCONSTRAINT": SPDINTERCONNECTORCONSTRAINTSchema,
+    "GENCONSET": GENCONSETSchema,
+    "GENCONSETINVOKE": GENCONSETINVOKESchema,
+    "GENCONSETTRK": GENCONSETTRKSchema,
     # DNSP Tables
     "ZONE_SUBSTATION": ZONESUBSTATIONSchema,
 }

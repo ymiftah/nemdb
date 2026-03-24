@@ -33,6 +33,9 @@ from nemdb.nemweb.schemas import (
     DUDETAILSchema,
     DUDETAILSUMMARYSchema,
     GENCONDATASchema,
+    GENCONSETINVOKESchema,
+    GENCONSETSchema,
+    GENCONSETTRKSchema,
     GENUNITSSchema,
     INTERCONNECTORCONSTRAINTSchema,
     INTERCONNECTORSchema,
@@ -178,6 +181,9 @@ class NEMWEBManager:
             "SPDREGIONCONSTRAINT",
             "SPDCONNECTIONPOINTCONSTRAINT",
             "SPDINTERCONNECTORCONSTRAINT",
+            "GENCONSET",
+            "GENCONSETINVOKE",
+            "GENCONSETTRK",
             "PARTICIPANT",
             "STATION",
             "STATIONOPERATINGSTATUS",
@@ -313,6 +319,23 @@ class NEMWEBManager:
                 "VERSIONNO",
             ],
             schema_class=SPDINTERCONNECTORCONSTRAINTSchema,
+        )
+        self.GENCONSET = ByEffectiveDateVersionNo(
+            table_name="GENCONSET",
+            table_primary_keys=["GENCONSETID", "EFFECTIVEDATE", "VERSIONNO", "GENCONID"],
+            schema_class=GENCONSETSchema,
+        )
+        # GENCONSETINVOKE is keyed by INVOCATION_ID (no EFFECTIVEDATE/VERSIONNO).
+        # Use base DataSource so .scan() works; nemo pipeline never calls .get_data().
+        self.GENCONSETINVOKE = DataSource(
+            table_name="GENCONSETINVOKE",
+            table_primary_keys=["INVOCATION_ID"],
+            schema_class=GENCONSETINVOKESchema,
+        )
+        self.GENCONSETTRK = ByEffectiveDateVersionNo(
+            table_name="GENCONSETTRK",
+            table_primary_keys=["GENCONSETID", "EFFECTIVEDATE", "VERSIONNO"],
+            schema_class=GENCONSETTRKSchema,
         )
         self.INTERCONNECTOR = ByEffectiveDateVersionNo(
             table_name="INTERCONNECTOR",
