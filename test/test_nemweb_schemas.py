@@ -201,7 +201,7 @@ def test_sample_dispatch_region_sum_data():
 
 def test_schema_map_exists_and_is_complete():
     """Test that SCHEMA_MAP registry exists and contains all 28 schemas."""
-    # Should have 28 entries
+    # Should have 31 entries
     assert len(SCHEMA_MAP) == 31, f"SCHEMA_MAP has {len(SCHEMA_MAP)} entries, expected 31"
 
     # All values should be schema classes
