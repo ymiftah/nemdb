@@ -23,6 +23,9 @@ from nemdb.nemweb.schemas import (
     DUDETAILSchema,
     DUDETAILSUMMARYSchema,
     GENCONDATASchema,
+    GENCONSETINVOKESchema,
+    GENCONSETSchema,
+    GENCONSETTRKSchema,
     GENUNITSSchema,
     INTERCONNECTORCONSTRAINTSchema,
     INTERCONNECTORSchema,
@@ -111,8 +114,31 @@ def test_constraint_schemas_fields():
     assert "FACTOR" in spdregion_fields
 
 
+def test_gencon_invocation_schemas_fields():
+    """Verify GENERIC_CONSTRAINT invocation schemas have expected fields."""
+    genconset_fields = GENCONSETSchema.empty().columns
+    assert "GENCONSETID" in genconset_fields
+    assert "GENCONID" in genconset_fields
+    assert "EFFECTIVEDATE" in genconset_fields
+    assert "VERSIONNO" in genconset_fields
+
+    invoke_fields = GENCONSETINVOKESchema.empty().columns
+    assert "INVOCATION_ID" in invoke_fields
+    assert "STARTAUTHORISEDBY" in invoke_fields
+    assert "ASCONSTRAINTTYPE" in invoke_fields
+    assert "SYSTEMNORMAL" in invoke_fields
+    assert "INTERVENTION" in invoke_fields
+    assert "STARTINTERVALDATETIME" in invoke_fields
+    assert "ENDINTERVALDATETIME" in invoke_fields
+
+    trk_fields = GENCONSETTRKSchema.empty().columns
+    assert "GENCONSETID" in trk_fields
+    assert "SYSTEMNORMAL" in trk_fields
+    assert "OUTAGE" in trk_fields
+
+
 def test_all_schemas_have_fields():
-    """Test that all 26 schema classes have defined fields."""
+    """Test that all schema classes have defined fields."""
     schemas = [
         DispatchRegionSumSchema,
         DispatchLoadSchema,
@@ -141,8 +167,11 @@ def test_all_schemas_have_fields():
         SPDCONNECTIONPOINTCONSTRAINTSchema,
         SPDINTERCONNECTORCONSTRAINTSchema,
         ZONESUBSTATIONSchema,
+        GENCONSETSchema,
+        GENCONSETINVOKESchema,
+        GENCONSETTRKSchema,
     ]
-    assert len(schemas) == 27
+    assert len(schemas) == 30
     for schema_class in schemas:
         assert hasattr(schema_class, "__fields__")
         assert len(schema_class.empty().columns) > 0
@@ -172,8 +201,8 @@ def test_sample_dispatch_region_sum_data():
 
 def test_schema_map_exists_and_is_complete():
     """Test that SCHEMA_MAP registry exists and contains all 28 schemas."""
-    # Should have 28 entries
-    assert len(SCHEMA_MAP) == 28, f"SCHEMA_MAP has {len(SCHEMA_MAP)} entries, expected 28"
+    # Should have 31 entries
+    assert len(SCHEMA_MAP) == 31, f"SCHEMA_MAP has {len(SCHEMA_MAP)} entries, expected 31"
 
     # All values should be schema classes
     for table_name, schema_class in SCHEMA_MAP.items():
