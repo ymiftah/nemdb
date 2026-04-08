@@ -14,7 +14,7 @@ dependencies = [
     "joblib>=1.5.2",
     "networkx>=3.6",
     "numpy>=2.2.1",
-    "openelectricity>=0.9.2",
+    "openelectricity==0.10.1",
     "pandas>=2.2.3",
     "pandera>=0.26.1",
     "polars>=1.35",
@@ -31,7 +31,7 @@ populate = "nemdb:main.populate"
 
 [project.optional-dependencies]
 grid = [
-    "pandapower>=3.3.2",
+    "pandapower==3.4.0",
     "scikit-learn>=1.7.2",
 ]
 viz = [
@@ -153,8 +153,6 @@ constraint-dependencies = [
     "virtualenv>=20.36.1",
 ]
 
-[tool.uv.sources]
-openelectricity = { git = "https://github.com/opennem/openelectricity-python", tag = "v0.9.3" }
 
 [tool.bandit]
 exclude_dirs = ["test", "notebooks", ".venv"]
