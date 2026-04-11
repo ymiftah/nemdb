@@ -21,7 +21,7 @@ dependencies = [
     "pyarrow>=22.0.0",
     "requests>=2.32.3",
     "structlog>=25.1.0",
-    "pooch>=1.8.0",
+    "pooch>=1.9.0",
     "pydantic-settings>=2.0",
     "tqdm>=4.67.1",
 ]
