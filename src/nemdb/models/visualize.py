@@ -94,6 +94,37 @@ def _compute_island_assignment(lines_df: pd.DataFrame) -> dict[str, int]:
     return {bus: idx for idx, component in enumerate(components) for bus in component}
 
 
+def _apply_map_layout(
+    fig: go.Figure,
+    mapbox_style: str,
+    center_lat: float,
+    center_lon: float,
+    zoom: int,
+    height: int,
+    title: str,
+) -> None:
+    """Apply standard map layout settings to a figure."""
+    fig.update_layout(
+        title=title,
+        mapbox={
+            "style": mapbox_style,
+            "center": {"lat": center_lat, "lon": center_lon},
+            "zoom": zoom,
+        },
+        height=height,
+        margin={"l": 0, "r": 0, "t": 40, "b": 0},
+        hovermode="closest",
+        showlegend=True,
+        legend={
+            "x": 0.01,
+            "y": 0.99,
+            "bgcolor": "rgba(255, 255, 255, 0.8)",
+            "bordercolor": "rgba(0, 0, 0, 0.2)",
+            "borderwidth": 1,
+        },
+    )
+
+
 def visualize_network(
     model: dict,
     *,
@@ -173,26 +204,7 @@ def visualize_network(
     if show_generators and not gens_df.empty:
         _add_generators_to_figure(fig, gens_df)
 
-    # Update layout with map configuration
-    fig.update_layout(
-        title=title,
-        mapbox={
-            "style": mapbox_style,
-            "center": {"lat": center_lat, "lon": center_lon},
-            "zoom": zoom,
-        },
-        height=height,
-        margin={"l": 0, "r": 0, "t": 40, "b": 0},
-        hovermode="closest",
-        showlegend=True,
-        legend={
-            "x": 0.01,
-            "y": 0.99,
-            "bgcolor": "rgba(255, 255, 255, 0.8)",
-            "bordercolor": "rgba(0, 0, 0, 0.2)",
-            "borderwidth": 1,
-        },
-    )
+    _apply_map_layout(fig, mapbox_style, center_lat, center_lon, zoom, height, title)
 
     return fig
 
@@ -566,3 +578,412 @@ def _add_generators_to_figure(fig: go.Figure, gens_df: pd.DataFrame) -> None:
                 legendgroup="generators",
             )
         )
+
+
+def _add_island_lines(
+    fig: go.Figure,
+    lines_df: pd.DataFrame,
+    island_name: str,
+    color: str,
+    show_legend: bool,
+) -> bool:
+    """Add all lines for one island as a single trace. Returns True if a trace was added."""
+    lats_list: list[float | None] = []
+    lons_list: list[float | None] = []
+    hover_text: list[str | None] = []
+
+    for _, row in lines_df.iterrows():
+        geodata = row.get("geodata")
+        if geodata is None or (isinstance(geodata, float) and pd.isna(geodata)):
+            continue
+        try:
+            coords = list(geodata)
+        except (TypeError, ValueError):
+            continue
+        if not coords:
+            continue
+
+        lons = [c[0] for c in coords]
+        lats = [c[1] for c in coords]
+        lats_list.extend([*lats, None])
+        lons_list.extend([*lons, None])
+
+        name = row.get("name", "Unknown")
+        voltage = row.get("voltagekv", 0)
+        length = row.get("length_km", 0)
+        from_bus = row.get("from_bus", "")
+        to_bus = row.get("to_bus", "")
+        cls = row.get("class", "")
+        in_svc = row.get("in_service", True)
+        text = (
+            f"<b>{name}</b><br>"
+            f"From Bus: {from_bus}<br>"
+            f"To Bus: {to_bus}<br>"
+            f"Length: {length:.2f} km<br>"
+            f"Voltage: {voltage} kV<br>"
+            f"Class: {cls}<br>"
+            f"In Service: {in_svc}"
+        )
+        hover_text.extend([text] * len(lats) + [None])
+
+    if not lats_list:
+        return False
+
+    fig.add_trace(
+        go.Scattermap(
+            lon=lons_list,
+            lat=lats_list,
+            mode="lines",
+            name=island_name,
+            line={"width": 1.5, "color": color},
+            hovertext=hover_text,
+            hoverinfo="text",
+            showlegend=show_legend,
+            legendgroup=island_name,
+        )
+    )
+    return True
+
+
+def _add_island_buses(
+    fig: go.Figure,
+    buses_df: pd.DataFrame,
+    island_name: str,
+    color: str,
+    show_legend: bool,
+) -> bool:
+    """Add all buses for one island as a single trace. Returns True if a trace was added."""
+    lats: list[float] = []
+    lons: list[float] = []
+    hover_text: list[str] = []
+
+    for _, row in buses_df.iterrows():
+        geodata = row.get("geodata")
+        if geodata is None or (isinstance(geodata, float) and pd.isna(geodata)):
+            continue
+        try:
+            lon = geodata.x
+            lat = geodata.y
+        except AttributeError:
+            continue
+        lats.append(lat)
+        lons.append(lon)
+        bus_id = row.get("bus_id", "Unknown")
+        vn_kv = row.get("vn_kv", 0)
+        in_svc = row.get("in_service", True)
+        hover_text.append(f"<b>{bus_id}</b><br>Voltage: {vn_kv} kV<br>In Service: {in_svc}")
+
+    if not lats:
+        return False
+
+    fig.add_trace(
+        go.Scattermap(
+            lon=lons,
+            lat=lats,
+            mode="markers",
+            marker={"size": 5, "color": color, "opacity": 0.7},
+            name=island_name,
+            hovertext=hover_text,
+            hoverinfo="text",
+            showlegend=show_legend,
+            legendgroup=island_name,
+        )
+    )
+    return True
+
+
+def _add_island_trafos(
+    fig: go.Figure,
+    trafos_df: pd.DataFrame,
+    buses_df: pd.DataFrame,
+    island_name: str,
+    color: str,
+    show_legend: bool,
+) -> bool:
+    """Add all transformers for one island as a single trace. Returns True if a trace was added."""
+    bus_locations: dict[str, tuple[float, float]] = {}
+    for _, row in buses_df.iterrows():
+        geodata = row.get("geodata")
+        if geodata is None or (isinstance(geodata, float) and pd.isna(geodata)):
+            continue
+        bus_id = row.get("bus_id")
+        if not isinstance(bus_id, str):
+            continue
+        try:
+            bus_locations[bus_id] = (geodata.x, geodata.y)
+        except AttributeError:
+            continue
+
+    lats: list[float] = []
+    lons: list[float] = []
+    hover_text: list[str] = []
+
+    for _, row in trafos_df.iterrows():
+        hv_bus = row.get("hv_bus")
+        lv_bus = row.get("lv_bus")
+        if hv_bus not in bus_locations or lv_bus not in bus_locations:
+            continue
+        hv_lon, hv_lat = bus_locations[hv_bus]
+        lv_lon, lv_lat = bus_locations[lv_bus]
+        lons.append((hv_lon + lv_lon) / 2)
+        lats.append((hv_lat + lv_lat) / 2)
+        name = row.get("name", "Unknown Trafo")
+        sn_mva = row.get("sn_mva", 0)
+        vk_pct = row.get("vk_percent", 0)
+        vkr_pct = row.get("vkr_percent", 0)
+        in_svc = row.get("in_service", True)
+        hover_text.append(
+            f"<b>{name}</b><br>"
+            f"HV Bus: {hv_bus}<br>"
+            f"LV Bus: {lv_bus}<br>"
+            f"Power Rating (MVA): {sn_mva:.0f}<br>"
+            f"Impedance (Vk %): {vk_pct:.2f}%<br>"
+            f"Resistance (Vkr %): {vkr_pct:.2f}%<br>"
+            f"In Service: {in_svc}"
+        )
+
+    if not lats:
+        return False
+
+    fig.add_trace(
+        go.Scattermap(
+            lon=lons,
+            lat=lats,
+            mode="markers",
+            marker={"size": 8, "color": color, "symbol": "star", "opacity": 0.8},
+            name=island_name,
+            hovertext=hover_text,
+            hoverinfo="text",
+            showlegend=show_legend,
+            legendgroup=island_name,
+        )
+    )
+    return True
+
+
+def _add_island_loads(
+    fig: go.Figure,
+    loads_df: pd.DataFrame,
+    island_name: str,
+    color: str,
+    show_legend: bool,
+) -> bool:
+    """Add all loads for one island as a single trace. Returns True if a trace was added."""
+    lats: list[float] = []
+    lons: list[float] = []
+    hover_text: list[str] = []
+
+    for _, row in loads_df.iterrows():
+        geodata = row.get("geodata")
+        if geodata is None or (isinstance(geodata, float) and pd.isna(geodata)):
+            continue
+        try:
+            lon = geodata.x
+            lat = geodata.y
+        except AttributeError:
+            continue
+        lats.append(lat)
+        lons.append(lon)
+        name = row.get("name", "Unknown")
+        ltype = row.get("type", "")
+        voltage = row.get("vn_kv", 0)
+        locality = row.get("locality", "")
+        state = row.get("state", "")
+        in_svc = row.get("in_service", True)
+        hover_text.append(
+            f"<b>{name}</b><br>"
+            f"Type: {ltype}<br>"
+            f"Voltage: {voltage} kV<br>"
+            f"Locality: {locality}<br>"
+            f"State: {state}<br>"
+            f"In Service: {in_svc}"
+        )
+
+    if not lats:
+        return False
+
+    fig.add_trace(
+        go.Scattermap(
+            lon=lons,
+            lat=lats,
+            mode="markers",
+            marker={"size": 4, "color": color, "symbol": "triangle-down", "opacity": 0.6},
+            name=island_name,
+            hovertext=hover_text,
+            hoverinfo="text",
+            showlegend=show_legend,
+            legendgroup=island_name,
+        )
+    )
+    return True
+
+
+def _add_island_gens(
+    fig: go.Figure,
+    gens_df: pd.DataFrame,
+    island_name: str,
+    color: str,
+    show_legend: bool,
+) -> bool:
+    """Add all generators for one island as a single trace. Returns True if a trace was added."""
+    lats: list[float] = []
+    lons: list[float] = []
+    sizes: list[float] = []
+    hover_text: list[str] = []
+
+    fuel_type_col = "type" if "type" in gens_df.columns else "fueltype"
+
+    for _, row in gens_df.iterrows():
+        geodata = row.get("geodata")
+        if geodata is None or (isinstance(geodata, float) and pd.isna(geodata)):
+            continue
+        try:
+            lon = geodata.x
+            lat = geodata.y
+        except AttributeError:
+            continue
+        lats.append(lat)
+        lons.append(lon)
+        cap = row.get("max_p_mw", 0)
+        sizes.append(max(5, min(20, 5 + math.log10(max(1, cap)) * 3)))
+        name = row.get("name", "Unknown")
+        fuel_type = row.get(fuel_type_col, "")
+        gtype = row.get("type", "")
+        p_mw = row.get("p_mw", 0)
+        owner = row.get("owner") or row.get("code") or "Unknown"
+        in_svc = row.get("in_service", True)
+        hover_text.append(
+            f"<b>{name}</b><br>"
+            f"Fuel Type: {fuel_type}<br>"
+            f"Type: {gtype}<br>"
+            f"Capacity: {cap:.0f} MW<br>"
+            f"Output: {p_mw:.0f} MW<br>"
+            f"Owner: {owner}<br>"
+            f"In Service: {in_svc}"
+        )
+
+    if not lats:
+        return False
+
+    fig.add_trace(
+        go.Scattermap(
+            lon=lons,
+            lat=lats,
+            mode="markers",
+            marker={"size": sizes, "color": color, "opacity": 0.8},
+            name=island_name,
+            hovertext=hover_text,
+            hoverinfo="text",
+            showlegend=show_legend,
+            legendgroup=island_name,
+        )
+    )
+    return True
+
+
+def visualize_islands(
+    model: dict,
+    *,
+    mapbox_style: str = "carto-positron",
+    height: int = 800,
+    center_lat: float = -27.0,
+    center_lon: float = 133.0,
+    zoom: int = 4,
+    title: str = "NEM Network Islands",
+) -> go.Figure:
+    """Create an interactive Plotly map visualization colored by network island.
+
+    Each connected component (island) in the transmission network is shown in a
+    distinct color. All element types (buses, lines, generators, loads,
+    transformers) share the same color per island. Clicking an island legend
+    entry toggles all of its elements.
+
+    Args:
+        model: Dict returned by get_pandapower_model() with keys:
+            - 'buses', 'lines', 'gens', 'loads', 'trafos'
+        mapbox_style: Carto style ('carto-positron', 'carto-darkmatter', 'open-street-map')
+        height: Map height in pixels
+        center_lat: Center latitude (default: Australia center)
+        center_lon: Center longitude (default: Australia center)
+        zoom: Initial zoom level (4 = Australia-wide view)
+        title: Figure title
+
+    Returns:
+        plotly.graph_objects.Figure: Interactive map with one legend entry per island.
+
+    Example:
+        >>> from nemdb.models.pandapower import get_pandapower_model
+        >>> from nemdb.models.visualize import visualize_islands
+        >>> model = get_pandapower_model()
+        >>> fig = visualize_islands(model)
+        >>> fig.show()
+    """
+    fig = go.Figure()
+
+    lines_df = model.get("lines", pd.DataFrame())
+    buses_df = model.get("buses", pd.DataFrame())
+    gens_df = model.get("gens", pd.DataFrame())
+    loads_df = model.get("loads", pd.DataFrame())
+    trafos_df = model.get("trafos", pd.DataFrame())
+
+    if not lines_df.empty:
+        bus_to_island = _compute_island_assignment(lines_df)
+
+        island_buses: dict[int, set[str]] = {}
+        for bus, island_idx in bus_to_island.items():
+            island_buses.setdefault(island_idx, set()).add(bus)
+
+        for island_idx in sorted(island_buses.keys()):
+            buses_in_island = island_buses[island_idx]
+            island_name = f"Island {island_idx + 1}"
+            color = _ISLAND_COLORS[island_idx % len(_ISLAND_COLORS)]
+            legend_added = False
+
+            island_lines_df = lines_df[lines_df["from_bus"].isin(buses_in_island)]
+            island_buses_df = (
+                buses_df[buses_df["bus_id"].isin(buses_in_island)]
+                if not buses_df.empty
+                else pd.DataFrame()
+            )
+            island_trafos_df = (
+                trafos_df[trafos_df["hv_bus"].isin(buses_in_island)]
+                if not trafos_df.empty
+                else pd.DataFrame()
+            )
+            island_loads_df = (
+                loads_df[loads_df["bus_id"].isin(buses_in_island)]
+                if not loads_df.empty
+                else pd.DataFrame()
+            )
+            island_gens_df = (
+                gens_df[gens_df["bus_id"].isin(buses_in_island)]
+                if not gens_df.empty
+                else pd.DataFrame()
+            )
+
+            if not island_lines_df.empty:
+                added = _add_island_lines(
+                    fig, island_lines_df, island_name, color, not legend_added
+                )
+                legend_added = legend_added or added
+            if not island_buses_df.empty:
+                added = _add_island_buses(
+                    fig, island_buses_df, island_name, color, not legend_added
+                )
+                legend_added = legend_added or added
+            if not island_trafos_df.empty:
+                added = _add_island_trafos(
+                    fig, island_trafos_df, buses_df, island_name, color, not legend_added
+                )
+                legend_added = legend_added or added
+            if not island_loads_df.empty:
+                added = _add_island_loads(
+                    fig, island_loads_df, island_name, color, not legend_added
+                )
+                legend_added = legend_added or added
+            if not island_gens_df.empty:
+                added = _add_island_gens(fig, island_gens_df, island_name, color, not legend_added)
+                legend_added = legend_added or added
+
+    _apply_map_layout(fig, mapbox_style, center_lat, center_lon, zoom, height, title)
+    return fig

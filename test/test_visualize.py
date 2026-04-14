@@ -16,6 +16,7 @@ from nemdb.models.visualize import (
     _add_loads_to_figure,
     _add_transformers_to_figure,
     _compute_island_assignment,
+    visualize_islands,
     visualize_network,
 )
 
@@ -130,6 +131,98 @@ def sample_model(
         "trafos": sample_trafos_df,
         "gens": sample_gens_df,
         "loads": sample_loads_df,
+    }
+
+
+@pytest.fixture
+def two_island_lines_df():
+    """Lines forming two disconnected islands: A-B-C (island 0) and D-E (island 1)."""
+    return pd.DataFrame(
+        {
+            "name": ["Line AB", "Line BC", "Line DE"],
+            "from_bus": ["isl1_bus_A_132kv", "isl1_bus_B_132kv", "isl2_bus_D_132kv"],
+            "to_bus": ["isl1_bus_B_132kv", "isl1_bus_C_132kv", "isl2_bus_E_132kv"],
+            "length_km": [50.0, 60.0, 40.0],
+            "in_service": [True, True, True],
+            "class": ["Transmission Line"] * 3,
+            "geodata": [
+                [(151.0, -27.0), (151.1, -27.1)],
+                [(151.1, -27.1), (151.2, -27.2)],
+                [(153.0, -28.0), (153.1, -28.1)],
+            ],
+            "voltagekv": [132, 132, 132],
+        }
+    )
+
+
+@pytest.fixture
+def two_island_buses_df():
+    return pd.DataFrame(
+        {
+            "bus_id": [
+                "isl1_bus_A_132kv",
+                "isl1_bus_B_132kv",
+                "isl1_bus_C_132kv",
+                "isl2_bus_D_132kv",
+                "isl2_bus_E_132kv",
+            ],
+            "vn_kv": [132] * 5,
+            "in_service": [True] * 5,
+            "geodata": [
+                shp.Point(151.0, -27.0),
+                shp.Point(151.1, -27.1),
+                shp.Point(151.2, -27.2),
+                shp.Point(153.0, -28.0),
+                shp.Point(153.1, -28.1),
+            ],
+        }
+    )
+
+
+@pytest.fixture
+def two_island_gens_df():
+    return pd.DataFrame(
+        {
+            "bus_id": ["isl1_bus_A_132kv", "isl2_bus_D_132kv"],
+            "name": ["Gen Island 1", "Gen Island 2"],
+            "p_mw": [100.0, 50.0],
+            "max_p_mw": [200.0, 100.0],
+            "type": ["Thermal", "Wind"],
+            "in_service": [True, True],
+            "owner": ["Company A", "Company B"],
+            "fueltype": ["Black Coal", "Wind"],
+            "vn_kv": [132, 132],
+            "geodata": [shp.Point(151.0, -27.0), shp.Point(153.0, -28.0)],
+        }
+    )
+
+
+@pytest.fixture
+def two_island_loads_df():
+    return pd.DataFrame(
+        {
+            "bus_id": ["isl1_bus_B_132kv", "isl2_bus_E_132kv"],
+            "name": ["Load Island 1", "Load Island 2"],
+            "type": ["Zone Substation"] * 2,
+            "vn_kv": [132, 132],
+            "in_service": [True, True],
+            "locality": ["Sydney", "Brisbane"],
+            "state": ["NSW", "QLD"],
+            "geodata": [shp.Point(151.1, -27.1), shp.Point(153.1, -28.1)],
+        }
+    )
+
+
+@pytest.fixture
+def two_island_model(
+    two_island_lines_df, two_island_buses_df, two_island_gens_df, two_island_loads_df
+):
+    return {
+        "lines": two_island_lines_df,
+        "buses": two_island_buses_df,
+        "gens": two_island_gens_df,
+        "loads": two_island_loads_df,
+        "trafos": pd.DataFrame(),
     }
 
 
@@ -559,3 +652,70 @@ class TestComputeIslandAssignment:
         """Empty lines DataFrame returns empty dict."""
         result = _compute_island_assignment(pd.DataFrame(columns=["from_bus", "to_bus"]))
         assert result == {}
+
+
+class TestVisualizeIslands:
+    """Tests for island visualization function."""
+
+    def test_returns_figure(self, two_island_model):
+        fig = visualize_islands(two_island_model)
+        assert isinstance(fig, go.Figure)
+
+    def test_one_legend_entry_per_island(self, two_island_model):
+        """Exactly one trace per island has showlegend=True."""
+        fig = visualize_islands(two_island_model)
+        legend_entries = [t for t in fig.data if t.showlegend]
+        assert len(legend_entries) == 2
+
+    def test_island_legend_names(self, two_island_model):
+        """Legend entry names follow 'Island N' pattern."""
+        fig = visualize_islands(two_island_model)
+        legend_names = {t.name for t in fig.data if t.showlegend}
+        assert legend_names == {"Island 1", "Island 2"}
+
+    def test_all_traces_in_island_share_legendgroup(self, two_island_model):
+        """Every trace for an island uses that island's legendgroup."""
+        fig = visualize_islands(two_island_model)
+        for island_name in ("Island 1", "Island 2"):
+            traces = [t for t in fig.data if t.legendgroup == island_name]
+            assert len(traces) > 0
+            assert all(t.legendgroup == island_name for t in traces)
+
+    def test_only_first_trace_per_island_shows_legend(self, two_island_model):
+        """Only one trace per island has showlegend=True; the rest are False."""
+        fig = visualize_islands(two_island_model)
+        for island_name in ("Island 1", "Island 2"):
+            traces = [t for t in fig.data if t.legendgroup == island_name]
+            shown = [t for t in traces if t.showlegend]
+            assert len(shown) == 1
+
+    def test_islands_have_distinct_colors(self, two_island_model):
+        """Island 1 and Island 2 use different colors."""
+        fig = visualize_islands(two_island_model)
+        island1_first = next(t for t in fig.data if t.legendgroup == "Island 1")
+        island2_first = next(t for t in fig.data if t.legendgroup == "Island 2")
+        color1 = (
+            island1_first.line.color
+            if island1_first.mode == "lines"
+            else island1_first.marker.color
+        )
+        color2 = (
+            island2_first.line.color
+            if island2_first.mode == "lines"
+            else island2_first.marker.color
+        )
+        assert color1 != color2
+
+    def test_custom_title(self, two_island_model):
+        fig = visualize_islands(two_island_model, title="My Islands")
+        assert fig.layout.title.text == "My Islands"
+
+    def test_empty_model_returns_figure(self):
+        fig = visualize_islands({})
+        assert isinstance(fig, go.Figure)
+
+    def test_map_layout_configured(self, two_island_model):
+        fig = visualize_islands(two_island_model, center_lat=-33.0, center_lon=150.0, zoom=6)
+        assert fig.layout.mapbox.center.lat == -33.0
+        assert fig.layout.mapbox.center.lon == 150.0
+        assert fig.layout.mapbox.zoom == 6
