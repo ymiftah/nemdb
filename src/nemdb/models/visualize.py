@@ -831,8 +831,6 @@ def _add_island_gens(
     sizes: list[float] = []
     hover_text: list[str] = []
 
-    fuel_type_col = "type" if "type" in gens_df.columns else "fueltype"
-
     for _, row in gens_df.iterrows():
         geodata = row.get("geodata")
         if geodata is None or (isinstance(geodata, float) and pd.isna(geodata)):
@@ -847,7 +845,7 @@ def _add_island_gens(
         cap = row.get("max_p_mw", 0)
         sizes.append(max(5, min(20, 5 + math.log10(max(1, cap)) * 3)))
         name = row.get("name", "Unknown")
-        fuel_type = row.get(fuel_type_col, "")
+        fuel_type = row.get("fueltype") or row.get("type", "")
         gtype = row.get("type", "")
         p_mw = row.get("p_mw", 0)
         owner = row.get("owner") or row.get("code") or "Unknown"
@@ -973,7 +971,7 @@ def visualize_islands(
                 legend_added = legend_added or added
             if not island_trafos_df.empty:
                 added = _add_island_trafos(
-                    fig, island_trafos_df, buses_df, island_name, color, not legend_added
+                    fig, island_trafos_df, island_buses_df, island_name, color, not legend_added
                 )
                 legend_added = legend_added or added
             if not island_loads_df.empty:
