@@ -1715,7 +1715,7 @@ provides-extras = ["grid", "viz"]
 dev = [
     { name = "bandit", extras = ["toml"], specifier = ">=1.8.2" },
     { name = "ipykernel", specifier = ">=6.30.0" },
-    { name = "mypy", specifier = ">=1.15.0" },
+    { name = "mypy", specifier = ">=1.20.0" },
     { name = "pandas-stubs", specifier = ">=2.2.3.241201" },
     { name = "pre-commit", specifier = ">=4.3.0" },
     { name = "pytest", specifier = ">=8.4.1" },
@@ -1724,7 +1724,7 @@ dev = [
     { name = "ruff", specifier = ">=0.14.6" },
     { name = "rumdl", specifier = ">=0.1.19" },
     { name = "types-beautifulsoup4", specifier = ">=4.12.0.20250127" },
-    { name = "types-requests", specifier = ">=2.32.0.20250127" },
+    { name = "types-requests", specifier = ">=2.33.0.20260408" },
 ]
 doc = [
     { name = "mkdocs", specifier = ">=1.6.1" },

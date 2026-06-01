@@ -15,6 +15,8 @@ import fsspec
 import pandas as pd
 import pandera.polars as pa_polars
 import polars as pl
+import requests
+from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from nemdb import log as logger
@@ -57,8 +59,9 @@ from nemdb.nemweb.schemas import (
 from .nemweb import read_bids
 from .utils import cache_response_zip
 
-URL = "http://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_DVD_{table}_{year}{month:02d}010000.zip"
-URL_ALT = "http://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_ARCHIVE%23{table}%23FILE01%23{year}{month:02d}010000.zip"
+URL = "https://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_ARCHIVE%2523{table}%2523FILE01%2523{year}{month:02d}010000.zip"
+URL_ALT = "https://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_DVD_{table}_{year}{month:02d}010000.zip"
+_DATA_DIR = "https://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/"
 
 STRPTIME = "%Y/%m/%d %H:%M:%S"
 
@@ -502,25 +505,47 @@ class NEMWEBManager:
         ]
 
 
+def _discover_archive_url(table_name: str, year: int, month: int) -> str | None:
+    """Scrape the DATA/ directory listing and return the URL for the matching table file.
+
+    Falls back to this when known URL templates fail, making the fetcher resilient to
+    any future NEMWEB naming-convention changes.
+    """
+    dir_url = _DATA_DIR.format(year=year, month=month)
+    resp = requests.get(dir_url, timeout=30)
+    if resp.status_code != 200:
+        return None
+    soup = BeautifulSoup(resp.text, "html.parser")
+    for tag in soup.find_all("a"):
+        href = str(tag.get("href", ""))
+        if table_name in tag.text:
+            return "https://nemweb.com.au" + href
+    return None
+
+
 def _get_archive(table_name, year, month):
-    # Insert the table_name, year and month into the url.
-    url = URL.format(table=table_name, year=year, month=month)
-    # Download the file.
-    try:
-        r = cache_response_zip(url)
-    except ValueError:  # TODO better errors
-        logger.info("Retry with alternative url")
-        url = URL_ALT.format(table=table_name, year=year, month=month)
+    for url in [
+        URL.format(table=table_name, year=year, month=month),
+        URL_ALT.format(table=table_name, year=year, month=month),
+    ]:
         try:
-            r = cache_response_zip(url)
-        except ValueError as err:
-            raise _MissingData(
-                f"""Requested data for table: {table_name}, year: {year}, month: {month}
-                                not downloaded. Please check your internet connection. Also check
-                                http://nemweb.com.au/#mms-data-model, to see if your requested
-                                data is uploaded."""
-            ) from err
-    return r
+            return cache_response_zip(url)
+        except ValueError:
+            logger.info("URL failed, trying next: %s", url)
+
+    logger.info("Falling back to directory scraping for %s %d-%02d", table_name, year, month)
+    discovered = _discover_archive_url(table_name, year, month)
+    if discovered:
+        try:
+            return cache_response_zip(discovered)
+        except ValueError:
+            pass
+
+    raise _MissingData(
+        f"Requested data for table: {table_name}, year: {year}, month: {month} "
+        "not downloaded. Please check your internet connection. Also check "
+        "https://nemweb.com.au/#mms-data-model to see if your requested data is uploaded."
+    )
 
 
 def _archive_to_df(
