@@ -157,6 +157,7 @@ def two_island_lines_df():
 
 @pytest.fixture
 def two_island_buses_df():
+    """Five buses across two disconnected islands."""
     return pd.DataFrame(
         {
             "bus_id": [
@@ -181,6 +182,7 @@ def two_island_buses_df():
 
 @pytest.fixture
 def two_island_gens_df():
+    """Two generators, one per island."""
     return pd.DataFrame(
         {
             "bus_id": ["isl1_bus_A_132kv", "isl2_bus_D_132kv"],
@@ -199,6 +201,7 @@ def two_island_gens_df():
 
 @pytest.fixture
 def two_island_loads_df():
+    """Two loads, one per island."""
     return pd.DataFrame(
         {
             "bus_id": ["isl1_bus_B_132kv", "isl2_bus_E_132kv"],
@@ -694,17 +697,13 @@ class TestVisualizeIslands:
         fig = visualize_islands(two_island_model)
         island1_first = next(t for t in fig.data if t.legendgroup == "Island 1")
         island2_first = next(t for t in fig.data if t.legendgroup == "Island 2")
-        color1 = (
-            island1_first.line.color
-            if island1_first.mode == "lines"
-            else island1_first.marker.color
-        )
-        color2 = (
-            island2_first.line.color
-            if island2_first.mode == "lines"
-            else island2_first.marker.color
-        )
-        assert color1 != color2
+
+        def get_color(trace):
+            if trace.mode == "lines":
+                return trace.line.color
+            return trace.marker.color
+
+        assert get_color(island1_first) != get_color(island2_first)
 
     def test_custom_title(self, two_island_model):
         fig = visualize_islands(two_island_model, title="My Islands")
