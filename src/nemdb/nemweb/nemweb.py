@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from .utils import cache_response_zip, retry
 
 NEMWEB_ARCHIVE = "https://nemweb.com.au/Reports/Archive/"
-MMSDM = "https://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_DVD_{data}"
+MMSDM = "https://nemweb.com.au/Data_Archive/Wholesale_Electricity/MMSDM/{year}/MMSDM_{year}_{month:02d}/MMSDM_Historical_Data_SQLLoader/DATA/PUBLIC_ARCHIVE%2523{table}%2523FILE01%2523{year}{month:02d}010000.zip"
 BIDMOVE = "https://nemweb.com.au/Reports/Current/Bidmove_Complete/"
 
 
@@ -44,8 +44,7 @@ def read_bids(year, month, day) -> tuple[pl.DataFrame, pl.DataFrame]:
 
 
 def read_genunits(year: int, month: int) -> pl.DataFrame:
-    data = f"GENUNITS_{year}{month:02d}010000.zip"
-    url = MMSDM.format(year=year, month=month, data=data)
+    url = MMSDM.format(year=year, month=month, table="GENUNITS")
     df = pl.from_pandas(
         pd.read_csv(
             cache_response_zip(url),
@@ -57,8 +56,7 @@ def read_genunits(year: int, month: int) -> pl.DataFrame:
 
 
 def read_bidperoffer_d(year: int, month: int) -> pl.DataFrame:
-    data = f"BIDPEROFFER_D_{year}{month:02d}010000.zip"
-    url = MMSDM.format(year=year, month=month, data=data)
+    url = MMSDM.format(year=year, month=month, table="BIDPEROFFER_D")
     df = pl.from_pandas(
         pd.read_csv(
             cache_response_zip(url),
@@ -70,8 +68,7 @@ def read_bidperoffer_d(year: int, month: int) -> pl.DataFrame:
 
 
 def read_dispatchprice(year: int, month: int) -> pl.DataFrame:
-    data = f"DISPATCHPRICE_{year}{month:02d}010000.zip"
-    url = MMSDM.format(year=year, month=month, data=data)
+    url = MMSDM.format(year=year, month=month, table="DISPATCHPRICE")
     df = pl.from_pandas(
         pd.read_csv(
             cache_response_zip(url),
@@ -83,8 +80,7 @@ def read_dispatchprice(year: int, month: int) -> pl.DataFrame:
 
 
 def read_dispatchload(year: int, month: int) -> pl.DataFrame:
-    data = f"DISPATCHLOAD_{year}{month:02d}010000.zip"
-    url = MMSDM.format(year=year, month=month, data=data)
+    url = MMSDM.format(year=year, month=month, table="DISPATCHLOAD")
     df = pl.from_pandas(
         pd.read_csv(cache_response_zip(url), compression="zip", skiprows=1, nrows=1000)
     ).filter(pl.col("I") == "D")
@@ -92,8 +88,7 @@ def read_dispatchload(year: int, month: int) -> pl.DataFrame:
 
 
 def read_station(year: int, month: int) -> pl.DataFrame:
-    data = f"STATION_{year}{month:02d}010000.zip"
-    url = MMSDM.format(year=year, month=month, data=data)
+    url = MMSDM.format(year=year, month=month, table="STATION")
     df = pl.from_pandas(
         pd.read_csv(
             cache_response_zip(url),
@@ -105,8 +100,7 @@ def read_station(year: int, month: int) -> pl.DataFrame:
 
 
 def read_dudetailsummary(year: int, month: int) -> pl.DataFrame:
-    data = f"DUDETAILSUMMARY_{year}{month:02d}010000.zip"
-    url = MMSDM.format(year=year, month=month, data=data)
+    url = MMSDM.format(year=year, month=month, table="DUDETAILSUMMARY")
     df = pl.from_pandas(
         pd.read_csv(
             cache_response_zip(url),
@@ -118,8 +112,7 @@ def read_dudetailsummary(year: int, month: int) -> pl.DataFrame:
 
 
 def read_bidduiddetails(year: int, month: int) -> pl.DataFrame:
-    data = f"BIDDUIDDETAILS_{year}{month:02d}010000.zip"
-    url = MMSDM.format(year=year, month=month, data=data)
+    url = MMSDM.format(year=year, month=month, table="BIDDUIDDETAILS")
     df = pl.from_pandas(
         pd.read_csv(
             cache_response_zip(url),
@@ -131,8 +124,7 @@ def read_bidduiddetails(year: int, month: int) -> pl.DataFrame:
 
 
 def read_dudetails(year: int, month: int) -> pl.DataFrame:
-    data = f"DUDETAIL_{year}{month:02d}010000.zip"
-    url = MMSDM.format(year=year, month=month, data=data)
+    url = MMSDM.format(year=year, month=month, table="DUDETAIL")
     print(url)
     df = pl.from_pandas(
         pd.read_csv(
