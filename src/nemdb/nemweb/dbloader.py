@@ -518,7 +518,7 @@ def _discover_archive_url(table_name: str, year: int, month: int) -> str | None:
     soup = BeautifulSoup(resp.text, "html.parser")
     for tag in soup.find_all("a"):
         href = str(tag.get("href", ""))
-        if table_name in tag.text:
+        if f"#{table_name}#" in tag.text or f"_{table_name}_" in tag.text:
             return "https://nemweb.com.au" + href
     return None
 
