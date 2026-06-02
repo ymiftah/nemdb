@@ -710,7 +710,7 @@ def _add_island_trafos(
             bus_id = row.get("bus_id")
             if bus_id is None:
                 continue
-            bus_locations[str(bus_id)] = (geodata.x, geodata.y)
+            bus_locations[bus_id] = (geodata.x, geodata.y)
         except AttributeError:
             continue
 
