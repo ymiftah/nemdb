@@ -9,7 +9,9 @@ hover information and layer toggling via the legend.
 import logging
 import math
 
+import networkx as nx
 import pandas as pd
+import plotly.colors
 import plotly.graph_objects as go
 
 logger = logging.getLogger(__name__)
@@ -63,6 +65,33 @@ FUEL_COLORS = {
 
 # Default fuel color for unknown types
 DEFAULT_FUEL_COLOR = "#808080"
+
+# Island color palette (cycles for >24 islands)
+_ISLAND_COLORS: list[str] = plotly.colors.qualitative.Dark24
+
+
+def _compute_island_assignment(lines_df: pd.DataFrame) -> dict[str, int]:
+    """Assign each bus to a connected island index.
+
+    Builds an undirected graph from line from_bus/to_bus edges, finds connected
+    components sorted by size (largest first), and returns a mapping from bus_id
+    to island index (0 = largest island).
+
+    Args:
+        lines_df: DataFrame with 'from_bus' and 'to_bus' columns.
+
+    Returns:
+        Dict mapping bus_id to island index.
+    """
+    if lines_df.empty:
+        return {}
+
+    G: nx.Graph = nx.Graph()
+    for _, row in lines_df.iterrows():
+        G.add_edge(row["from_bus"], row["to_bus"])
+
+    components = sorted(nx.connected_components(G), key=len, reverse=True)
+    return {bus: idx for idx, component in enumerate(components) for bus in component}
 
 
 def visualize_network(
