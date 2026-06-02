@@ -15,6 +15,7 @@ from nemdb.models.visualize import (
     _add_lines_to_figure,
     _add_loads_to_figure,
     _add_transformers_to_figure,
+    _compute_island_assignment,
     visualize_network,
 )
 
@@ -508,3 +509,53 @@ class TestFuelColorScale:
             assert isinstance(color, str)
             assert color.startswith("#")
             assert len(color) == 7
+
+
+class TestComputeIslandAssignment:
+    """Tests for island assignment computation."""
+
+    def test_two_disconnected_components(self):
+        """Two disconnected line groups produce two distinct island indices."""
+        lines = pd.DataFrame(
+            {
+                "from_bus": ["bus_A_132kv", "bus_C_132kv"],
+                "to_bus": ["bus_B_132kv", "bus_D_132kv"],
+            }
+        )
+        result = _compute_island_assignment(lines)
+        assert set(result.keys()) == {"bus_A_132kv", "bus_B_132kv", "bus_C_132kv", "bus_D_132kv"}
+        assert result["bus_A_132kv"] == result["bus_B_132kv"]
+        assert result["bus_C_132kv"] == result["bus_D_132kv"]
+        assert result["bus_A_132kv"] != result["bus_C_132kv"]
+
+    def test_single_connected_component(self):
+        """All buses in a chain get the same island index."""
+        lines = pd.DataFrame(
+            {
+                "from_bus": ["bus_A_132kv", "bus_B_132kv"],
+                "to_bus": ["bus_B_132kv", "bus_C_132kv"],
+            }
+        )
+        result = _compute_island_assignment(lines)
+        assert result["bus_A_132kv"] == result["bus_B_132kv"] == result["bus_C_132kv"]
+
+    def test_largest_component_gets_index_zero(self):
+        """The largest connected component is assigned island index 0."""
+        lines = pd.DataFrame(
+            {
+                "from_bus": ["bus_A", "bus_B", "bus_X"],
+                "to_bus": ["bus_B", "bus_C", "bus_Y"],
+            }
+        )
+        result = _compute_island_assignment(lines)
+        # {A, B, C} has 3 nodes → island 0; {X, Y} has 2 nodes → island 1
+        assert result["bus_A"] == 0
+        assert result["bus_B"] == 0
+        assert result["bus_C"] == 0
+        assert result["bus_X"] == 1
+        assert result["bus_Y"] == 1
+
+    def test_empty_lines_returns_empty(self):
+        """Empty lines DataFrame returns empty dict."""
+        result = _compute_island_assignment(pd.DataFrame(columns=["from_bus", "to_bus"]))
+        assert result == {}
