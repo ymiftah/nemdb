@@ -13,6 +13,7 @@ import networkx as nx
 import pandas as pd
 import plotly.colors
 import plotly.graph_objects as go
+import shapely as shp
 
 logger = logging.getLogger(__name__)
 
@@ -70,25 +71,37 @@ DEFAULT_FUEL_COLOR = "#808080"
 _ISLAND_COLORS: list[str] = plotly.colors.qualitative.Dark24
 
 
-def _compute_island_assignment(lines_df: pd.DataFrame) -> dict[str, int]:
+def _compute_island_assignment(
+    lines_df: pd.DataFrame, trafos_df: pd.DataFrame | None = None
+) -> dict[str, int]:
     """Assign each bus to a connected island index.
 
-    Builds an undirected graph from line from_bus/to_bus edges, finds connected
-    components sorted by size (largest first), and returns a mapping from bus_id
-    to island index (0 = largest island).
+    Builds an undirected graph from line from_bus/to_bus edges and (optionally)
+    transformer hv_bus/lv_bus edges, finds connected components sorted by size
+    (largest first), and returns a mapping from bus_id to island index
+    (0 = largest island).
+
+    Include trafos_df for topological island detection: transformers bridge
+    voltage-split buses at the same physical location, so omitting them causes
+    each voltage level at a multi-voltage substation to appear as a separate island.
 
     Args:
         lines_df: DataFrame with 'from_bus' and 'to_bus' columns.
+        trafos_df: Optional DataFrame with 'hv_bus' and 'lv_bus' columns.
 
     Returns:
         Dict mapping bus_id to island index.
     """
-    if lines_df.empty:
+    if lines_df.empty and (trafos_df is None or trafos_df.empty):
         return {}
 
     G: nx.Graph = nx.Graph()
     for _, row in lines_df.iterrows():
         G.add_edge(row["from_bus"], row["to_bus"])
+
+    if trafos_df is not None and not trafos_df.empty:
+        for _, row in trafos_df.iterrows():
+            G.add_edge(row["hv_bus"], row["lv_bus"])
 
     components = sorted(nx.connected_components(G), key=len, reverse=True)
     return {bus: idx for idx, component in enumerate(components) for bus in component}
@@ -927,7 +940,7 @@ def visualize_islands(
     trafos_df = model.get("trafos", pd.DataFrame())
 
     if not lines_df.empty:
-        bus_to_island = _compute_island_assignment(lines_df)
+        bus_to_island = _compute_island_assignment(lines_df, trafos_df)
 
         island_buses: dict[int, set[str]] = {}
         for bus, island_idx in bus_to_island.items():
@@ -984,6 +997,148 @@ def visualize_islands(
             if not island_gens_df.empty:
                 added = _add_island_gens(fig, island_gens_df, island_name, color, not legend_added)
                 legend_added = legend_added or added
+
+    _apply_map_layout(fig, mapbox_style, center_lat, center_lon, zoom, height, title)
+    return fig
+
+
+def visualize_gis_islands(
+    lines_geo,
+    buses_geo,
+    mapping: pd.Series,
+    *,
+    mapbox_style: str = "carto-positron",
+    height: int = 800,
+    center_lat: float = -27.0,
+    center_lon: float = 133.0,
+    zoom: int = 4,
+    title: str = "NEM Network Islands (GIS)",
+) -> go.Figure:
+    """Visualize network islands using raw GIS geometry data.
+
+    Works directly with the output of `_get_buses_and_lines()`, before voltage
+    splitting. Each physical bus is a single node regardless of how many voltage
+    levels it serves, so island detection is purely topological.
+
+    Args:
+        lines_geo: GeoDataFrame in EPSG:4326 with LineString geometry, 'name',
+            'capacitykv', 'operationalstatus', 'class', 'length_km'.
+        buses_geo: GeoDataFrame in EPSG:4326 with Point geometry and 'bus_id'.
+        mapping: Series mapping GEO_CRS Point → bus_id (from _get_buses_and_lines).
+        mapbox_style: Carto map style.
+        height: Figure height in pixels.
+        center_lat: Centre latitude.
+        center_lon: Centre longitude.
+        zoom: Initial zoom level.
+        title: Figure title.
+
+    Returns:
+        go.Figure: Interactive map with one legend entry per island.
+
+    Example:
+        >>> from nemdb.models.pandapower import _get_buses_and_lines
+        >>> from nemdb.models.visualize import visualize_gis_islands
+        >>> lines, buses, mapping = _get_buses_and_lines()
+        >>> fig = visualize_gis_islands(
+        ...     lines.to_crs("EPSG:4326"),
+        ...     buses.to_crs("EPSG:4326"),
+        ...     mapping,
+        ... )
+        >>> fig.show()
+    """
+    # Resolve from_bus for every line (start-point lookup in mapping)
+    from_buses: list[str | None] = []
+    for _, row in lines_geo.iterrows():
+        start = shp.get_point(row.geometry, 0)
+        from_buses.append(mapping.get(start))
+
+    lines_working = lines_geo.copy()
+    lines_working["_from_bus"] = from_buses
+
+    # Build edge list and compute island assignment
+    valid = lines_working.dropna(subset=["_from_bus"])
+    to_buses: list[str | None] = []
+    for _, row in valid.iterrows():
+        end = shp.get_point(row.geometry, -1)
+        to_buses.append(mapping.get(end))
+
+    valid = valid.copy()
+    valid["_to_bus"] = to_buses
+    valid = valid.dropna(subset=["_to_bus"])
+    valid = valid[valid["_from_bus"] != valid["_to_bus"]]
+
+    edges_df = valid[["_from_bus", "_to_bus"]].rename(
+        columns={"_from_bus": "from_bus", "_to_bus": "to_bus"}
+    )
+    bus_to_island = _compute_island_assignment(edges_df)
+
+    island_buses: dict[int, set[str]] = {}
+    for bus, idx in bus_to_island.items():
+        island_buses.setdefault(idx, set()).add(bus)
+
+    fig = go.Figure()
+
+    for island_idx in sorted(island_buses.keys()):
+        buses_in_island = island_buses[island_idx]
+        island_name = f"Island {island_idx + 1}"
+        color = _ISLAND_COLORS[island_idx % len(_ISLAND_COLORS)]
+        legend_added = False
+
+        # Lines
+        island_lines = lines_working[lines_working["_from_bus"].isin(buses_in_island)]
+        lats_list: list[float | None] = []
+        lons_list: list[float | None] = []
+        hover_text: list[str | None] = []
+        for _, row in island_lines.iterrows():
+            coords = list(row.geometry.coords)
+            lons = [c[0] for c in coords]
+            lats = [c[1] for c in coords]
+            lons_list.extend([*lons, None])
+            lats_list.extend([*lats, None])
+            text = (
+                f"<b>{row.get('name', '')}</b><br>"
+                f"Voltage: {row.get('capacitykv', '')} kV<br>"
+                f"Length: {row.get('length_km', 0):.1f} km<br>"
+                f"Class: {row.get('class', '')}<br>"
+                f"Status: {row.get('operationalstatus', '')}"
+            )
+            hover_text.extend([text] * len(lats) + [None])
+
+        if lats_list:
+            fig.add_trace(
+                go.Scattermap(
+                    lon=lons_list,
+                    lat=lats_list,
+                    mode="lines",
+                    name=island_name,
+                    line={"width": 1.5, "color": color},
+                    hovertext=hover_text,
+                    hoverinfo="text",
+                    showlegend=not legend_added,
+                    legendgroup=island_name,
+                )
+            )
+            legend_added = True
+
+        # Buses
+        island_bus_gdf = buses_geo[buses_geo["bus_id"].isin(buses_in_island)]
+        if not island_bus_gdf.empty:
+            bus_lons = island_bus_gdf.geometry.x.tolist()
+            bus_lats = island_bus_gdf.geometry.y.tolist()
+            hover_buses = [f"<b>{bid}</b>" for bid in island_bus_gdf["bus_id"]]
+            fig.add_trace(
+                go.Scattermap(
+                    lon=bus_lons,
+                    lat=bus_lats,
+                    mode="markers",
+                    marker={"size": 5, "color": color, "opacity": 0.7},
+                    name=island_name,
+                    hovertext=hover_buses,
+                    hoverinfo="text",
+                    showlegend=not legend_added,
+                    legendgroup=island_name,
+                )
+            )
 
     _apply_map_layout(fig, mapbox_style, center_lat, center_lon, zoom, height, title)
     return fig

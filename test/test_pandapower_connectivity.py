@@ -8,6 +8,7 @@ pytest.importorskip("pandapower")
 import pandapower as pp
 
 from nemdb.models.pandapower import (
+    _HVDC_INTERCONNECTORS,
     _build_connectivity_graph,
     _calculate_distance_km,
     _create_cross_voltage_connection,
@@ -17,6 +18,7 @@ from nemdb.models.pandapower import (
     create_pandapower_network,
     get_pandapower_model,
     get_pandapower_model_with_opennem,
+    sanity_checks,
 )
 
 
@@ -408,11 +410,13 @@ def test_diagnose_graph_simple():
         }
     )
 
-    # Create lines connecting only bus1 and bus2
+    # Create lines connecting only bus1 and bus2 (pre-assigned bus columns take the fast path)
     lines = gpd.GeoDataFrame(
         {
             "start_point": [shp.Point(0, 0)],
             "end_point": [shp.Point(1, 0)],
+            "_from_bus": ["bus1"],
+            "_to_bus": ["bus2"],
         }
     )
 
@@ -460,16 +464,19 @@ def test_build_connectivity_graph():
     """Test building connectivity graph from model."""
     # Create simple model with all required keys
     model = {
+        "buses": pd.DataFrame({"bus_id": [0, 1, 2, 3]}),
         "lines": pd.DataFrame(
             {
                 "from_bus": [0, 1],
                 "to_bus": [1, 2],
+                "in_service": [True, True],
             }
         ),
         "trafos": pd.DataFrame(
             {
                 "hv_bus": [2],
                 "lv_bus": [3],
+                "in_service": [True],
             }
         ),
         "gens": pd.DataFrame(
@@ -528,3 +535,60 @@ def test_network_buses_have_voltage():
         assert bus["vn_kv"] > 0, f"Bus {bus.name} has invalid voltage {bus['vn_kv']}"
         # Voltage should be reasonable (between distribution and transmission levels)
         assert 0.4 <= bus["vn_kv"] <= 500, f"Bus has unusual voltage level: {bus['vn_kv']} kV"
+
+
+def test_hvdc_interconnectors_added():
+    """Test that known HVDC links are represented as dclines, not fictitious AC lines."""
+    net = create_pandapower_network(use_opennem=False)
+
+    expected_total_segments = sum(len(link["lines"]) for link in _HVDC_INTERCONNECTORS)
+    assert len(net.dcline) == expected_total_segments, (
+        "Expected one dcline per original AC line segment across all HVDC interconnectors"
+    )
+
+    for link in _HVDC_INTERCONNECTORS:
+        dclines = net.dcline[net.dcline["name"].str.startswith(f"dcline_{link['name']}")]
+        assert len(dclines) == len(link["lines"]), (
+            f"Expected {len(link['lines'])} dcline segment(s) for {link['name']}"
+        )
+        for _, dcline in dclines.iterrows():
+            assert dcline["from_bus"] in net.bus.index
+            assert dcline["to_bus"] in net.bus.index
+
+        # The original AC line segment(s) must be present but out of service,
+        # not deleted -- and must not still be in_service (would double-count
+        # the link electrically).
+        for line_name in link["lines"]:
+            matching_lines = net.line[net.line["name"] == line_name]
+            assert len(matching_lines) == 1, f"Expected exactly one line named {line_name}"
+            assert not matching_lines.iloc[0]["in_service"], (
+                f"AC line '{line_name}' should be out of service (replaced by dcline)"
+            )
+
+
+def test_long_high_impedance_lines_check():
+    """Test the informational long_high_impedance_lines sanity check."""
+    net = pp.create_empty_network()
+    b1 = pp.create_bus(net, vn_kv=66.0)
+    b2 = pp.create_bus(net, vn_kv=66.0)
+    pp.create_ext_grid(net, b1)
+    pp.create_load(net, b2, p_mw=1.0)
+    # 250 km at 66 kV with x_ohm_per_km=0.44 -> x_pu > 1.0 at 100 MVA base
+    long_line = pp.create_line_from_parameters(
+        net,
+        from_bus=b1,
+        to_bus=b2,
+        length_km=250.0,
+        r_ohm_per_km=0.18,
+        x_ohm_per_km=0.44,
+        c_nf_per_km=8.0,
+        max_i_ka=0.4,
+        name="long radial line",
+    )
+
+    results = sanity_checks(net)
+
+    assert "long_high_impedance_lines" in results
+    assert long_line in results["long_high_impedance_lines"]
+    # Informational only -- must not be reported as a hard failure.
+    assert results["disconnected_elements"] in (None, [])

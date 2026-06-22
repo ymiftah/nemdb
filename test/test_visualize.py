@@ -656,6 +656,24 @@ class TestComputeIslandAssignment:
         result = _compute_island_assignment(pd.DataFrame(columns=["from_bus", "to_bus"]))
         assert result == {}
 
+    def test_trafos_bridge_voltage_split_buses(self):
+        """Transformer hv_bus/lv_bus edges merge voltage-split buses into one island."""
+        lines = pd.DataFrame(
+            {
+                "from_bus": ["bus_A_132kv", "bus_B_330kv"],
+                "to_bus": ["bus_B_132kv", "bus_C_330kv"],
+            }
+        )
+        trafos = pd.DataFrame({"hv_bus": ["bus_B_330kv"], "lv_bus": ["bus_B_132kv"]})
+        result_without = _compute_island_assignment(lines)
+        result_with = _compute_island_assignment(lines, trafos)
+        # Without trafo: two disconnected voltage groups
+        assert result_without["bus_A_132kv"] != result_without["bus_B_330kv"]
+        # With trafo: transformer bridges 132 kV and 330 kV sides → one island
+        assert (
+            result_with["bus_A_132kv"] == result_with["bus_B_330kv"] == result_with["bus_C_330kv"]
+        )
+
 
 class TestVisualizeIslands:
     """Tests for island visualization function."""
