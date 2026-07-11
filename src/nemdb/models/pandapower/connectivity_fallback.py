@@ -3,8 +3,9 @@ import networkx as nx
 import pandas as pd
 
 from nemdb.logger import log
-from nemdb.models.pandapower import geo_utils
 from nemdb.models.pandapower.topology import GEO_CRS, METRIC_CRS
+
+from . import geo_utils
 
 
 def _calculate_distance_km(geom1, geom2) -> float:
