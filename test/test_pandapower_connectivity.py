@@ -70,7 +70,7 @@ def test_no_disconnected_elements_opennem(mocker, mock_matched_facilities):
     """Verify network with OpenNEM generators has zero disconnected elements."""
     # Mock the match_facilities_to_gis function to avoid API call
     mocker.patch(
-        "nemdb.models.pandapower.match_facilities_to_gis",
+        "nemdb.models.pandapower.electrical_model.match_facilities_to_gis",
         return_value=mock_matched_facilities,
     )
     net = create_pandapower_network(use_opennem=True)
@@ -114,7 +114,7 @@ def test_all_generators_connected_opennem(mocker, mock_matched_facilities):
     """Verify all OpenNEM generators are on connected buses."""
     # Mock the match_facilities_to_gis function to avoid API call
     mocker.patch(
-        "nemdb.models.pandapower.match_facilities_to_gis",
+        "nemdb.models.pandapower.electrical_model.match_facilities_to_gis",
         return_value=mock_matched_facilities,
     )
     net = create_pandapower_network(use_opennem=True)
@@ -177,7 +177,7 @@ def test_model_validation_runs_opennem(mocker, mock_matched_facilities):
     """Verify OpenNEM model validation function executes without error."""
     # Mock the match_facilities_to_gis function to avoid API call
     mocker.patch(
-        "nemdb.models.pandapower.match_facilities_to_gis",
+        "nemdb.models.pandapower.electrical_model.match_facilities_to_gis",
         return_value=mock_matched_facilities,
     )
     model = get_pandapower_model_with_opennem()
