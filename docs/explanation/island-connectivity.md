@@ -7,15 +7,15 @@
 1. **Derive a physical bus/line graph** from line endpoints (`_get_buses_and_lines`)
 2. **Diagnose and correct connectivity** at the physical level — orphans, self-loops, and islands (`_validate_and_correct_graph`, T-junction snapping, isolated-island joining)
 3. **Build the electrical representation** — voltage-specific buses, lines, transformers, generators, loads, slack buses (`get_pandapower_model`)
-4. **Fall back to synthetic connections** for any islands that the voltage-specific bus split re-introduces (`_validate_and_fix_connectivity`, OpenNEM pipeline only)
+4. **Fall back to synthetic connections** for any islands that the voltage-specific bus split re-introduces (`_validate_and_fix_connectivity`, run by both pipelines)
 
 ```mermaid
 graph TD
     A[Cleaned Transmission Lines<br/>see transmission-line-cleaning.md] --> B["_get_buses_and_lines<br/>DBSCAN clustering of endpoints"]
     B --> C["_validate_and_correct_graph<br/>diagnose → correct → snap → join"]
     C --> D["_get_lines_pp / _get_bus_pp / _get_trafos_pp<br/>_get_gens_pp / _get_loads_pp"]
-    D --> E["create_pandapower_network<br/>(GA pipeline: get_pandapower_model)"]
     D --> F["_validate_and_fix_connectivity<br/>synthetic line / transformer fallback"]
+    F --> E["create_pandapower_network<br/>(GA pipeline: get_pandapower_model)"]
     F --> E2["create_pandapower_network<br/>(OpenNEM pipeline: get_pandapower_model_with_opennem)"]
 
     style A fill:#f9f,stroke:#333
@@ -31,7 +31,7 @@ graph TD
 
 ### 1. `_get_buses_and_lines()` — Deriving Buses from Line Endpoints
 
-**Location**: `src/nemdb/models/pandapower.py:521-575`
+**Location**: `src/nemdb/models/pandapower/electrical_model.py`
 
 Every transmission line has a `start_point` and `end_point`. Buses don't exist explicitly in the GIS data — they are *inferred* by clustering nearby endpoints together: any two endpoints within `eps` metres are assumed to be the same physical substation.
 
@@ -73,7 +73,7 @@ After DBSCAN (eps=500m merges a and b):
 
 ### 2. `_diagnose_graph()` — Detecting Orphans, Self-Loops, and Islands
 
-**Location**: `src/nemdb/models/pandapower.py:81-109`, with helpers `_bus_pair_from_mapping` (`:43-51`) and `_add_line_edges` (`:54-78`)
+**Location**: `src/nemdb/models/pandapower/topology.py`, with helpers `_bus_pair_from_mapping` and `_add_line_edges`
 
 A `networkx.Graph` is built with one node per bus and one edge per line. Two strategies are used to find each line's endpoint buses:
 
@@ -81,30 +81,31 @@ A `networkx.Graph` is built with one node per bus and one edge per line. Two str
 - **Standard path** — otherwise convert to `GEO_CRS` and look each endpoint up in `mapping` via `_bus_pair_from_mapping`.
 
 ```python
-# pandapower.py:59-68 (fast path)
+# topology.py — fast path (uses pre-computed _from_bus/_to_bus columns)
 if "_from_bus" in lines.columns and "_to_bus" in lines.columns:
     for idx, line in lines.iterrows():
         from_bus, to_bus = line["_from_bus"], line["_to_bus"]
         if from_bus == to_bus:
-            diagnostics["self_loops"].append(idx)
+            self_loops.append(idx)
         else:
             G.add_edge(from_bus, to_bus)
 ```
 
-`_diagnose_graph` returns a `diagnostics` dict with:
+`_diagnose_graph` now returns a typed `GraphDiagnostics` dataclass with:
 
-| Key | Meaning |
+| Field | Meaning |
 |-----|---------|
-| `orphan_buses` | buses with degree 0 (no line touches them) |
-| `islands` | list of connected components (`set[bus_id]`), i.e. groups of buses with no path between groups |
-| `self_loops` | indices of lines whose two endpoints map to the same bus |
+| `orphan_buses` | `list[str]` — buses with degree 0 (no line touches them) |
+| `islands` | `list[set[str]]` — connected components, i.e. groups of buses with no path between groups |
+| `self_loops` | `list[int]` — indices of lines whose two endpoints map to the same bus |
 | `total_buses`, `total_lines` | counts after the current correction pass |
+| `n_islands` (property) | `len(islands)` |
 
-> `visualize.py:74-107` reimplements an equivalent `_compute_island_assignment` independently, for rendering — it additionally treats transformers as edges (see [§16](#16-_build_connectivity_graph-voltage-aware-graph) for why that distinction matters).
+> `visualize/island_view.py` has an equivalent `_compute_island_assignment` for rendering — it additionally treats transformers as edges (see [§16](#16-_build_connectivity_graph--voltage-aware-graph) for why that distinction matters).
 
 ### 3. `_correct_graph()` — Baseline Corrections
 
-**Location**: `src/nemdb/models/pandapower.py:112-155`
+**Location**: `src/nemdb/models/pandapower/topology.py`
 
 Runs first and only handles the *cheap, unambiguous* fixes:
 
@@ -116,7 +117,7 @@ Runs first and only handles the *cheap, unambiguous* fixes:
 
 ## Part 2 — Physically-Grounded Connectivity Correction
 
-This is the heart of `_validate_and_correct_graph` (`pandapower.py:442-499`), whose docstring lays out the exact sequence:
+This is the heart of `_validate_and_correct_graph` (`topology.py`), whose docstring lays out the exact sequence:
 
 ```text
 1. No orphan buses (buses with no line connections)
@@ -147,7 +148,7 @@ flowchart TD
 
 ### 4. `_snap_t_junctions()` / `_apply_t_snap()` — T-Junction Snapping
 
-**Location**: `pandapower.py:258-367` (orchestration) and `pandapower.py:157-256` (single-snap execution)
+**Location**: `src/nemdb/models/pandapower/topology.py` (`_snap_t_junctions` orchestrates; `_apply_t_snap` executes one snap)
 
 DBSCAN only merges endpoints that lie close to **other endpoints**. It misses the common "T-junction" case: a line's endpoint sits close to the *interior* of another line (a tee/spur connecting mid-span), which produces an isolated single-line island.
 
@@ -173,7 +174,7 @@ the tee's endpoint bus is merged into the new split bus:
 
 **Algorithm** (per island, largest-first):
 
-1. Pre-compute `_from_bus`/`_to_bus` for every line in one batch CRS conversion (`pandapower.py:291-296`) — this both speeds up later lookups and is what enables `_diagnose_graph`'s fast path.
+1. Pre-compute `_from_bus`/`_to_bus` for every line in one batch CRS conversion — this both speeds up later lookups and is what enables `_diagnose_graph`'s fast path.
 2. For each bus in the island, build a `max_snap_distance_m`-radius buffer around it and query the lines spatial index for candidates (`lines.sindex.query(buffer, predicate="intersects")`).
 3. For each candidate line **not belonging to the same island**:
    - Project the bus onto the line: `t = line_geom.project(bus_geom)`.
@@ -181,11 +182,11 @@ the tee's endpoint bus is merged into the new split bus:
    - Compute `dist = bus_geom.distance(line_geom.interpolate(t))` and keep the closest candidate found so far.
 4. If the best candidate is within `max_snap_distance_m`, split it with `shapely.ops.substring(geom, 0, t)` / `substring(geom, t, length)`, create a new bus at the split point (`old_geom.interpolate(t)`), and remap the island's bus to that new bus.
 5. **Reuse an existing bus** if one already sits at the split point (e.g. the line passes through an existing substation) — this avoids ambiguous duplicate `mapping` entries.
-6. Reject **degenerate splits** — segments shorter than 1 m (`pandapower.py:178`).
-7. One snap is performed per island per pass (`break` at `pandapower.py:363`); islands are then re-diagnosed because a snap can cascade (merging two islands at once).
+6. Reject **degenerate splits** — segments shorter than 1 m.
+7. One snap is performed per island per pass; islands are then re-diagnosed because a snap can cascade (merging two islands at once).
 
 ```python
-# pandapower.py:333-340 — the core projection/skip/distance logic
+# _apply_t_snap — the core projection/skip/distance logic
 t = line_geom.project(bus_geom)
 if t <= 1.0 or t >= line_geom.length - 1.0:
     continue
@@ -194,69 +195,69 @@ if dist < best_dist:
     best_dist, best_line_iloc, best_t = dist, iloc, t
 ```
 
-> **Note on transformers**: a snap never needs to create a transformer itself — `_get_trafos_pp` (see [§9](#9-_get_trafos_pp-auto-creating-transformers)) automatically creates one wherever the resulting physical bus carries lines of different `capacitykv`.
+> **Note on transformers**: a snap never needs to create a transformer itself — `_get_trafos_pp` (see [§9](#9-_get_trafos_pp--auto-creating-transformers)) automatically creates one wherever the resulting physical bus carries lines of different `capacitykv`.
 
 #### Worked example: Laguna Keys to Tee
 
-The "Laguna Keys to Tee" line was an isolated single-line island whose endpoint sits **1,494 m** from the interior of the "Proserpine to Mackay" line — beyond the original `max_snap_distance_m=500.0` default (chosen to mirror DBSCAN's `eps`), but well inside a more generous radius. The nearest *bus* (as opposed to line interior) was ~19.5 km away — too far for the join step described next. Raising the default to **2,000 m** (`pandapower.py:263`) brought this case within range without affecting any other island (verified by checking that no other remaining island had a snap candidate between 500 m and 2,000 m): island sizes went from `[1660, 12, 2]` to `[1660, 12]`.
+The "Laguna Keys to Tee" line was an isolated single-line island whose endpoint sits **1,494 m** from the interior of the "Proserpine to Mackay" line — beyond the original `max_snap_distance_m=500.0` default (chosen to mirror DBSCAN's `eps`), but well inside a more generous radius. The nearest *bus* (as opposed to line interior) was ~19.5 km away — too far for the join step described next. Raising the default to **2,000 m** brought this case within range without affecting any other island (verified by checking that no other remaining island had a snap candidate between 500 m and 2,000 m): island sizes went from `[1660, 12, 2]` to `[1660, 12]`.
 
 ### 5. `_join_isolated_islands_to_nearest_bus()` — Joining Remaining Islands
 
-**Location**: `pandapower.py:370-439`
+**Location**: `src/nemdb/models/pandapower/topology.py`
 
 Some islands are caused by lines with **broken or inaccurate geometry** whose endpoints sit far from any line's interior — `_snap_t_junctions` finds no candidate to split. Rather than leaving these disconnected, this step performs a pure **bus merge**: it finds the closest bus pair (one inside the island, one outside) within `max_join_distance_m=10_000.0` (10 km) and remaps the island bus onto the external one.
 
 ```python
-# pandapower.py:425-431
-mapping = mapping.where(mapping != best_island_bus, best_target_bus)
+# topology.py — bus merge after nearest_bus_pair finds the closest cross-island pair
+graph.mapping = graph.mapping.where(graph.mapping != src_id, cand_id)
 for col in ("_from_bus", "_to_bus"):
-    if col in lines.columns:
-        lines[col] = lines[col].where(lines[col] != best_island_bus, best_target_bus)
+    if col in graph.lines.columns:
+        graph.lines[col] = graph.lines[col].where(graph.lines[col] != src_id, cand_id)
 
-buses = buses[buses["bus_id"] != best_island_bus].reset_index(drop=True)
+graph.buses = graph.buses[graph.buses["bus_id"] != src_id].reset_index(drop=True)
 ```
 
 Crucially, **no geometry is created or moved** — this is a topological merge only (`mapping`/`_from_bus`/`_to_bus` are remapped; the island bus row is dropped). It physically connects the island for graph-traversal and electrical-modelling purposes, but the original line `geometry`/`geodata` still ends at the old (now-merged-away) location.
 
-> **Why merged islands can show a visual gap**: `visualize.py:_add_lines_to_figure` (`:225-308`) renders each line by reading its stored `geodata` coordinate list directly — it has no notion of the post-merge `bus_id` remap. So a line whose endpoint bus was merged into another bus 10 km away still draws to its *original* coordinate, appearing to "float" near, but not touching, the bus it is now topologically connected to. `_snap_t_junctions` avoids this because it actually **splits line geometry** at the connection point — there is no equivalent geometry creation in the join step, by design (it exists specifically for cases where the underlying geometry is too broken to trust).
+> **Why merged islands can show a visual gap**: `visualize/network_view.py:_add_lines_to_figure` renders each line by reading its stored `geodata` coordinate list directly — it has no notion of the post-merge `bus_id` remap. So a line whose endpoint bus was merged into another bus 10 km away still draws to its *original* coordinate, appearing to "float" near, but not touching, the bus it is now topologically connected to. `_snap_t_junctions` avoids this because it actually **splits line geometry** at the connection point — there is no equivalent geometry creation in the join step, by design (it exists specifically for cases where the underlying geometry is too broken to trust).
 
 This was observed concretely with the three two-bus islands flagged by the user as "orphaned lines with broken geometry" — each was merged into the nearest bus within the 10 km radius, reducing the remaining island count from 3 small islands to effectively 0 after the full pipeline.
 
 ### 6. Putting It Together — `_validate_and_correct_graph()`
 
-**Location**: `pandapower.py:442-499`
+**Location**: `src/nemdb/models/pandapower/topology.py`
 
 ```python
-diagnostics = _diagnose_graph(lines, buses, mapping)
-lines, buses, mapping, correction_stats = _correct_graph(lines, buses, mapping, diagnostics)
+def _validate_and_correct_graph(graph: PhysicalGraph) -> tuple[PhysicalGraph, CorrectionStats]:
+    diagnostics = _diagnose_graph(graph)
+    graph, stats = _correct_graph(graph, diagnostics)
 
-if correction_stats["islands"] > 1:
-    islands_sorted = sorted(diagnostics["islands"], key=len, reverse=True)
+    if stats.islands_remaining > 1:
+        islands_sorted = sorted(diagnostics.islands, key=len, reverse=True)
+        graph, snaps = _snap_t_junctions(graph, islands_sorted)
+        if snaps > 0:
+            diagnostics = _diagnose_graph(graph)
+            stats.islands_remaining = diagnostics.n_islands
+            islands_sorted = sorted(diagnostics.islands, key=len, reverse=True)
 
-    lines, buses, mapping, snaps = _snap_t_junctions(lines, buses, mapping, islands_sorted)
-    if snaps > 0:
-        re_diag = _diagnose_graph(lines, buses, mapping)
-        correction_stats["islands"] = len(re_diag["islands"])
-        islands_sorted = sorted(re_diag["islands"], key=len, reverse=True)
+        if stats.islands_remaining > 1:
+            graph, joins = _join_isolated_islands_to_nearest_bus(graph, islands_sorted)
+            if joins > 0:
+                diagnostics = _diagnose_graph(graph)
+                stats.islands_remaining = diagnostics.n_islands
 
-    if correction_stats["islands"] > 1:
-        lines, buses, mapping, joins = _join_isolated_islands_to_nearest_bus(
-            lines, buses, mapping, islands_sorted
-        )
-        if joins > 0:
-            re_diag = _diagnose_graph(lines, buses, mapping)
-            correction_stats["islands"] = len(re_diag["islands"])
+        graph.lines = graph.lines.drop(columns=["_from_bus", "_to_bus"], errors="ignore")
 
-    lines = lines.drop(columns=["_from_bus", "_to_bus"], errors="ignore")
+    return graph, stats
 ```
 
-The temporary `_from_bus`/`_to_bus` columns exist purely to make the snap/join/re-diagnose loop fast and CRS-mismatch-proof; they're dropped before the corrected `lines`/`buses`/`mapping` are returned to `_get_buses_and_lines`, which logs a final summary and hands off to the electrical-model build.
+The temporary `_from_bus`/`_to_bus` columns on `graph.lines` exist purely to make the snap/join/re-diagnose loop fast and CRS-mismatch-proof; they're dropped before the corrected `graph.lines`/`graph.buses`/`graph.mapping` are returned to `_get_buses_and_lines`, which unpacks them and logs a final summary before handing off to the electrical-model build.
 
 ---
 
 ## Part 3 — Building the Electrical (pandapower) Representation
 
-**Entry point**: `get_pandapower_model()` (`pandapower.py:502-518`)
+**Entry point**: `get_pandapower_model()` (`src/nemdb/models/pandapower/electrical_model.py`)
 
 ```python
 lines, buses, mapping = _get_buses_and_lines()
@@ -267,11 +268,11 @@ pf_gens   = _get_gens_pp(pf_buses)
 pf_loads  = _get_loads_pp(pf_buses)
 ```
 
-A second entry point, `get_pandapower_model_with_opennem()` (`:1196-1251`), reuses the exact same pipeline but swaps `_get_gens_pp` for `_get_gens_from_opennem` (matched OpenNEM facilities instead of GA major-power-station data) and additionally runs the synthetic-fallback connectivity fix described in [Part 4](#part-4-model-level-connectivity-fallback).
+A second entry point, `get_pandapower_model_with_opennem()` (also in `electrical_model.py`), reuses the exact same pipeline but swaps `_get_gens_pp` for `_get_gens_from_opennem` (matched OpenNEM facilities instead of GA major-power-station data). Both pipelines run `_validate_and_fix_connectivity` — see [Part 4](#part-4--model-level-connectivity-fallback).
 
 ### 7. `_get_lines_pp()` — Lines with Voltage-Suffixed Bus IDs
 
-**Location**: `pandapower.py:578-602`
+**Location**: `src/nemdb/models/pandapower/electrical_model.py`
 
 Each cleaned `lines` row is converted to a pandapower-shaped record. The crucial step: **the physical `bus_id` is suffixed with its line's voltage**, e.g. `bus_42` carrying a 220 kV line becomes endpoint `bus_42_220kv`.
 
@@ -284,7 +285,7 @@ This is what creates **voltage-specific buses** — see next section. `name`, `l
 
 ### 8. `_get_bus_pp()` — One Pandapower Bus per (Physical Bus, Voltage)
 
-**Location**: `pandapower.py:605-625`
+**Location**: `src/nemdb/models/pandapower/electrical_model.py`
 
 Pandapower buses are derived **from the line endpoints**, not directly from the `buses` GeoDataFrame — a physical substation that carries lines of two different voltages becomes **two** pandapower buses (`bus_42_220kv` and `bus_42_330kv`):
 
@@ -305,7 +306,7 @@ pf_buses["geodata"] = (
 
 ### 9. `_get_trafos_pp()` — Auto-Creating Transformers
 
-**Location**: `pandapower.py:628-659`
+**Location**: `src/nemdb/models/pandapower/electrical_model.py`
 
 The rule is simple and entirely derived from the bus-naming scheme above: **whenever the same physical-bus prefix appears with more than one voltage suffix, a transformer is created chaining each consecutive pair of (sorted) voltages**:
 
@@ -322,11 +323,11 @@ for lv, hv in zip(row["vn_kv"][:-1], row["vn_kv"][1:], strict=False):
                    "pfe_kw": 60.0, "i0_percent": 0.06, "in_service": True})
 ```
 
-E.g. a substation with 132/220/330 kV lines produces two transformers: 132↔220 and 220↔330. The electrical parameters (`sn_mva`, `vk_percent`, `vkr_percent`, `pfe_kw`, `i0_percent`) are **placeholder values** — the source code marks them `# ARRBITRARY VALUES TODO find acceptable values` (`pandapower.py:649`) since the GIS data carries no transformer ratings.
+E.g. a substation with 132/220/330 kV lines produces two transformers: 132↔220 and 220↔330. The electrical parameters (`sn_mva`, `vk_percent`, `vkr_percent`, `pfe_kw`, `i0_percent`) are **placeholder values** — the source code marks them `# ARBITRARY VALUES TODO find acceptable values` since the GIS data carries no transformer ratings.
 
 ### 10. `_get_gens_pp()` / `_get_gens_from_opennem()` — Attaching Generators
 
-**Locations**: `pandapower.py:662-720` (GA data) and `:1143-1193` (OpenNEM)
+**Location**: `src/nemdb/models/pandapower/electrical_model.py`
 
 Both variants attach generation facilities to the **nearest** pandapower bus via `gpd.sjoin_nearest` (no voltage matching is enforced — generators connect at whatever bus is geographically closest):
 
@@ -341,7 +342,7 @@ In both cases `p_mw = capacity / 2` (a 50%-of-capacity operating-point assumptio
 
 ### 11. `_get_loads_pp()` — Attaching Substations as Loads
 
-**Location**: `pandapower.py:723-773`
+**Location**: `src/nemdb/models/pandapower/electrical_model.py`
 
 Substations from `read_substations()` are attached the same way — nearest-bus spatial join — but **with an additional voltage-matching filter** that generators don't have:
 
@@ -353,7 +354,7 @@ This is stricter because a substation genuinely operates at a specific declared 
 
 ### 12. Line Electrical Parameters — `_LINE_PARAMS`
 
-**Location**: `pandapower.py:1255-1304`, used in `_add_lines_to_network` (`:1363-1382`)
+**Location**: `src/nemdb/models/pandapower/line_params.py`, used by `_add_lines_to_network` in `network_builder.py`
 
 The GIS data carries no per-line impedance values, so `nemdb` uses a **voltage-keyed lookup table** of approximate standard parameters:
 
@@ -372,7 +373,7 @@ There is no per-line variation by conductor type or circuit count — every line
 
 ### 13. `_add_external_grids()` — Slack Buses
 
-**Location**: `pandapower.py:1448-1512`
+**Location**: `src/nemdb/models/pandapower/network_builder.py`
 
 Five major NEM interconnection substations are hard-coded as slack buses (`vm_pu=1.0`, `va_degree=0.0`):
 
@@ -388,9 +389,9 @@ Each is matched by **case-insensitive substring search** against load names alre
 
 ### 14. Final Assembly — `create_pandapower_network()`
 
-**Location**: `pandapower.py:1307-1341`, with helpers `_add_buses_to_network`/`_add_lines_to_network`/`_add_transformers_to_network`/`_add_generators_to_network`/`_add_loads_to_network` (`:1344-1446`)
+**Location**: `src/nemdb/models/pandapower/network_builder.py`, with helpers `_add_buses_to_network`, `_add_lines_to_network`, `_add_transformers_to_network`, `_add_generators_to_network`, `_add_loads_to_network`
 
-Orchestrates the actual `pandapower.auxiliary.pandapowerNet` construction in order: buses → lines → transformers → generators → loads → external grids → `sanity_checks()`. Bus `geodata` is stored as `(lat, lon)` tuples for plotting (`pandapower.py:1357`).
+Orchestrates the actual `pandapower.auxiliary.pandapowerNet` construction in order: buses → lines → transformers → generators → loads → external grids → `sanity_checks()`. Bus `geodata` is stored as `(lat, lon)` tuples for plotting. All five `_add_*_to_network` helpers use pandapower's bulk creation APIs (`pp.create_buses`, `pp.create_lines_from_parameters`, etc.) rather than per-row calls.
 
 ---
 
@@ -400,23 +401,23 @@ Orchestrates the actual `pandapower.auxiliary.pandapowerNet` construction in ord
 
 Splitting physical buses into voltage-specific buses (Part 3, step 8) can **re-introduce** islands that didn't exist at the physical level: a substation that is physically connected to the rest of the network only through, say, its 132 kV side, but also hosts an isolated 22 kV bus with no same-voltage line back to the main grid, becomes an island purely as an artefact of the voltage-specific representation. The physically-grounded fixes from Part 2 cannot — and should not — fix this, because there is no real T-junction or geometry error to correct; the "island" only exists once voltage levels are treated as separate layers.
 
-`_validate_and_fix_connectivity` is therefore a **deliberate last-resort fallback**, applied only by the OpenNEM pipeline (`get_pandapower_model_with_opennem`, called at `pandapower.py:1249`) — it is **not** run by the plain `get_pandapower_model()`.
+`_validate_and_fix_connectivity` is therefore a **deliberate last-resort fallback**, applied by **both** pipelines — `get_pandapower_model()` and `get_pandapower_model_with_opennem()` both call it after building the voltage-split model, for the same reason (both can produce voltage-level islands that don't exist at the physical level).
 
 ### 16. `_build_connectivity_graph()` — Voltage-Aware Graph
 
-**Location**: `pandapower.py:1055-1085`
+**Location**: `src/nemdb/models/pandapower/connectivity_fallback.py`
 
 Unlike the GIS-level `_diagnose_graph`, this graph includes **transformer edges** (`hv_bus`↔`lv_bus`) alongside line edges, plus isolated generator/load buses as standalone nodes — because at this level, a transformer is a legitimate connection between two voltage-specific buses representing the same physical substation.
 
-### 17. `_find_closest_bus_pair()` — Two-Phase Distance Search
+### 17. `_find_closest_bus_pair()` — Vectorized Nearest-Pair Search
 
-**Location**: `pandapower.py:791-848`
+**Location**: `src/nemdb/models/pandapower/connectivity_fallback.py`
 
-For performance, this uses a **fast Euclidean filter in degrees** first (`((lat2-lat1)**2 + (lon2-lon1)**2)**0.5`, with a rough `1° ≈ 111 km` threshold check) to find the single best candidate pair, then re-checks that one pair with a precise CRS-based distance (`_calculate_distance_km`, `:776-788`). Optionally restricts candidates to `same_voltage` matches.
+Finds the closest bus pair between an island and the main network. Optionally restricts candidates to `same_voltage` matches first, then delegates the spatial search to `geo_utils.nearest_bus_pair` (a vectorized `geopandas.sjoin_nearest` call) after converting the plain DataFrames to GeoDataFrames in `METRIC_CRS`. Returns `(src_bus_id, cand_bus_id, distance_km)`.
 
 ### 18. `_connect_islands()` — Two-Strategy Orchestration
 
-**Location**: `pandapower.py:956-1052`
+**Location**: `src/nemdb/models/pandapower/connectivity_fallback.py`
 
 ```mermaid
 flowchart TD
@@ -427,8 +428,8 @@ flowchart TD
     D -->|No| F[leave unconnected]
 ```
 
-- **Strategy 1 — same voltage, `MAX_SAME_VOLTAGE_DISTANCE = 50.0` km** (`pandapower.py:981`): `_create_synthetic_line` (`:851-871`) draws a direct line at the island's voltage, named `Synthetic_{island_bus}_to_{main_bus}`, `class="Synthetic Connection"`, length = great-circle distance between the two buses.
-- **Strategy 2 — cross-voltage, unrestricted distance**: `_create_cross_voltage_connection` (`:874-953`) builds a **three-part bridge** to respect pandapower's "lines must connect same-voltage buses" constraint:
+- **Strategy 1 — same voltage, `MAX_SAME_VOLTAGE_DISTANCE = 50.0` km**: `_create_synthetic_line` draws a direct line at the island's voltage, named `Synthetic_{island_bus}_to_{main_bus}`, `class="Synthetic Connection"`, length = great-circle distance between the two buses.
+- **Strategy 2 — cross-voltage, unrestricted distance**: `_create_cross_voltage_connection` builds a **three-part bridge** to respect pandapower's "lines must connect same-voltage buses" constraint:
   1. A synthetic intermediate bus at the **island's** voltage, geographically located at the **main** bus
   2. A same-voltage synthetic line: island bus → intermediate bus
   3. A synthetic transformer: intermediate bus ↔ main bus (orientation chosen so `vn_lv_kv < vn_hv_kv`)
@@ -439,11 +440,11 @@ bus_474_220kv ──[line @ 220kV]── bus_1700_synthetic_220kv ──[transfo
    (220 kV)                           at main bus, 220 kV)                           (66 kV)
 ```
 
-Both synthetic line and synthetic transformer reuse the **same placeholder electrical parameters** as `_get_trafos_pp` (`sn_mva=1_000`, `vk_percent=12.2`, `vkr_percent=0.25`, `pfe_kw=60.0`, `i0_percent=0.06`).
+Both synthetic line and synthetic transformer use the **same placeholder electrical parameters** as `_get_trafos_pp` (`sn_mva=1_000`, `vk_percent=12.2`, `vkr_percent=0.25`, `pfe_kw=60.0`, `i0_percent=0.06`).
 
 ### 19. `_validate_and_fix_connectivity()` — Iteration
 
-**Location**: `pandapower.py:1088-1141`
+**Location**: `src/nemdb/models/pandapower/connectivity_fallback.py`
 
 Runs `_connect_islands` for up to `max_iterations=5` passes, re-building the connectivity graph each time — connecting one island can split or merge others, so the process repeats until a single connected component remains or no further connection is possible.
 
@@ -457,28 +458,28 @@ Any element with `class == "Synthetic Connection"` or a name starting with `Synt
 
 | Parameter | Value | Location | Purpose |
 |---|---|---|---|
-| `eps` (DBSCAN) | 500 m | `pandapower.py:554` | Cluster line endpoints into physical buses |
-| `max_snap_distance_m` | 2,000 m | `pandapower.py:263` | Max distance to attempt a T-junction snap |
-| degenerate-segment guard | 1 m | `pandapower.py:178` | Reject splits producing near-zero-length segments |
-| `max_join_distance_m` | 10,000 m | `pandapower.py:375` | Max distance to merge an island bus into the nearest external bus |
-| `MAX_SAME_VOLTAGE_DISTANCE` | 50 km | `pandapower.py:981` | Preferred (no-transformer) island-connection radius, model level |
-| transformer placeholder params | `sn_mva=1000`, `vk_percent=12.2`, `vkr_percent=0.25`, `pfe_kw=60.0`, `i0_percent=0.06` | `pandapower.py:649-654`, `:945-950` | Used for both auto-created and synthetic transformers (TODO: replace with realistic values) |
-| `_LINE_PARAMS` | voltage-keyed r/x/c/max_i table | `pandapower.py:1255-1304` | Approximate line electrical parameters (GIS data lacks impedance) |
+| `eps` (DBSCAN) | 500 m | `electrical_model.py:_get_buses_and_lines` | Cluster line endpoints into physical buses |
+| `max_snap_distance_m` | 2,000 m | `topology.py:_snap_t_junctions` | Max distance to attempt a T-junction snap |
+| degenerate-segment guard | 1 m | `topology.py:_apply_t_snap` | Reject splits producing near-zero-length segments |
+| `max_join_distance_m` | 10,000 m | `topology.py:_join_isolated_islands_to_nearest_bus` | Max distance to merge an island bus into the nearest external bus |
+| `MAX_SAME_VOLTAGE_DISTANCE` | 50 km | `connectivity_fallback.py:_connect_islands` | Preferred (no-transformer) island-connection radius, model level |
+| transformer placeholder params | `sn_mva=1000`, `vk_percent=12.2`, `vkr_percent=0.25`, `pfe_kw=60.0`, `i0_percent=0.06` | `electrical_model.py:_get_trafos_pp`, `connectivity_fallback.py:_create_cross_voltage_connection` | Used for both auto-created and synthetic transformers (TODO: replace with realistic values) |
+| `_LINE_PARAMS` | voltage-keyed r/x/c/max_i table | `line_params.py` | Approximate line electrical parameters (GIS data lacks impedance) |
 
 ## Common Edge Cases
 
 | Case | Handling |
 |---|---|
-| T-junction snap point coincides with an existing bus | Reuse that bus instead of creating a duplicate `mapping` entry (`pandapower.py:188-194`) |
+| T-junction snap point coincides with an existing bus | Reuse that bus instead of creating a duplicate `mapping` entry (`_apply_t_snap` in `topology.py`) |
 | Split would produce a segment < 1 m | Reject and try the next-best candidate (`_apply_t_snap` returns `None`) |
 | Island bus has no snap candidate within `max_snap_distance_m` | Falls through to `_join_isolated_islands_to_nearest_bus` |
-| Island has no join candidate within `max_join_distance_m` either | Remains an island; reported in final diagnostics, possibly resolved later by the model-level fallback (OpenNEM pipeline only) |
-| Voltage-specific bus splitting re-isolates a physically-connected substation | Resolved (OpenNEM pipeline) by `_validate_and_fix_connectivity`'s same-voltage-then-cross-voltage synthetic fallback |
+| Island has no join candidate within `max_join_distance_m` either | Remains an island; reported in final diagnostics, resolved by the model-level fallback (both pipelines) |
+| Voltage-specific bus splitting re-isolates a physically-connected substation | Resolved by `_validate_and_fix_connectivity`'s same-voltage-then-cross-voltage synthetic fallback (both pipelines) |
 | Self-loop lines (both endpoints cluster to the same bus) | Removed at two points: `_correct_graph` (physical level) and `_get_lines_pp` (electrical level) |
 
 ## Visualizing the Result
 
-Topological merges (T-snap and island-join) update `bus_id`/`mapping` but the join step deliberately leaves line geometry untouched — see [§5](#5-_join_isolated_islands_to_nearest_bus-joining-remaining-islands) for why a recently-joined island can appear visually disconnected from the bus it is now wired to in `visualize.py`'s rendering, even though the electrical model treats it as connected.
+Topological merges (T-snap and island-join) update `bus_id`/`mapping` but the join step deliberately leaves line geometry untouched — see [§5](#5-_join_isolated_islands_to_nearest_bus--joining-remaining-islands) for why a recently-joined island can appear visually disconnected from the bus it is now wired to in `visualize/network_view.py`'s rendering, even though the electrical model treats it as connected.
 
 ## Related Documentation
 
