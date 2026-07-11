@@ -3,6 +3,7 @@ import networkx as nx
 import pandas as pd
 
 from nemdb.logger import log
+from nemdb.models.pandapower import geo_utils
 from nemdb.models.pandapower.topology import GEO_CRS, METRIC_CRS
 
 
@@ -27,58 +28,38 @@ def _find_closest_bus_pair(
     """Find the closest pair of buses between island and main component.
 
     Args:
-        island_buses: GeoDataFrame of buses in island
-        main_buses: GeoDataFrame of buses in main component
+        island_buses: DataFrame of buses in island (with 'geodata' geometry column)
+        main_buses: DataFrame of buses in main component (with 'geodata' geometry column)
         same_voltage: If True, only connect buses at the same voltage level
         max_distance_km: Maximum distance threshold in km. Returns None if no pair within this distance.
 
     Returns:
         Tuple of (island_bus_id, main_bus_id, distance_km) or (None, None, inf)
     """
-    min_distance_km = float("inf")
-    best_island_bus = None
-    best_main_bus = None
+    candidates = main_buses
+    if same_voltage and "vn_kv" in island_buses.columns and not island_buses.empty:
+        island_voltage = island_buses["vn_kv"].iloc[0]
+        candidates = main_buses[main_buses["vn_kv"] == island_voltage]
 
-    for island_bus_id, island_bus in island_buses.iterrows():
-        if pd.isna(island_bus["geodata"]):
-            continue
+    def _to_metric_gdf(df: pd.DataFrame) -> gpd.GeoDataFrame:
+        # Materialise the index as a 'bus_id' column so sjoin_nearest produces
+        # 'bus_id_src'/'bus_id_cand' columns that nearest_bus_pair relies on.
+        # We must clear the index *name* first: if the index is already named
+        # 'bus_id' (as it is when buses come from model["buses"].set_index("bus_id")),
+        # geopandas' internal reset_index() would create a duplicate column.
+        tmp = df.copy()
+        tmp["bus_id"] = tmp.index
+        tmp.index.name = None
+        return gpd.GeoDataFrame(tmp, geometry="geodata", crs=GEO_CRS).to_crs(METRIC_CRS)
 
-        # If enforcing same voltage, filter main buses to matching voltage
-        candidate_main_buses = main_buses
-        if same_voltage and "vn_kv" in island_bus.index:
-            island_voltage = island_bus["vn_kv"]
-            candidate_main_buses = main_buses[main_buses["vn_kv"] == island_voltage]
-
-        for main_bus_id, main_bus in candidate_main_buses.iterrows():
-            if pd.isna(main_bus["geodata"]):
-                continue
-
-            # Quick Euclidean distance in degrees as a fast filter
-            # (sufficient for finding closest pairs without expensive CRS conversions)
-            lat1, lon1 = island_bus["geodata"].y, island_bus["geodata"].x
-            lat2, lon2 = main_bus["geodata"].y, main_bus["geodata"].x
-            deg_distance = ((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2) ** 0.5
-
-            # Skip if obviously too far (rough approximation: 1 degree ≈ 111 km)
-            if deg_distance * 111 > max_distance_km:
-                continue
-
-            if deg_distance < min_distance_km:
-                min_distance_km = deg_distance
-                best_island_bus = island_bus_id
-                best_main_bus = main_bus_id
-
-    # Return None if distance exceeds threshold (recheck with better precision)
-    if best_island_bus and best_main_bus:
-        actual_distance_km = _calculate_distance_km(
-            island_buses.loc[best_island_bus, "geodata"],
-            main_buses.loc[best_main_bus, "geodata"],
-        )
-        if actual_distance_km > max_distance_km:
-            return None, None, float("inf")
-        return best_island_bus, best_main_bus, actual_distance_km
-
-    return None, None, float("inf")
+    src = _to_metric_gdf(island_buses)
+    cand = _to_metric_gdf(candidates)
+    src_id, cand_id, dist_m = geo_utils.nearest_bus_pair(
+        src, cand, max_distance_m=max_distance_km * 1000, geometry_col="geodata"
+    )
+    if src_id is None:
+        return None, None, float("inf")
+    return src_id, cand_id, dist_m / 1000
 
 
 def _create_synthetic_line(best_island_bus, best_main_bus, buses_df):
