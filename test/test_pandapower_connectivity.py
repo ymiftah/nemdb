@@ -9,6 +9,7 @@ import pandapower as pp
 
 from nemdb.models.pandapower import (
     _HVDC_INTERCONNECTORS,
+    PhysicalGraph,
     _build_connectivity_graph,
     _calculate_distance_km,
     _create_cross_voltage_connection,
@@ -429,13 +430,14 @@ def test_diagnose_graph_simple():
         }
     )
 
-    diagnostics = _diagnose_graph(lines, buses, mapping)
+    graph = PhysicalGraph(lines=lines, buses=buses, mapping=mapping)
+    diagnostics = _diagnose_graph(graph)
 
     # Verify diagnostics
-    assert diagnostics["total_buses"] == 3
-    assert diagnostics["total_lines"] == 1
-    assert "bus3_orphan" in diagnostics["orphan_buses"]  # bus3 should be orphan
-    assert len(diagnostics["islands"]) >= 1  # At least one island
+    assert diagnostics.total_buses == 3
+    assert diagnostics.total_lines == 1
+    assert "bus3_orphan" in diagnostics.orphan_buses  # bus3 should be orphan
+    assert len(diagnostics.islands) >= 1  # At least one island
 
 
 def test_create_synthetic_line():

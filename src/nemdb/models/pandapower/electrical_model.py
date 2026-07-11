@@ -13,7 +13,12 @@ from nemdb.geodata.geodata import (
 from nemdb.geodata.matching import match_facilities_to_gis
 from nemdb.logger import log
 from nemdb.models.pandapower.connectivity_fallback import _validate_and_fix_connectivity
-from nemdb.models.pandapower.topology import GEO_CRS, METRIC_CRS, _validate_and_correct_graph
+from nemdb.models.pandapower.topology import (
+    GEO_CRS,
+    METRIC_CRS,
+    PhysicalGraph,
+    _validate_and_correct_graph,
+)
 
 # NEM states (excludes WA and NT)
 NEM_STATES = [
@@ -96,14 +101,16 @@ def _get_buses_and_lines():
     mapping = extremeties.to_crs(GEO_CRS).set_index("geometry")["bus_id"]
 
     # Validate and correct the graph structure
-    lines, buses, mapping, diagnostics = _validate_and_correct_graph(lines, buses, mapping)
+    graph = PhysicalGraph(lines=lines, buses=buses, mapping=mapping)
+    graph, stats = _validate_and_correct_graph(graph)
+    lines, buses, mapping = graph.lines, graph.buses, graph.mapping
 
     log.info(
-        f"Graph validation: {diagnostics['total_buses']} buses, "
-        f"{diagnostics['total_lines']} lines, "
-        f"{diagnostics['islands']} island(s), "
-        f"{diagnostics['orphan_buses']} orphan bus(es) removed, "
-        f"{diagnostics['self_loops']} self-loop(s) removed"
+        f"Graph validation: {len(buses)} buses, "
+        f"{len(lines)} lines, "
+        f"{stats.islands_remaining} island(s), "
+        f"{stats.orphan_buses_removed} orphan bus(es) removed, "
+        f"{stats.self_loops_removed} self-loop(s) removed"
     )
 
     return lines, buses, mapping
