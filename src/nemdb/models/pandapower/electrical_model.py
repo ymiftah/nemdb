@@ -116,30 +116,26 @@ def _get_buses_and_lines():
     return lines, buses, mapping
 
 
-def _get_lines_pp(lines, mapping):
-    rows = []
-    for _, row in lines.to_crs(GEO_CRS).iterrows():
-        start_point = shp.get_point(row.geometry, 0)
-        end_point = shp.get_point(row.geometry, -1)
-        from_bus = mapping[start_point]
-        to_bus = mapping[end_point]
-        rows.append(
-            {
-                "name": row["name"],
-                "from_bus": from_bus,
-                "to_bus": to_bus,
-                "length_km": row["length_km"],
-                "in_service": row["operationalstatus"] == "Operational",
-                "class": row["class"],
-                "geodata": row["geometry"].coords,
-                "voltagekv": row["capacitykv"],
-            }
-        )
-    df = pd.DataFrame(rows)
-    df = df[df["to_bus"] != df["from_bus"]]  # Remove lines going to the same bus
-    df["from_bus"] = df["from_bus"] + "_" + df["voltagekv"].astype(str) + "kv"
-    df["to_bus"] = df["to_bus"] + "_" + df["voltagekv"].astype(str) + "kv"
+def _get_lines_pp(lines: gpd.GeoDataFrame, mapping: pd.Series) -> pd.DataFrame:
+    lines_geo = lines.to_crs(GEO_CRS)
+    start_points = lines_geo.geometry.map(lambda g: shp.get_point(g, 0))
+    end_points = lines_geo.geometry.map(lambda g: shp.get_point(g, -1))
 
+    df = pd.DataFrame(
+        {
+            "name": lines["name"],
+            "from_bus": start_points.map(mapping),
+            "to_bus": end_points.map(mapping),
+            "length_km": lines["length_km"],
+            "in_service": lines["operationalstatus"] == "Operational",
+            "class": lines["class"],
+            "geodata": lines_geo.geometry.map(lambda g: list(g.coords)),
+            "voltagekv": lines["capacitykv"],
+        }
+    )
+    df = df[df["to_bus"] != df["from_bus"]]  # Remove lines going to the same bus
+    df["from_bus"] = df["from_bus"] + "_" + df["voltagekv"].astype(str) + "kv"  # type: ignore[operator]
+    df["to_bus"] = df["to_bus"] + "_" + df["voltagekv"].astype(str) + "kv"  # type: ignore[operator]
     return df
 
 
