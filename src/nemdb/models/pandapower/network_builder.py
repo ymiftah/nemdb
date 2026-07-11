@@ -56,16 +56,33 @@ def _add_buses_to_network(net: pp.auxiliary.pandapowerNet, buses_df: pd.DataFram
     Returns:
         Mapping of bus IDs to pandapower indices.
     """
-    bus_idx_map = {}
-    for _, row in buses_df.iterrows():
-        idx = pp.create_bus(
+    has_geo = buses_df["geodata"].notna()
+    bus_idx_map: dict = {}
+
+    with_geo = buses_df[has_geo]
+    if not with_geo.empty:
+        idxs = pp.create_buses(
             net,
-            vn_kv=row["vn_kv"],
-            name=row["bus_id"],
-            in_service=row["in_service"],
-            geodata=(row["geodata"].y, row["geodata"].x) if row["geodata"] else None,
+            nr_buses=len(with_geo),
+            vn_kv=with_geo["vn_kv"].to_numpy(),
+            name=with_geo["bus_id"].to_numpy(),
+            in_service=with_geo["in_service"].to_numpy(),
+            geodata=[(g.y, g.x) for g in with_geo["geodata"]],
         )
-        bus_idx_map[row["bus_id"]] = idx
+        bus_idx_map.update(zip(with_geo["bus_id"], idxs, strict=True))
+
+    without_geo = buses_df[~has_geo]
+    if not without_geo.empty:
+        idxs = pp.create_buses(
+            net,
+            nr_buses=len(without_geo),
+            vn_kv=without_geo["vn_kv"].to_numpy(),
+            name=without_geo["bus_id"].to_numpy(),
+            in_service=without_geo["in_service"].to_numpy(),
+            geodata=None,
+        )
+        bus_idx_map.update(zip(without_geo["bus_id"], idxs, strict=True))
+
     return bus_idx_map
 
 
@@ -73,85 +90,85 @@ def _add_lines_to_network(
     net: pp.auxiliary.pandapowerNet, bus_idx_map: dict, lines_df: pd.DataFrame
 ) -> None:
     """Add lines from dataframe to network."""
-    for _, row in lines_df.iterrows():
-        from_idx = bus_idx_map.get(row["from_bus"])
-        to_idx = bus_idx_map.get(row["to_bus"])
-        if from_idx is None or to_idx is None:
-            continue
-        vkv = int(row["voltagekv"]) if pd.notna(row["voltagekv"]) else 0
-        params = _LINE_PARAMS.get(vkv, _DEFAULT_LINE_PARAMS)
-        pp.create_line_from_parameters(
-            net,
-            from_bus=from_idx,
-            to_bus=to_idx,
-            length_km=row["length_km"],
-            name=row["name"],
-            in_service=row["in_service"],
-            **params,
-        )
+    valid = lines_df[lines_df["from_bus"].isin(bus_idx_map) & lines_df["to_bus"].isin(bus_idx_map)]
+    if valid.empty:
+        return
+    vkvs = valid["voltagekv"].fillna(0).astype(int)
+    params = pd.DataFrame([_LINE_PARAMS.get(v, _DEFAULT_LINE_PARAMS) for v in vkvs])
+    pp.create_lines_from_parameters(
+        net,
+        from_buses=valid["from_bus"].map(bus_idx_map).to_numpy(),
+        to_buses=valid["to_bus"].map(bus_idx_map).to_numpy(),
+        length_km=valid["length_km"].to_numpy(),
+        r_ohm_per_km=params["r_ohm_per_km"].to_numpy(),
+        x_ohm_per_km=params["x_ohm_per_km"].to_numpy(),
+        c_nf_per_km=params["c_nf_per_km"].to_numpy(),
+        max_i_ka=params["max_i_ka"].to_numpy(),
+        name=valid["name"].to_numpy(),
+        in_service=valid["in_service"].to_numpy(),
+    )
 
 
 def _add_transformers_to_network(
     net: pp.auxiliary.pandapowerNet, bus_idx_map: dict, trafos_df: pd.DataFrame
 ) -> None:
     """Add transformers from dataframe to network."""
-    for _, row in trafos_df.iterrows():
-        hv_idx = bus_idx_map.get(row["hv_bus"])
-        lv_idx = bus_idx_map.get(row["lv_bus"])
-        if hv_idx is None or lv_idx is None:
-            continue
-        pp.create_transformer_from_parameters(
-            net,
-            hv_bus=hv_idx,
-            lv_bus=lv_idx,
-            sn_mva=row["sn_mva"],
-            vn_hv_kv=row["vn_hv_kv"],
-            vn_lv_kv=row["vn_lv_kv"],
-            vkr_percent=row["vkr_percent"],
-            vk_percent=row["vk_percent"],
-            pfe_kw=row["pfe_kw"],
-            i0_percent=row["i0_percent"],
-            name=row["name"],
-            in_service=row["in_service"],
-        )
+    valid = trafos_df[trafos_df["hv_bus"].isin(bus_idx_map) & trafos_df["lv_bus"].isin(bus_idx_map)]
+    if valid.empty:
+        return
+    pp.create_transformers_from_parameters(
+        net,
+        hv_buses=valid["hv_bus"].map(bus_idx_map).to_numpy(),
+        lv_buses=valid["lv_bus"].map(bus_idx_map).to_numpy(),
+        sn_mva=valid["sn_mva"].to_numpy(),
+        vn_hv_kv=valid["vn_hv_kv"].to_numpy(),
+        vn_lv_kv=valid["vn_lv_kv"].to_numpy(),
+        vkr_percent=valid["vkr_percent"].to_numpy(),
+        vk_percent=valid["vk_percent"].to_numpy(),
+        pfe_kw=valid["pfe_kw"].to_numpy(),
+        i0_percent=valid["i0_percent"].to_numpy(),
+        name=valid["name"].to_numpy(),
+        in_service=valid["in_service"].to_numpy(),
+    )
 
 
 def _add_generators_to_network(
     net: pp.auxiliary.pandapowerNet, bus_idx_map: dict, gens_df: pd.DataFrame
 ) -> None:
     """Add generators from dataframe to network."""
-    for _, row in gens_df.iterrows():
-        bus_idx = bus_idx_map.get(row["bus_id"])
-        if bus_idx is None:
-            continue
-        pp.create_gen(
-            net,
-            bus=bus_idx,
-            p_mw=row["p_mw"],
-            max_p_mw=row["max_p_mw"],
-            name=row.get(
-                "code", row["name"]
-            ),  # Use 'code' if available (OpenNEM), else 'name' (GA data)
-            type=row["type"],
-            in_service=row["in_service"],
-        )
+    valid = gens_df[gens_df["bus_id"].isin(bus_idx_map)]
+    if valid.empty:
+        return
+    name = (
+        valid["code"].where(valid["code"].notna(), valid["name"])
+        if "code" in valid.columns
+        else valid["name"]
+    )
+    pp.create_gens(
+        net,
+        buses=valid["bus_id"].map(bus_idx_map).to_numpy(),
+        p_mw=valid["p_mw"].to_numpy(),
+        max_p_mw=valid["max_p_mw"].to_numpy(),
+        name=name.to_numpy(),
+        type=valid["type"].to_numpy(),
+        in_service=valid["in_service"].to_numpy(),
+    )
 
 
 def _add_loads_to_network(
     net: pp.auxiliary.pandapowerNet, bus_idx_map: dict, loads_df: pd.DataFrame
 ) -> None:
     """Add loads (substations as placeholders) from dataframe to network."""
-    for _, row in loads_df.iterrows():
-        bus_idx = bus_idx_map.get(row["bus_id"])
-        if bus_idx is None:
-            continue
-        pp.create_load(
-            net,
-            bus=bus_idx,
-            p_mw=0,
-            name=row["name"],
-            in_service=row["in_service"],
-        )
+    valid = loads_df[loads_df["bus_id"].isin(bus_idx_map)]
+    if valid.empty:
+        return
+    pp.create_loads(
+        net,
+        buses=valid["bus_id"].map(bus_idx_map).to_numpy(),
+        p_mw=[0] * len(valid),
+        name=valid["name"].to_numpy(),
+        in_service=valid["in_service"].to_numpy(),
+    )
 
 
 # Real HVDC interconnectors that the GA dataset represents as ordinary line
