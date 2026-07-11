@@ -31,7 +31,7 @@ populate = "nemdb:main.populate"
 
 [project.optional-dependencies]
 grid = [
-    "pandapower==3.4.0",
+    "pandapower==3.5.4",
     "scikit-learn>=1.7.2",
 ]
 viz = [
