@@ -9,6 +9,8 @@ from shapely.ops import substring
 
 from nemdb.logger import log
 
+from . import geo_utils
+
 METRIC_CRS = "EPSG:7856"
 GEO_CRS = "EPSG:4326"
 
@@ -390,32 +392,16 @@ def _join_isolated_islands_to_nearest_bus(
     lines = graph.lines
     buses = graph.buses
     mapping = graph.mapping
-    bus_geom_lookup: dict[str, Any] = buses.set_index("bus_id")["geometry"].to_dict()
     joins = 0
 
     for island_idx in range(1, len(islands_sorted)):
         island = islands_sorted[island_idx]
 
-        best_dist = max_join_distance_m
-        best_island_bus: str | None = None
-        best_target_bus: str | None = None
-
-        for bus_id in island:
-            bus_geom = bus_geom_lookup.get(bus_id)
-            if bus_geom is None:
-                continue
-
-            buffer = bus_geom.buffer(max_join_distance_m)
-            candidate_idxs = buses.sindex.query(buffer, predicate="intersects")
-            for iloc in candidate_idxs:
-                candidate = buses.iloc[iloc]
-                if candidate["bus_id"] in island:
-                    continue
-                dist = bus_geom.distance(candidate.geometry)
-                if dist < best_dist:
-                    best_dist = dist
-                    best_island_bus = bus_id
-                    best_target_bus = candidate["bus_id"]
+        source_buses = buses[buses["bus_id"].isin(island)].copy()
+        candidate_buses = buses[~buses["bus_id"].isin(island)].copy()
+        best_island_bus, best_target_bus, best_dist = geo_utils.nearest_bus_pair(
+            source_buses, candidate_buses, max_distance_m=max_join_distance_m
+        )
 
         if best_island_bus is None or best_target_bus is None:
             continue
@@ -426,7 +412,6 @@ def _join_isolated_islands_to_nearest_bus(
                 lines[col] = lines[col].where(lines[col] != best_island_bus, best_target_bus)
 
         buses = buses[buses["bus_id"] != best_island_bus].reset_index(drop=True)
-        bus_geom_lookup.pop(best_island_bus, None)
 
         log.info(
             f"Joined isolated island bus {best_island_bus} → {best_target_bus} "
