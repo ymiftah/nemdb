@@ -75,11 +75,11 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: uv sync --all-groups --extra grid --extra viz
       - name: Test with pytest
         env:
           OPENELECTRICITY_API_KEY: "dummy-key-for-testing"
-        run: uv run pytest
+        run: uv run pytest -m "not slow"
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.13'
         uses: codecov/codecov-action@v6

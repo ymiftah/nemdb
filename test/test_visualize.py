@@ -15,6 +15,8 @@ from nemdb.models.visualize import (
     _add_lines_to_figure,
     _add_loads_to_figure,
     _add_transformers_to_figure,
+    _compute_island_assignment,
+    visualize_islands,
     visualize_network,
 )
 
@@ -129,6 +131,101 @@ def sample_model(
         "trafos": sample_trafos_df,
         "gens": sample_gens_df,
         "loads": sample_loads_df,
+    }
+
+
+@pytest.fixture
+def two_island_lines_df():
+    """Lines forming two disconnected islands: A-B-C (island 0) and D-E (island 1)."""
+    return pd.DataFrame(
+        {
+            "name": ["Line AB", "Line BC", "Line DE"],
+            "from_bus": ["isl1_bus_A_132kv", "isl1_bus_B_132kv", "isl2_bus_D_132kv"],
+            "to_bus": ["isl1_bus_B_132kv", "isl1_bus_C_132kv", "isl2_bus_E_132kv"],
+            "length_km": [50.0, 60.0, 40.0],
+            "in_service": [True, True, True],
+            "class": ["Transmission Line"] * 3,
+            "geodata": [
+                [(151.0, -27.0), (151.1, -27.1)],
+                [(151.1, -27.1), (151.2, -27.2)],
+                [(153.0, -28.0), (153.1, -28.1)],
+            ],
+            "voltagekv": [132, 132, 132],
+        }
+    )
+
+
+@pytest.fixture
+def two_island_buses_df():
+    """Five buses across two disconnected islands."""
+    return pd.DataFrame(
+        {
+            "bus_id": [
+                "isl1_bus_A_132kv",
+                "isl1_bus_B_132kv",
+                "isl1_bus_C_132kv",
+                "isl2_bus_D_132kv",
+                "isl2_bus_E_132kv",
+            ],
+            "vn_kv": [132] * 5,
+            "in_service": [True] * 5,
+            "geodata": [
+                shp.Point(151.0, -27.0),
+                shp.Point(151.1, -27.1),
+                shp.Point(151.2, -27.2),
+                shp.Point(153.0, -28.0),
+                shp.Point(153.1, -28.1),
+            ],
+        }
+    )
+
+
+@pytest.fixture
+def two_island_gens_df():
+    """Two generators, one per island."""
+    return pd.DataFrame(
+        {
+            "bus_id": ["isl1_bus_A_132kv", "isl2_bus_D_132kv"],
+            "name": ["Gen Island 1", "Gen Island 2"],
+            "p_mw": [100.0, 50.0],
+            "max_p_mw": [200.0, 100.0],
+            "type": ["Thermal", "Wind"],
+            "in_service": [True, True],
+            "owner": ["Company A", "Company B"],
+            "fueltype": ["Black Coal", "Wind"],
+            "vn_kv": [132, 132],
+            "geodata": [shp.Point(151.0, -27.0), shp.Point(153.0, -28.0)],
+        }
+    )
+
+
+@pytest.fixture
+def two_island_loads_df():
+    """Two loads, one per island."""
+    return pd.DataFrame(
+        {
+            "bus_id": ["isl1_bus_B_132kv", "isl2_bus_E_132kv"],
+            "name": ["Load Island 1", "Load Island 2"],
+            "type": ["Zone Substation"] * 2,
+            "vn_kv": [132, 132],
+            "in_service": [True, True],
+            "locality": ["Sydney", "Brisbane"],
+            "state": ["NSW", "QLD"],
+            "geodata": [shp.Point(151.1, -27.1), shp.Point(153.1, -28.1)],
+        }
+    )
+
+
+@pytest.fixture
+def two_island_model(
+    two_island_lines_df, two_island_buses_df, two_island_gens_df, two_island_loads_df
+):
+    return {
+        "lines": two_island_lines_df,
+        "buses": two_island_buses_df,
+        "gens": two_island_gens_df,
+        "loads": two_island_loads_df,
+        "trafos": pd.DataFrame(),
     }
 
 
@@ -508,3 +605,134 @@ class TestFuelColorScale:
             assert isinstance(color, str)
             assert color.startswith("#")
             assert len(color) == 7
+
+
+class TestComputeIslandAssignment:
+    """Tests for island assignment computation."""
+
+    def test_two_disconnected_components(self):
+        """Two disconnected line groups produce two distinct island indices."""
+        lines = pd.DataFrame(
+            {
+                "from_bus": ["bus_A_132kv", "bus_C_132kv"],
+                "to_bus": ["bus_B_132kv", "bus_D_132kv"],
+            }
+        )
+        result = _compute_island_assignment(lines)
+        assert set(result.keys()) == {"bus_A_132kv", "bus_B_132kv", "bus_C_132kv", "bus_D_132kv"}
+        assert result["bus_A_132kv"] == result["bus_B_132kv"]
+        assert result["bus_C_132kv"] == result["bus_D_132kv"]
+        assert result["bus_A_132kv"] != result["bus_C_132kv"]
+
+    def test_single_connected_component(self):
+        """All buses in a chain get the same island index."""
+        lines = pd.DataFrame(
+            {
+                "from_bus": ["bus_A_132kv", "bus_B_132kv"],
+                "to_bus": ["bus_B_132kv", "bus_C_132kv"],
+            }
+        )
+        result = _compute_island_assignment(lines)
+        assert result["bus_A_132kv"] == result["bus_B_132kv"] == result["bus_C_132kv"]
+
+    def test_largest_component_gets_index_zero(self):
+        """The largest connected component is assigned island index 0."""
+        lines = pd.DataFrame(
+            {
+                "from_bus": ["bus_A", "bus_B", "bus_X"],
+                "to_bus": ["bus_B", "bus_C", "bus_Y"],
+            }
+        )
+        result = _compute_island_assignment(lines)
+        # {A, B, C} has 3 nodes → island 0; {X, Y} has 2 nodes → island 1
+        assert result["bus_A"] == 0
+        assert result["bus_B"] == 0
+        assert result["bus_C"] == 0
+        assert result["bus_X"] == 1
+        assert result["bus_Y"] == 1
+
+    def test_empty_lines_returns_empty(self):
+        """Empty lines DataFrame returns empty dict."""
+        result = _compute_island_assignment(pd.DataFrame(columns=["from_bus", "to_bus"]))
+        assert result == {}
+
+    def test_trafos_bridge_voltage_split_buses(self):
+        """Transformer hv_bus/lv_bus edges merge voltage-split buses into one island."""
+        lines = pd.DataFrame(
+            {
+                "from_bus": ["bus_A_132kv", "bus_B_330kv"],
+                "to_bus": ["bus_B_132kv", "bus_C_330kv"],
+            }
+        )
+        trafos = pd.DataFrame({"hv_bus": ["bus_B_330kv"], "lv_bus": ["bus_B_132kv"]})
+        result_without = _compute_island_assignment(lines)
+        result_with = _compute_island_assignment(lines, trafos)
+        # Without trafo: two disconnected voltage groups
+        assert result_without["bus_A_132kv"] != result_without["bus_B_330kv"]
+        # With trafo: transformer bridges 132 kV and 330 kV sides → one island
+        assert (
+            result_with["bus_A_132kv"] == result_with["bus_B_330kv"] == result_with["bus_C_330kv"]
+        )
+
+
+class TestVisualizeIslands:
+    """Tests for island visualization function."""
+
+    def test_returns_figure(self, two_island_model):
+        fig = visualize_islands(two_island_model)
+        assert isinstance(fig, go.Figure)
+
+    def test_one_legend_entry_per_island(self, two_island_model):
+        """Exactly one trace per island has showlegend=True."""
+        fig = visualize_islands(two_island_model)
+        legend_entries = [t for t in fig.data if t.showlegend]
+        assert len(legend_entries) == 2
+
+    def test_island_legend_names(self, two_island_model):
+        """Legend entry names follow 'Island N' pattern."""
+        fig = visualize_islands(two_island_model)
+        legend_names = {t.name for t in fig.data if t.showlegend}
+        assert legend_names == {"Island 1", "Island 2"}
+
+    def test_all_traces_in_island_share_legendgroup(self, two_island_model):
+        """Every trace for an island uses that island's legendgroup."""
+        fig = visualize_islands(two_island_model)
+        for island_name in ("Island 1", "Island 2"):
+            traces = [t for t in fig.data if t.legendgroup == island_name]
+            assert len(traces) > 0
+            assert all(t.legendgroup == island_name for t in traces)
+
+    def test_only_first_trace_per_island_shows_legend(self, two_island_model):
+        """Only one trace per island has showlegend=True; the rest are False."""
+        fig = visualize_islands(two_island_model)
+        for island_name in ("Island 1", "Island 2"):
+            traces = [t for t in fig.data if t.legendgroup == island_name]
+            shown = [t for t in traces if t.showlegend]
+            assert len(shown) == 1
+
+    def test_islands_have_distinct_colors(self, two_island_model):
+        """Island 1 and Island 2 use different colors."""
+        fig = visualize_islands(two_island_model)
+        island1_first = next(t for t in fig.data if t.legendgroup == "Island 1")
+        island2_first = next(t for t in fig.data if t.legendgroup == "Island 2")
+
+        def get_color(trace):
+            if trace.mode == "lines":
+                return trace.line.color
+            return trace.marker.color
+
+        assert get_color(island1_first) != get_color(island2_first)
+
+    def test_custom_title(self, two_island_model):
+        fig = visualize_islands(two_island_model, title="My Islands")
+        assert fig.layout.title.text == "My Islands"
+
+    def test_empty_model_returns_figure(self):
+        fig = visualize_islands({})
+        assert isinstance(fig, go.Figure)
+
+    def test_map_layout_configured(self, two_island_model):
+        fig = visualize_islands(two_island_model, center_lat=-33.0, center_lon=150.0, zoom=6)
+        assert fig.layout.mapbox.center.lat == -33.0
+        assert fig.layout.mapbox.center.lon == 150.0
+        assert fig.layout.mapbox.zoom == 6

@@ -1,68 +1,17 @@
-"""Interactive Plotly visualization of pandapower network models for the NEM.
+"""Voltage-coloured network visualization for the NEM transmission network."""
 
-This module provides visualization functions for the NEM transmission network
-using Plotly's MapLibre backend with Carto basemaps. All network elements
-(buses, lines, transformers, generators, loads) are displayed with interactive
-hover information and layer toggling via the legend.
-"""
-
-import logging
 import math
 
 import pandas as pd
 import plotly.graph_objects as go
 
-logger = logging.getLogger(__name__)
-
-# Voltage color scale (kV -> color)
-VOLTAGE_COLORS = {
-    500: "#8B0000",  # Dark red
-    330: "#DC143C",  # Crimson
-    275: "#FF6347",  # Tomato
-    220: "#FF8C00",  # Dark orange
-    132: "#FFD700",  # Gold
-    110: "#9ACD32",  # Yellow-green
-    66: "#32CD32",  # Lime green
-}
-
-# Fuel type color scale
-FUEL_COLORS = {
-    "Coal": "#404040",
-    "Black Coal": "#404040",
-    "Brown Coal": "#5C5C5C",
-    "Gas": "#4169E1",
-    "CCGT": "#4169E1",
-    "OCGT": "#4169E1",
-    "ACGT": "#4169E1",
-    "Hydro": "#1E90FF",
-    "Wind": "#00CED1",
-    "Biomass": "#8B4513",
-    "Solar": "#FFD700",
-    "Photovoltaic": "#FFD700",
-    "Thermal": "#808080",
-    "Battery": "#9370DB",
-    "Pumped Storage": "#00BFFF",
-    "Interconnector": "#FF1493",
-    # OpenNEM fueltech codes
-    "coal_black": "#404040",
-    "coal_brown": "#5C5C5C",
-    "gas_ccgt": "#4169E1",
-    "gas_ocgt": "#4169E1",
-    "gas_acgt": "#4169E1",
-    "gas_recip": "#4169E1",
-    "gas_steam": "#4169E1",
-    "hydro": "#1E90FF",
-    "wind": "#00CED1",
-    "solar_utility": "#FFD700",
-    "solar_rooftop": "#FFA500",
-    "biomass": "#8B4513",
-    "battery_lithium": "#9370DB",
-    "battery_flow": "#9370DB",
-    "pumps": "#00BFFF",
-}
-
-# Default fuel color for unknown types
-DEFAULT_FUEL_COLOR = "#808080"
+from .common import (
+    DEFAULT_FUEL_COLOR,
+    FUEL_COLORS,
+    VOLTAGE_COLORS,
+    _apply_map_layout,
+    bus_location_lookup,
+)
 
 
 def visualize_network(
@@ -144,26 +93,7 @@ def visualize_network(
     if show_generators and not gens_df.empty:
         _add_generators_to_figure(fig, gens_df)
 
-    # Update layout with map configuration
-    fig.update_layout(
-        title=title,
-        mapbox={
-            "style": mapbox_style,
-            "center": {"lat": center_lat, "lon": center_lon},
-            "zoom": zoom,
-        },
-        height=height,
-        margin={"l": 0, "r": 0, "t": 40, "b": 0},
-        hovermode="closest",
-        showlegend=True,
-        legend={
-            "x": 0.01,
-            "y": 0.99,
-            "bgcolor": "rgba(255, 255, 255, 0.8)",
-            "bordercolor": "rgba(0, 0, 0, 0.2)",
-            "borderwidth": 1,
-        },
-    )
+    _apply_map_layout(fig, mapbox_style, center_lat, center_lon, zoom, height, title)
 
     return fig
 
@@ -320,15 +250,7 @@ def _add_transformers_to_figure(
         return
 
     # Build bus location mapping
-    bus_locations = {}
-    for _, row in buses_df.iterrows():
-        geodata = row.get("geodata")
-        if pd.isna(geodata) or geodata is None:
-            continue
-        try:
-            bus_locations[row.get("bus_id")] = (geodata.x, geodata.y)
-        except AttributeError:
-            continue
+    bus_locations = bus_location_lookup(buses_df)
 
     lats = []
     lons = []
