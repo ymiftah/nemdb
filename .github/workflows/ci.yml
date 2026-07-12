@@ -75,7 +75,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
       - name: Install dependencies
-        run: uv sync --all-groups --extra grid
+        run: uv sync --all-groups --extra grid --extra viz
       - name: Test with pytest
         env:
           OPENELECTRICITY_API_KEY: "dummy-key-for-testing"

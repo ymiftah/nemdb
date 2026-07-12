@@ -10,6 +10,7 @@ import pytest
 import shapely as shp
 
 pytest.importorskip("pandapower")
+pytest.importorskip("plotly")
 import pandapower as pp
 
 from nemdb.models.pandapower.connectivity_fallback import _validate_and_fix_connectivity
