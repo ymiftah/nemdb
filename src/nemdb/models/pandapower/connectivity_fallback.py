@@ -282,16 +282,15 @@ def _build_connectivity_graph(model: dict) -> nx.Graph:
     # so isolated voltage-level orphans are visible as singleton components.
     G.add_nodes_from(model["buses"]["bus_id"])
 
-    # Only in-service lines/trafos provide electrical connectivity.
-    # Out-of-service elements (decommissioned lines, open switches) must not
-    # be counted as edges or _validate_and_fix_connectivity will miss buses
-    # that are disconnected in the live electrical model.
+    # Include all lines/trafos regardless of in_service status so that buses
+    # connected only by decommissioned infrastructure are not treated as isolated
+    # islands requiring synthetic connections.
     for _, row in model["lines"].iterrows():
-        if row.get("in_service", True) and pd.notna(row["from_bus"]) and pd.notna(row["to_bus"]):
+        if pd.notna(row["from_bus"]) and pd.notna(row["to_bus"]):
             G.add_edge(row["from_bus"], row["to_bus"])
 
     for _, row in model["trafos"].iterrows():
-        if row.get("in_service", True) and pd.notna(row["hv_bus"]) and pd.notna(row["lv_bus"]):
+        if pd.notna(row["hv_bus"]) and pd.notna(row["lv_bus"]):
             G.add_edge(row["hv_bus"], row["lv_bus"])
 
     return G

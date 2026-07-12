@@ -1,5 +1,6 @@
 from typing import Any, Literal
 
+import networkx as nx
 import pandapower as pp
 import pandas as pd
 
@@ -45,6 +46,7 @@ def create_pandapower_network(
     _add_generators_to_network(net, bus_idx_map, model["gens"])
     _add_loads_to_network(net, bus_idx_map, model["loads"])
     _add_external_grids(net)
+    _deactivate_isolated_buses(net)
     sanity_checks(net)
 
     return net
@@ -248,6 +250,43 @@ def _add_hvdc_interconnectors(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.p
         log.debug(f"✓ Added {len(bus_pairs)} HVDC dcline segment(s) for {link['name']}")
 
     return net
+
+
+def _deactivate_isolated_buses(net: pp.auxiliary.pandapowerNet) -> None:
+    """Mark in-service buses out-of-service if their island has no voltage reference.
+
+    Builds a graph of in-service connectivity. Any connected component that contains
+    no ext_grid has no voltage reference, making the load-flow equations underdetermined
+    (singular or non-convergent). Setting those buses out-of-service removes them from
+    the Y-bus entirely so the main network can be solved.
+    """
+    G = nx.Graph()
+    in_svc_buses = net.bus.index[net.bus["in_service"]]
+    G.add_nodes_from(in_svc_buses)
+    for _, r in net.line[net.line["in_service"]].iterrows():
+        if pd.notna(r["from_bus"]) and pd.notna(r["to_bus"]):
+            G.add_edge(int(r["from_bus"]), int(r["to_bus"]))
+    for _, r in net.trafo[net.trafo["in_service"]].iterrows():
+        if pd.notna(r["hv_bus"]) and pd.notna(r["lv_bus"]):
+            G.add_edge(int(r["hv_bus"]), int(r["lv_bus"]))
+    for _, r in net.dcline.iterrows():
+        if pd.notna(r["from_bus"]) and pd.notna(r["to_bus"]):
+            G.add_edge(int(r["from_bus"]), int(r["to_bus"]))
+
+    ext_buses = set(net.ext_grid["bus"].dropna().astype(int))
+
+    to_deactivate: list[int] = []
+    for comp in nx.connected_components(G):
+        if not comp & ext_buses:
+            to_deactivate.extend(comp)
+
+    if to_deactivate:
+        net.bus.loc[to_deactivate, "in_service"] = False
+        for idx in to_deactivate:
+            log.info(
+                f"Bus {net.bus.loc[idx, 'name']} ({net.bus.loc[idx, 'vn_kv']} kV) "
+                "set out-of-service: island has no ext_grid voltage reference"
+            )
 
 
 def _add_external_grids(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapowerNet:
