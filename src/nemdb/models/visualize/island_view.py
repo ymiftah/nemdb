@@ -2,6 +2,7 @@
 
 import math
 
+import geopandas as gpd
 import networkx as nx
 import pandas as pd
 import plotly.colors
@@ -449,8 +450,8 @@ def visualize_islands(
 
 
 def visualize_gis_islands(
-    lines_geo,
-    buses_geo,
+    lines_geo: gpd.GeoDataFrame,
+    buses_geo: gpd.GeoDataFrame,
     mapping: pd.Series,
     *,
     mapbox_style: str = "carto-positron",
