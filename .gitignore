@@ -43,6 +43,7 @@ site/
 
 # Scratch space
 scratch/
+.superpowers/
 
 # Dev/generation scripts
 scripts/
