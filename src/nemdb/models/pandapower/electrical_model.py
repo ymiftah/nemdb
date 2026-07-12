@@ -183,7 +183,7 @@ def _get_trafos_pp(pf_buses):
                     "hv_bus": bus + f"_{hv}kv",
                     "vn_lv_kv": lv,
                     "vn_hv_kv": hv,
-                    # ARRBITRARY VALUES TODO find acceptable values
+                    # TODO(#38): replace with per-voltage-class values from TNSP network statements
                     "sn_mva": 1_000,
                     "vk_percent": 12.2,
                     "vkr_percent": 0.25,

@@ -54,3 +54,28 @@ _DEFAULT_LINE_PARAMS = {
     "c_nf_per_km": 9.0,
     "max_i_ka": 0.6,
 }
+
+# Real HVDC interconnectors that the GA GIS dataset represents as ordinary AC line geometry.
+# p_mw and loss_percent are engineering approximations — see issue #37 for sourcing
+# authoritative values from AEMO ISP reports.
+# TODO(#37): replace loss_percent and p_mw with figures from AEMO ISP 2024 Appendix C.
+_HVDC_INTERCONNECTORS: list[dict] = [
+    {
+        "name": "Basslink",
+        "lines": ["Basslink-Loy Yang to Basslink-George Town"],
+        "p_mw": 500.0,
+        "loss_percent": 3.0,
+    },
+    {
+        "name": "Murraylink",
+        "lines": ["Monash to Red Cliffs Terminal"],
+        "p_mw": 220.0,
+        "loss_percent": 3.0,
+    },
+    {
+        "name": "Directlink",
+        "lines": ["Mullumbimby to Bungalora", "Bungalora to Terranora"],
+        "p_mw": 180.0,
+        "loss_percent": 2.0,
+    },
+]

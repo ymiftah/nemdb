@@ -20,9 +20,12 @@ from nemdb.models.pandapower.electrical_model import (
     get_pandapower_model,
     get_pandapower_model_with_opennem,
 )
-from nemdb.models.pandapower.line_params import _DEFAULT_LINE_PARAMS, _LINE_PARAMS
-from nemdb.models.pandapower.network_builder import (
+from nemdb.models.pandapower.line_params import (
+    _DEFAULT_LINE_PARAMS,
     _HVDC_INTERCONNECTORS,
+    _LINE_PARAMS,
+)
+from nemdb.models.pandapower.network_builder import (
     _add_buses_to_network,
     _add_external_grids,
     _add_generators_to_network,

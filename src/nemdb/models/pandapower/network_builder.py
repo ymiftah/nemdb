@@ -10,7 +10,11 @@ from nemdb.models.pandapower.electrical_model import (
     get_pandapower_model,
     get_pandapower_model_with_opennem,
 )
-from nemdb.models.pandapower.line_params import _DEFAULT_LINE_PARAMS, _LINE_PARAMS
+from nemdb.models.pandapower.line_params import (
+    _DEFAULT_LINE_PARAMS,
+    _HVDC_INTERCONNECTORS,
+    _LINE_PARAMS,
+)
 
 
 def create_pandapower_network(
@@ -85,6 +89,9 @@ def _add_buses_to_network(net: pp.auxiliary.pandapowerNet, buses_df: pd.DataFram
         )
         bus_idx_map.update(zip(without_geo["bus_id"], idxs, strict=True))
 
+    log.debug(
+        f"Added {len(bus_idx_map)} buses ({has_geo.sum()} with geodata, {(~has_geo).sum()} without)"
+    )
     return bus_idx_map
 
 
@@ -94,7 +101,10 @@ def _add_lines_to_network(
     """Add lines from dataframe to network."""
     valid = lines_df[lines_df["from_bus"].isin(bus_idx_map) & lines_df["to_bus"].isin(bus_idx_map)]
     if valid.empty:
-        return
+        raise ValueError(
+            f"No valid lines found: all {len(lines_df)} line(s) reference buses absent "
+            "from bus_idx_map. Ensure buses are added before lines."
+        )
     vkvs = valid["voltagekv"].fillna(0).astype(int)
     params = pd.DataFrame([_LINE_PARAMS.get(v, _DEFAULT_LINE_PARAMS) for v in vkvs])
     pp.create_lines_from_parameters(
@@ -109,6 +119,11 @@ def _add_lines_to_network(
         name=valid["name"].to_numpy(),
         in_service=valid["in_service"].to_numpy(),
     )
+    per_voltage = valid.groupby("voltagekv").size()
+    log.debug(
+        f"Added {len(valid)} lines: "
+        + ", ".join(f"{v:.0f} kV x{n}" for v, n in per_voltage.items())  # type: ignore[arg-type]
+    )
 
 
 def _add_transformers_to_network(
@@ -117,7 +132,10 @@ def _add_transformers_to_network(
     """Add transformers from dataframe to network."""
     valid = trafos_df[trafos_df["hv_bus"].isin(bus_idx_map) & trafos_df["lv_bus"].isin(bus_idx_map)]
     if valid.empty:
-        return
+        raise ValueError(
+            f"No valid transformers found: all {len(trafos_df)} transformer(s) reference buses "
+            "absent from bus_idx_map. Ensure buses are added before transformers."
+        )
     pp.create_transformers_from_parameters(
         net,
         hv_buses=valid["hv_bus"].map(bus_idx_map).to_numpy(),
@@ -132,6 +150,14 @@ def _add_transformers_to_network(
         name=valid["name"].to_numpy(),
         in_service=valid["in_service"].to_numpy(),
     )
+    per_pair = valid.groupby(["vn_hv_kv", "vn_lv_kv"]).size()
+    log.debug(
+        f"Added {len(valid)} transformers: "
+        + ", ".join(
+            f"{int(pair[0])}/{int(pair[1])} kV x{n}"  # type: ignore[index]
+            for pair, n in per_pair.items()
+        )
+    )
 
 
 def _add_generators_to_network(
@@ -140,7 +166,10 @@ def _add_generators_to_network(
     """Add generators from dataframe to network."""
     valid = gens_df[gens_df["bus_id"].isin(bus_idx_map)]
     if valid.empty:
-        return
+        raise ValueError(
+            f"No valid generators found: all {len(gens_df)} generator(s) reference buses "
+            "absent from bus_idx_map. Ensure buses are added before generators."
+        )
     name = (
         valid["code"].where(valid["code"].notna(), valid["name"])
         if "code" in valid.columns
@@ -155,6 +184,7 @@ def _add_generators_to_network(
         type=valid["type"].to_numpy(),
         in_service=valid["in_service"].to_numpy(),
     )
+    log.debug(f"Added {len(valid)} generators ({int(valid['in_service'].sum())} in service)")
 
 
 def _add_loads_to_network(
@@ -163,7 +193,10 @@ def _add_loads_to_network(
     """Add loads (substations as placeholders) from dataframe to network."""
     valid = loads_df[loads_df["bus_id"].isin(bus_idx_map)]
     if valid.empty:
-        return
+        raise ValueError(
+            f"No valid loads found: all {len(loads_df)} load(s) reference buses "
+            "absent from bus_idx_map. Ensure buses are added before loads."
+        )
     pp.create_loads(
         net,
         buses=valid["bus_id"].map(bus_idx_map).to_numpy(),
@@ -171,34 +204,7 @@ def _add_loads_to_network(
         name=valid["name"].to_numpy(),
         in_service=valid["in_service"].to_numpy(),
     )
-
-
-# Real HVDC interconnectors that the GA dataset represents as ordinary line
-# geometry, which _add_lines_to_network turns into fictitious long-distance AC
-# lines (e.g. Basslink as a 360 km, 400 kV AC line -- there is no 400 kV class
-# in the NEM). Capacities/voltages are well-known public figures; loss_percent
-# is an engineering approximation (no authoritative source in this codebase)
-# and should be refined if precise AEMO figures become available.
-_HVDC_INTERCONNECTORS: list[dict[str, Any]] = [
-    {
-        "name": "Basslink",
-        "lines": ["Basslink-Loy Yang to Basslink-George Town"],
-        "p_mw": 500.0,
-        "loss_percent": 3.0,
-    },
-    {
-        "name": "Murraylink",
-        "lines": ["Monash to Red Cliffs Terminal"],
-        "p_mw": 220.0,
-        "loss_percent": 3.0,
-    },
-    {
-        "name": "Directlink",
-        "lines": ["Mullumbimby to Bungalora", "Bungalora to Terranora"],
-        "p_mw": 180.0,
-        "loss_percent": 2.0,
-    },
-]
+    log.debug(f"Added {len(valid)} loads")
 
 
 def _add_hvdc_interconnectors(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapowerNet:
@@ -230,8 +236,10 @@ def _add_hvdc_interconnectors(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.p
             bus_pairs.append((net.line.at[idx, "from_bus"], net.line.at[idx, "to_bus"]))
 
         if not segment_idxs:
-            log.debug(f"✗ Could not find line segment(s) for {link['name']}")
-            continue
+            raise ValueError(
+                f"Could not find AC line segment(s) for HVDC link '{link['name']}'. "
+                "Check that GIS line names match _HVDC_INTERCONNECTORS entries in line_params.py."
+            )
 
         net.line.loc[segment_idxs, "in_service"] = False
         loss_percent_per_segment = link["loss_percent"] / len(segment_idxs)
@@ -363,18 +371,20 @@ def _add_external_grids(net: pp.auxiliary.pandapowerNet) -> pp.auxiliary.pandapo
                 bus_vn = net.bus.loc[target_bus_id, "vn_kv"]
                 log.debug(f"✓ Added ext_grid at {sub_name} ({bus_vn} kV) - bus {target_bus_id}")
             else:
-                log.debug(
-                    f"✗ Bus {target_bus_id} not found for {sub_name} "
-                    f"(may be in disconnected island)"
+                raise ValueError(
+                    f"Bus {target_bus_id} for ext_grid '{sub_name}' not found in pandapower net. "
+                    "Substation may be in a disconnected island removed during cleanup."
                 )
         else:
-            log.debug(f"✗ Could not find load entry for {sub_name}")
+            raise ValueError(
+                f"Could not find load entry for ext_grid substation '{sub_name}'. "
+                "Verify the substation name matches a load in the network."
+            )
 
     if added_count == 0:
-        log.debug(
-            "WARNING: No external grids were added. Check that substations exist in the network."
+        raise ValueError(
+            "No external grids were added. All target substations are missing from the network."
         )
-    else:
-        log.debug(f"\n✓ Successfully added {added_count} external grid(s)")
+    log.debug(f"Added {added_count} external grid(s)")
 
     return net
