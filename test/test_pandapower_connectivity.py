@@ -14,6 +14,7 @@ from nemdb.models.pandapower import (
     _calculate_distance_km,
     _create_cross_voltage_connection,
     _create_synthetic_line,
+    _deactivate_isolated_buses,
     _diagnose_graph,
     _find_closest_bus_pair,
     create_pandapower_network,
@@ -594,3 +595,93 @@ def test_long_high_impedance_lines_check():
     assert long_line in results["long_high_impedance_lines"]
     # Informational only -- must not be reported as a hard failure.
     assert results["disconnected_elements"] in (None, [])
+
+
+# ---------------------------------------------------------------------------
+# Unit tests for _deactivate_isolated_buses — no full model build needed
+# ---------------------------------------------------------------------------
+
+
+def _make_mini_net():
+    """Build a minimal pandapower net: 4 buses, 2 lines, 1 ext_grid.
+
+    Bus layout:
+        0 (220kV) --line0-- 1 (220kV) --line1-- 2 (220kV)   [main AC island]
+        3 (220kV)  [isolated — no in-service connection]
+        4 (66kV)  --line2(oos)-- 5 (66kV)                    [island, line out of service]
+    """
+    net = pp.create_empty_network()
+    for vn in [220, 220, 220, 220, 66, 66]:
+        pp.create_bus(net, vn_kv=vn, in_service=True)
+    pp.create_line_from_parameters(
+        net, 0, 1, length_km=10, r_ohm_per_km=0.1, x_ohm_per_km=0.4, c_nf_per_km=10, max_i_ka=1
+    )
+    pp.create_line_from_parameters(
+        net, 1, 2, length_km=10, r_ohm_per_km=0.1, x_ohm_per_km=0.4, c_nf_per_km=10, max_i_ka=1
+    )
+    # out-of-service line — buses 4 and 5 only connect via this
+    pp.create_line_from_parameters(
+        net,
+        4,
+        5,
+        length_km=5,
+        r_ohm_per_km=0.1,
+        x_ohm_per_km=0.4,
+        c_nf_per_km=10,
+        max_i_ka=1,
+        in_service=False,
+    )
+    pp.create_ext_grid(net, bus=0, vm_pu=1.0)
+    return net
+
+
+def test_deactivate_isolated_bus_no_connections():
+    """Bus 3 has no connections at all — must be set out-of-service."""
+    net = _make_mini_net()
+    assert net.bus.at[3, "in_service"]
+
+    _deactivate_isolated_buses(net)
+
+    assert not net.bus.at[3, "in_service"], "Isolated bus 3 should be deactivated"
+
+
+def test_deactivate_oos_line_island():
+    """Buses 4 and 5 are connected only via an out-of-service line — both deactivated."""
+    net = _make_mini_net()
+    _deactivate_isolated_buses(net)
+
+    assert not net.bus.at[4, "in_service"], "Bus 4 (oos-line-only island) should be deactivated"
+    assert not net.bus.at[5, "in_service"], "Bus 5 (oos-line-only island) should be deactivated"
+
+
+def test_deactivate_preserves_connected_buses():
+    """Buses 0, 1, 2 are in the ext_grid island — must remain in-service."""
+    net = _make_mini_net()
+    _deactivate_isolated_buses(net)
+
+    assert net.bus.at[0, "in_service"], "ext_grid bus should stay in-service"
+    assert net.bus.at[1, "in_service"], "Bus 1 (connected) should stay in-service"
+    assert net.bus.at[2, "in_service"], "Bus 2 (connected) should stay in-service"
+
+
+def test_deactivate_ext_grid_bus_kept_even_if_no_lines():
+    """The ext_grid bus itself must never be deactivated, even if it has no lines."""
+    net = pp.create_empty_network()
+    pp.create_bus(net, vn_kv=220, in_service=True)  # bus 0, no lines
+    pp.create_ext_grid(net, bus=0, vm_pu=1.0)
+
+    _deactivate_isolated_buses(net)
+
+    assert net.bus.at[0, "in_service"], "ext_grid bus must not be deactivated"
+
+
+def test_deactivate_idempotent():
+    """Calling _deactivate_isolated_buses twice gives the same result."""
+    net = _make_mini_net()
+    _deactivate_isolated_buses(net)
+    state_after_first = net.bus["in_service"].tolist()
+
+    _deactivate_isolated_buses(net)
+    state_after_second = net.bus["in_service"].tolist()
+
+    assert state_after_first == state_after_second

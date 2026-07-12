@@ -32,6 +32,9 @@ from nemdb.models.pandapower.network_builder import (
     _add_transformers_to_network,
     create_pandapower_network,
 )
+from nemdb.models.pandapower.network_builder import (
+    _deactivate_isolated_buses as _deactivate_isolated_buses,
+)
 from nemdb.models.pandapower.topology import (
     GEO_CRS,
     METRIC_CRS,
