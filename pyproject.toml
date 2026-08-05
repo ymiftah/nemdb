@@ -14,7 +14,7 @@ dependencies = [
     "joblib>=1.5.2",
     "networkx>=3.6",
     "numpy>=2.2.1",
-    "openelectricity==0.10.1",
+    "openelectricity==0.11.3",
     "pandas>=2.2.3",
     "pandera>=0.26.1",
     "polars>=1.35",
