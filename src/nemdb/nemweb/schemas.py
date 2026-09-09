@@ -55,6 +55,8 @@ class DispatchRegionSumSchema(BasePartitionedSchema):
     """Daily region dispatch summary with demand and supply data."""
 
     SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    RUNNO: pl.Int32 | None = Field(nullable=True)
+    INTERVENTION: pl.Int8 | None = Field(nullable=True)
     REGIONID: pl.Categorical = Field(nullable=False)
     TOTALDEMAND: pl.Float32 | None = Field(nullable=True)
     DEMANDFORECAST: pl.Float32 | None = Field(nullable=True)
@@ -70,10 +72,11 @@ class DispatchLoadSchema(BasePartitionedSchema):
     """Dispatch load and availability data for generators."""
 
     SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    RUNNO: pl.Int32 | None = Field(nullable=True)
     DUID: pl.Categorical = Field(nullable=False)
     DISPATCHMODE: pl.Int8 | None = Field(nullable=True)
     AGCSTATUS: pl.Int8 | None = Field(nullable=True)
-    INTERVENTION: pl.Float32 | None = Field(nullable=True)
+    INTERVENTION: pl.Int8 | None = Field(nullable=True)
     INITIALMW: pl.Float32 | None = Field(nullable=True)
     TOTALCLEARED: pl.Float32 | None = Field(nullable=True)
     RAMPDOWNRATE: pl.Float32 | None = Field(nullable=True)
@@ -95,6 +98,7 @@ class DispatchLoadSchema(BasePartitionedSchema):
     LOWERREG: pl.Float32 | None = Field(nullable=True)
     RAISEREG: pl.Float32 | None = Field(nullable=True)
     RAISEREGAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    LOWERREGAVAILABILITY: pl.Float32 | None = Field(nullable=True)
     RAISE6SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
     RAISE1SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
     RAISE60SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
@@ -102,16 +106,29 @@ class DispatchLoadSchema(BasePartitionedSchema):
     RAISEREGACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
     LOWER6SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
     LOWER1SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    LOWER60SECACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    LOWER5MINACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
+    LOWERREGACTUALAVAILABILITY: pl.Float32 | None = Field(nullable=True)
     UIGF: pl.Float32 | None = Field(nullable=True)
+    RAISE6SECFLAGS: pl.Int32 | None = Field(nullable=True)
+    RAISE60SECFLAGS: pl.Int32 | None = Field(nullable=True)
+    RAISE5MINFLAGS: pl.Int32 | None = Field(nullable=True)
+    RAISEREGFLAGS: pl.Int32 | None = Field(nullable=True)
+    LOWER6SECFLAGS: pl.Int32 | None = Field(nullable=True)
+    LOWER60SECFLAGS: pl.Int32 | None = Field(nullable=True)
+    LOWER5MINFLAGS: pl.Int32 | None = Field(nullable=True)
+    LOWERREGFLAGS: pl.Int32 | None = Field(nullable=True)
 
 
 class DispatchPriceSchema(BasePartitionedSchema):
     """Regional dispatch pricing for energy and reserve products."""
 
     SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    RUNNO: pl.Int32 | None = Field(nullable=True)
     REGIONID: pl.Categorical = Field(nullable=False)
     RRP: pl.Float32 | None = Field(nullable=True)
     ROP: pl.Float32 | None = Field(nullable=True)
+    APCFLAG: pl.Int32 | None = Field(nullable=True)
     RAISE6SECROP: pl.Float32 | None = Field(nullable=True)
     RAISE1SECROP: pl.Float32 | None = Field(nullable=True)
     RAISE60SECROP: pl.Float32 | None = Field(nullable=True)
@@ -133,8 +150,19 @@ class DispatchPriceSchema(BasePartitionedSchema):
     LOWER60SECRRP: pl.Float32 | None = Field(nullable=True)
     LOWER5MINRRP: pl.Float32 | None = Field(nullable=True)
     LOWERREGRRP: pl.Float32 | None = Field(nullable=True)
+    # AS Price Cap (APC) flags per service
+    RAISE6SECAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    RAISE1SECAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    RAISE60SECAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    RAISE5MINAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    RAISEREGAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    LOWER6SECAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    LOWER1SECAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    LOWER60SECAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    LOWER5MINAPCFLAG: pl.Int32 | None = Field(nullable=True)
+    LOWERREGAPCFLAG: pl.Int32 | None = Field(nullable=True)
     # Intervention flag (0/1)
-    INTERVENTION: pl.Float32 | None = Field(nullable=True)
+    INTERVENTION: pl.Int8 | None = Field(nullable=True)
 
 
 class DispatchConstraintSchema(BasePartitionedSchema):
@@ -142,9 +170,12 @@ class DispatchConstraintSchema(BasePartitionedSchema):
 
     CONSTRAINTID: pl.Categorical = Field(nullable=False)
     SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    RUNNO: pl.Int32 | None = Field(nullable=True)
+    DISPATCHINTERVAL: pl.String | None = Field(nullable=True)
     DUID: pl.Categorical | None = Field(nullable=True)
-    INTERVENTION: pl.Float32 | None = Field(nullable=True)
-    LASTCHANGED: pl.Date = Field(nullable=False)
+    INTERVENTION: pl.Int8 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime = Field(nullable=False)
+    CONFIDENTIAL_TO: pl.String | None = Field(nullable=True)
     GENCONID_EFFECTIVEDATE: pl.Date | None = Field(nullable=True)
     GENCONID_VERSIONNO: pl.Int32 | None = Field(nullable=True)
     RHS: pl.Float32 | None = Field(nullable=True)
@@ -158,8 +189,14 @@ class DispatchInterconnectorResSchema(BasePartitionedSchema):
 
     INTERCONNECTORID: pl.Categorical = Field(nullable=False)
     SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    RUNNO: pl.Int32 | None = Field(nullable=True)
+    DISPATCHINTERVAL: pl.String | None = Field(nullable=True)
+    INTERVENTION: pl.Int8 | None = Field(nullable=True)
+    METEREDMWFLOW: pl.Float32 | None = Field(nullable=True)
     MWFLOW: pl.Float32 | None = Field(nullable=True)
     MWLOSSES: pl.Float32 | None = Field(nullable=True)
+    MARGINALVALUE: pl.Float32 | None = Field(nullable=True)
+    VIOLATIONDEGREE: pl.Float32 | None = Field(nullable=True)
     EXPORTLIMIT: pl.Float32 | None = Field(nullable=True)
     IMPORTLIMIT: pl.Float32 | None = Field(nullable=True)
 
@@ -170,6 +207,66 @@ class DispatchUnitScadaSchema(BasePartitionedSchema):
     SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
     DUID: pl.Categorical = Field(nullable=False)
     SCADAVALUE: pl.Float32 | None = Field(nullable=True)
+
+
+class DispatchFcasReqSchema(BasePartitionedSchema):
+    """FCAS regional requirements and cost recovery factors, by generic constraint.
+
+    Retired by AEMO after the 2025-05 archive month, replaced by
+    DISPATCH_FCAS_REQ_CONSTRAINT and DISPATCH_FCAS_REQ_RUN.
+    """
+
+    SETTLEMENTDATE: pl.Datetime = Field(nullable=False)
+    RUNNO: pl.Int32 | None = Field(nullable=True)
+    INTERVENTION: pl.Int8 | None = Field(nullable=True)
+    GENCONID: pl.Categorical = Field(nullable=False)
+    REGIONID: pl.Categorical = Field(nullable=False)
+    BIDTYPE: pl.Categorical = Field(nullable=False)
+    GENCONEFFECTIVEDATE: pl.Date | None = Field(nullable=True)
+    GENCONVERSIONNO: pl.Int32 | None = Field(nullable=True)
+    MARGINALVALUE: pl.Float32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
+    BASE_COST: pl.Float32 | None = Field(nullable=True)
+    ADJUSTED_COST: pl.Float32 | None = Field(nullable=True)
+    ESTIMATED_CMPF: pl.Float32 | None = Field(nullable=True)
+    ESTIMATED_CRMPF: pl.Float32 | None = Field(nullable=True)
+    RECOVERY_FACTOR_CMPF: pl.Float32 | None = Field(nullable=True)
+    RECOVERY_FACTOR_CRMPF: pl.Float32 | None = Field(nullable=True)
+
+
+class DispatchFcasReqConstraintSchema(BasePartitionedSchema):
+    """FCAS regional requirements per (region, service), by constraint.
+
+    Successor to DISPATCH_FCAS_REQ from the 2025-06 archive month onward.
+    Renames GENCONID -> CONSTRAINTID and SETTLEMENTDATE -> INTERVAL_DATETIME,
+    drops INTERVENTION and the GENCONEFFECTIVEDATE/GENCONVERSIONNO
+    version-pinning pair, and adds LHS/RHS/RRP and the enablement columns.
+    """
+
+    RUN_DATETIME: pl.Datetime = Field(nullable=False)
+    RUNNO: pl.Int32 | None = Field(nullable=True)
+    INTERVAL_DATETIME: pl.Datetime = Field(nullable=False)
+    CONSTRAINTID: pl.Categorical = Field(nullable=False)
+    REGIONID: pl.Categorical = Field(nullable=False)
+    BIDTYPE: pl.Categorical = Field(nullable=False)
+    LHS: pl.Float32 | None = Field(nullable=True)
+    RHS: pl.Float32 | None = Field(nullable=True)
+    MARGINALVALUE: pl.Float32 | None = Field(nullable=True)
+    RRP: pl.Float32 | None = Field(nullable=True)
+    REGIONAL_ENABLEMENT: pl.Float32 | None = Field(nullable=True)
+    CONSTRAINT_ENABLEMENT: pl.Float32 | None = Field(nullable=True)
+    REGION_BASE_COST: pl.Float32 | None = Field(nullable=True)
+    BASE_COST: pl.Float32 | None = Field(nullable=True)
+    ADJUSTED_COST: pl.Float32 | None = Field(nullable=True)
+    P_REGULATION: pl.Float32 | None = Field(nullable=True)
+
+
+class DispatchFcasReqRunSchema(BasePartitionedSchema):
+    """Dispatch run metadata for DISPATCH_FCAS_REQ_CONSTRAINT (RUN_DATETIME/RUNNO -> LASTCHANGED)."""
+
+    RUN_DATETIME: pl.Datetime = Field(nullable=False)
+    RUNNO: pl.Int32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
 
 
 # Bid Tables
@@ -331,7 +428,7 @@ class DUDETAILSchema(BasePartitionedSchema):
     MIN_RAMP_RATE_DOWN: pl.Float32 | None = Field(nullable=True)
     LOAD_MIN_RAMP_RATE_UP: pl.Float32 | None = Field(nullable=True)
     LOAD_MIN_RAMP_RATE_DOWN: pl.Float32 | None = Field(nullable=True)
-    AGGREGATED: pl.String | None = Field(nullable=True)
+    AGGREGATED: pl.Int32 | None = Field(nullable=True)
 
 
 class RESERVESchema(BasePartitionedSchema):
@@ -477,9 +574,32 @@ class GENCONDATASchema(BasePartitionedSchema):
     GENCONID: pl.Categorical = Field(nullable=False)
     EFFECTIVEDATE: pl.Date = Field(nullable=False)
     VERSIONNO: pl.Int32 = Field(nullable=False)
-    CONSTRAINTTYPE: pl.Categorical | None = Field(nullable=True)
-    GENERICCONSTRAINTWEIGHT: pl.Float32 | None = Field(nullable=True)
     DESCRIPTION: pl.String | None = Field(nullable=True)
+    GENERICCONSTRAINTWEIGHT: pl.Float32 | None = Field(nullable=True)
+    CONSTRAINTTYPE: pl.Categorical | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
+    CONSTRAINTVALUE: pl.String | None = Field(nullable=True)
+    STATUS: pl.String | None = Field(nullable=True)
+    AUTHORISEDDATE: pl.Datetime | None = Field(nullable=True)
+    AUTHORISEDBY: pl.String | None = Field(nullable=True)
+    DYNAMICRHS: pl.String | None = Field(nullable=True)
+    DISPATCH: pl.String | None = Field(nullable=True)
+    PREDISPATCH: pl.String | None = Field(nullable=True)
+    STPASA: pl.String | None = Field(nullable=True)
+    MTPASA: pl.String | None = Field(nullable=True)
+    IMPACT: pl.String | None = Field(nullable=True)
+    SOURCE: pl.String | None = Field(nullable=True)
+    LIMITTYPE: pl.String | None = Field(nullable=True)
+    REASON: pl.String | None = Field(nullable=True)
+    MODIFICATIONS: pl.String | None = Field(nullable=True)
+    ADDITIONALNOTES: pl.String | None = Field(nullable=True)
+    P5MIN_SCOPE_OVERRIDE: pl.String | None = Field(nullable=True)
+    LRC: pl.String | None = Field(nullable=True)
+    LOR: pl.String | None = Field(nullable=True)
+    FORCE_SCADA: pl.String | None = Field(nullable=True)
+    SYSTEMSECURITY: pl.String | None = Field(nullable=True)
+    SSM_REGIONID: pl.String | None = Field(nullable=True)
+    SSM_GROUPID: pl.String | None = Field(nullable=True)
 
 
 class SPDREGIONCONSTRAINTSchema(BasePartitionedSchema):
@@ -491,6 +611,7 @@ class SPDREGIONCONSTRAINTSchema(BasePartitionedSchema):
     GENCONID: pl.Categorical = Field(nullable=False)
     BIDTYPE: pl.Categorical = Field(nullable=False)
     FACTOR: pl.Float32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
 
 
 class SPDCONNECTIONPOINTCONSTRAINTSchema(BasePartitionedSchema):
@@ -500,8 +621,10 @@ class SPDCONNECTIONPOINTCONSTRAINTSchema(BasePartitionedSchema):
     EFFECTIVEDATE: pl.Date = Field(nullable=False)
     VERSIONNO: pl.Int32 = Field(nullable=False)
     GENCONID: pl.Categorical = Field(nullable=False)
+    PERIODID: pl.Int32 | None = Field(nullable=True)
     BIDTYPE: pl.Categorical = Field(nullable=False)
     FACTOR: pl.Float32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
 
 
 class SPDINTERCONNECTORCONSTRAINTSchema(BasePartitionedSchema):
@@ -512,6 +635,7 @@ class SPDINTERCONNECTORCONSTRAINTSchema(BasePartitionedSchema):
     VERSIONNO: pl.Int32 = Field(nullable=False)
     GENCONID: pl.Categorical = Field(nullable=False)
     FACTOR: pl.Float32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
 
 
 class GENCONSETSchema(BasePartitionedSchema):
@@ -521,7 +645,9 @@ class GENCONSETSchema(BasePartitionedSchema):
     EFFECTIVEDATE: pl.Date = Field(nullable=False)
     VERSIONNO: pl.Int32 = Field(nullable=False)
     GENCONID: pl.Categorical = Field(nullable=False)
-    LASTCHANGED: pl.Date | None = Field(nullable=True)
+    GENCONEFFDATE: pl.Date | None = Field(nullable=True)
+    GENCONVERSIONNO: pl.Int32 | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
 
 
 class GENCONSETINVOKESchema(BasePartitionedSchema):
@@ -531,15 +657,15 @@ class GENCONSETINVOKESchema(BasePartitionedSchema):
     Filter: STARTAUTHORISEDBY IS NOT NULL (non-null = active invocation).
     """
 
-    INVOCATION_ID: pl.Int64 = Field(nullable=False)
-    STARTDATE: pl.Date | None = Field(nullable=True)
+    INVOCATION_ID: pl.Int32 = Field(nullable=False)
+    STARTDATE: pl.Datetime | None = Field(nullable=True)
     STARTPERIOD: pl.Int32 | None = Field(nullable=True)
     GENCONSETID: pl.Categorical | None = Field(nullable=True)
-    ENDDATE: pl.Date | None = Field(nullable=True)
+    ENDDATE: pl.Datetime | None = Field(nullable=True)
     ENDPERIOD: pl.Int32 | None = Field(nullable=True)
     STARTAUTHORISEDBY: pl.Utf8 | None = Field(nullable=True)
     ENDAUTHORISEDBY: pl.Utf8 | None = Field(nullable=True)
-    INTERVENTION: pl.Utf8 | None = Field(nullable=True)
+    INTERVENTION: pl.Int8 | None = Field(nullable=True)
     ASCONSTRAINTTYPE: pl.Utf8 | None = Field(nullable=True)
     LASTCHANGED: pl.Datetime | None = Field(nullable=True)
     STARTINTERVALDATETIME: pl.Datetime | None = Field(nullable=True)
@@ -555,9 +681,10 @@ class GENCONSETTRKSchema(BasePartitionedSchema):
     VERSIONNO: pl.Int32 = Field(nullable=False)
     DESCRIPTION: pl.Utf8 | None = Field(nullable=True)
     AUTHORISEDBY: pl.Utf8 | None = Field(nullable=True)
-    AUTHORISEDDATE: pl.Date | None = Field(nullable=True)
-    LASTCHANGED: pl.Date | None = Field(nullable=True)
+    AUTHORISEDDATE: pl.Datetime | None = Field(nullable=True)
+    LASTCHANGED: pl.Datetime | None = Field(nullable=True)
     COVERAGE: pl.Utf8 | None = Field(nullable=True)
+    MODIFICATIONS: pl.Utf8 | None = Field(nullable=True)
     SYSTEMNORMAL: pl.Utf8 | None = Field(nullable=True)
     OUTAGE: pl.Utf8 | None = Field(nullable=True)
 
@@ -589,6 +716,9 @@ SCHEMA_MAP: dict[str, type[pa.DataFrameModel]] = {
     "DISPATCHCONSTRAINT": DispatchConstraintSchema,
     "DISPATCHINTERCONNECTORRES": DispatchInterconnectorResSchema,
     "DISPATCH_UNIT_SCADA": DispatchUnitScadaSchema,
+    "DISPATCH_FCAS_REQ": DispatchFcasReqSchema,
+    "DISPATCH_FCAS_REQ_CONSTRAINT": DispatchFcasReqConstraintSchema,
+    "DISPATCH_FCAS_REQ_RUN": DispatchFcasReqRunSchema,
     # Bid Tables
     "BIDDAYOFFER_D": BidDayOfferDSchema,
     "BIDPEROFFER_D": BidPerOfferDSchema,

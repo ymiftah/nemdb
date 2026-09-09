@@ -26,6 +26,9 @@ from nemdb.nemweb.schemas import (
     BidDayOfferDSchema,
     BidPerOfferDSchema,
     DispatchConstraintSchema,
+    DispatchFcasReqConstraintSchema,
+    DispatchFcasReqRunSchema,
+    DispatchFcasReqSchema,
     DispatchInterconnectorResSchema,
     DispatchLoadSchema,
     DispatchPriceSchema,
@@ -172,6 +175,9 @@ class NEMWEBManager:
             "DISPATCHREGIONSUM",
             "DISPATCHPRICE",
             "DISPATCH_UNIT_SCADA",
+            "DISPATCH_FCAS_REQ",
+            "DISPATCH_FCAS_REQ_CONSTRAINT",
+            "DISPATCH_FCAS_REQ_RUN",
             "DUDETAILSUMMARY",
             "DUDETAIL",
             "DUALLOC",
@@ -369,6 +375,40 @@ class NEMWEBManager:
             table_name="DISPATCH_UNIT_SCADA",
             table_primary_keys=["SETTLEMENTDATE", "DUID"],
             schema_class=DispatchUnitScadaSchema,
+        )
+        # AEMO retired DISPATCH_FCAS_REQ after the 2025-05 archive month, splitting it into
+        # DISPATCH_FCAS_REQ_CONSTRAINT (per region/service/constraint rows) and
+        # DISPATCH_FCAS_REQ_RUN (dispatch run metadata). Both are kept available since the
+        # cache spans data from both before and after the split.
+        self.DISPATCH_FCAS_REQ = BySettlementDate(
+            table_name="DISPATCH_FCAS_REQ",
+            table_primary_keys=[
+                "SETTLEMENTDATE",
+                "RUNNO",
+                "INTERVENTION",
+                "REGIONID",
+                "BIDTYPE",
+                "GENCONID",
+            ],
+            schema_class=DispatchFcasReqSchema,
+        )
+        self.DISPATCH_FCAS_REQ_CONSTRAINT = ByIntervalDate(
+            table_name="DISPATCH_FCAS_REQ_CONSTRAINT",
+            table_primary_keys=[
+                "INTERVAL_DATETIME",
+                "RUNNO",
+                "REGIONID",
+                "BIDTYPE",
+                "CONSTRAINTID",
+            ],
+            schema_class=DispatchFcasReqConstraintSchema,
+        )
+        # Keyed by RUN_DATETIME/RUNNO (no SETTLEMENTDATE/INTERVAL_DATETIME).
+        # Use base DataSource so .scan() works; nemo pipeline never calls .get_data().
+        self.DISPATCH_FCAS_REQ_RUN = DataSource(
+            table_name="DISPATCH_FCAS_REQ_RUN",
+            table_primary_keys=["RUN_DATETIME", "RUNNO"],
+            schema_class=DispatchFcasReqRunSchema,
         )
         self.MNSP_INTERCONNECTOR = ByEffectiveDateVersionNo(
             table_name="MNSP_INTERCONNECTOR",
