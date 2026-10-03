@@ -1,0 +1,1018 @@
+{
+  "provenance": {
+    "package": "AustralianElectricityMarketsData.jl",
+    "commit": "13eccb6",
+    "definitions": [
+      "src/aemo/nemweb_load/column_types.jl",
+      "src/aemo/nemweb_load/tables.jl"
+    ],
+    "cache_checked": "2026-10-03",
+    "notes": "Column types checked against Julia COLUMN_TYPES; additional inferred columns and FCAS tables taken from DuckDB-written cache metadata. RESERVE has no cached files; its fields come from the Julia definitions."
+  },
+  "tables": {
+    "BIDDAYOFFER_D": {
+      "columns": {
+        "DUID": "String",
+        "SETTLEMENTDATE": "Datetime",
+        "BIDTYPE": "String",
+        "DIRECTION": "String",
+        "VERSIONNO": "Int32",
+        "PARTICIPANTID": "String",
+        "DAILYENERGYCONSTRAINT": "Float32",
+        "PRICEBAND1": "Float32",
+        "PRICEBAND2": "Float32",
+        "PRICEBAND3": "Float32",
+        "PRICEBAND4": "Float32",
+        "PRICEBAND5": "Float32",
+        "PRICEBAND6": "Float32",
+        "PRICEBAND7": "Float32",
+        "PRICEBAND8": "Float32",
+        "PRICEBAND9": "Float32",
+        "PRICEBAND10": "Float32",
+        "MINIMUMLOAD": "Float32",
+        "T1": "Float32",
+        "T2": "Float32",
+        "T3": "Float32",
+        "T4": "Float32",
+        "NORMALSTATUS": "String",
+        "ENTRYTYPE": "String"
+      },
+      "source_columns": [
+        "DUID",
+        "SETTLEMENTDATE",
+        "BIDTYPE",
+        "DIRECTION",
+        "VERSIONNO",
+        "PARTICIPANTID",
+        "DAILYENERGYCONSTRAINT",
+        "PRICEBAND1",
+        "PRICEBAND2",
+        "PRICEBAND3",
+        "PRICEBAND4",
+        "PRICEBAND5",
+        "PRICEBAND6",
+        "PRICEBAND7",
+        "PRICEBAND8",
+        "PRICEBAND9",
+        "PRICEBAND10",
+        "MINIMUMLOAD",
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "NORMALSTATUS",
+        "ENTRYTYPE"
+      ]
+    },
+    "BIDPEROFFER_D": {
+      "columns": {
+        "DUID": "String",
+        "SETTLEMENTDATE": "Datetime",
+        "BIDTYPE": "String",
+        "DIRECTION": "String",
+        "VERSIONNO": "Int32",
+        "INTERVAL_DATETIME": "Datetime",
+        "MAXAVAIL": "Float32",
+        "FIXEDLOAD": "Float32",
+        "ROCUP": "Float32",
+        "ROCDOWN": "Float32",
+        "ENABLEMENTMIN": "Float32",
+        "ENABLEMENTMAX": "Float32",
+        "LOWBREAKPOINT": "Float32",
+        "HIGHBREAKPOINT": "Float32",
+        "BANDAVAIL1": "Float32",
+        "BANDAVAIL2": "Float32",
+        "BANDAVAIL3": "Float32",
+        "BANDAVAIL4": "Float32",
+        "BANDAVAIL5": "Float32",
+        "BANDAVAIL6": "Float32",
+        "BANDAVAIL7": "Float32",
+        "BANDAVAIL8": "Float32",
+        "BANDAVAIL9": "Float32",
+        "BANDAVAIL10": "Float32",
+        "ENERGYLIMIT": "Float32",
+        "LASTCHANGED": "Datetime"
+      },
+      "source_columns": [
+        "DUID",
+        "SETTLEMENTDATE",
+        "BIDTYPE",
+        "DIRECTION",
+        "VERSIONNO",
+        "INTERVAL_DATETIME",
+        "MAXAVAIL",
+        "FIXEDLOAD",
+        "ROCUP",
+        "ROCDOWN",
+        "ENABLEMENTMIN",
+        "ENABLEMENTMAX",
+        "LOWBREAKPOINT",
+        "HIGHBREAKPOINT",
+        "BANDAVAIL1",
+        "BANDAVAIL2",
+        "BANDAVAIL3",
+        "BANDAVAIL4",
+        "BANDAVAIL5",
+        "BANDAVAIL6",
+        "BANDAVAIL7",
+        "BANDAVAIL8",
+        "BANDAVAIL9",
+        "BANDAVAIL10",
+        "ENERGYLIMIT",
+        "LASTCHANGED"
+      ]
+    },
+    "DISPATCHCONSTRAINT": {
+      "columns": {
+        "SETTLEMENTDATE": "Datetime",
+        "RUNNO": "Int32",
+        "CONSTRAINTID": "String",
+        "DISPATCHINTERVAL": "String",
+        "INTERVENTION": "Int8",
+        "RHS": "Float32",
+        "MARGINALVALUE": "Float32",
+        "VIOLATIONDEGREE": "Float32",
+        "LHS": "Float32",
+        "GENCONID_EFFECTIVEDATE": "Date",
+        "GENCONID_VERSIONNO": "Int32",
+        "LASTCHANGED": "Datetime",
+        "CONFIDENTIAL_TO": "String",
+        "DUID": "String"
+      },
+      "source_columns": [
+        "SETTLEMENTDATE",
+        "RUNNO",
+        "CONSTRAINTID",
+        "DISPATCHINTERVAL",
+        "INTERVENTION",
+        "RHS",
+        "MARGINALVALUE",
+        "VIOLATIONDEGREE",
+        "LHS",
+        "GENCONID_EFFECTIVEDATE",
+        "GENCONID_VERSIONNO",
+        "LASTCHANGED"
+      ]
+    },
+    "DISPATCHINTERCONNECTORRES": {
+      "columns": {
+        "SETTLEMENTDATE": "Datetime",
+        "RUNNO": "Int32",
+        "INTERCONNECTORID": "String",
+        "DISPATCHINTERVAL": "String",
+        "INTERVENTION": "Int8",
+        "METEREDMWFLOW": "Float32",
+        "MWFLOW": "Float32",
+        "MWLOSSES": "Float32",
+        "MARGINALVALUE": "Float32",
+        "VIOLATIONDEGREE": "Float32",
+        "EXPORTLIMIT": "Float32",
+        "IMPORTLIMIT": "Float32"
+      },
+      "source_columns": [
+        "SETTLEMENTDATE",
+        "RUNNO",
+        "INTERCONNECTORID",
+        "DISPATCHINTERVAL",
+        "INTERVENTION",
+        "METEREDMWFLOW",
+        "MWFLOW",
+        "MWLOSSES",
+        "MARGINALVALUE",
+        "VIOLATIONDEGREE",
+        "EXPORTLIMIT",
+        "IMPORTLIMIT"
+      ]
+    },
+    "DISPATCHLOAD": {
+      "columns": {
+        "SETTLEMENTDATE": "Datetime",
+        "RUNNO": "Int32",
+        "INTERVENTION": "Int8",
+        "DUID": "String",
+        "DISPATCHMODE": "Int8",
+        "AGCSTATUS": "Int8",
+        "INITIALMW": "Float32",
+        "TOTALCLEARED": "Float32",
+        "RAMPDOWNRATE": "Float32",
+        "RAMPUPRATE": "Float32",
+        "AVAILABILITY": "Float32",
+        "RAISEREGENABLEMENTMAX": "Float32",
+        "RAISEREGENABLEMENTMIN": "Float32",
+        "LOWERREGENABLEMENTMAX": "Float32",
+        "LOWERREGENABLEMENTMIN": "Float32",
+        "SEMIDISPATCHCAP": "Float32",
+        "LOWER5MIN": "Float32",
+        "LOWER60SEC": "Float32",
+        "LOWER6SEC": "Float32",
+        "LOWER1SEC": "Float32",
+        "RAISE5MIN": "Float32",
+        "RAISE60SEC": "Float32",
+        "RAISE6SEC": "Float32",
+        "RAISE1SEC": "Float32",
+        "LOWERREG": "Float32",
+        "RAISEREG": "Float32",
+        "RAISEREGAVAILABILITY": "Float32",
+        "LOWERREGAVAILABILITY": "Float32",
+        "RAISE6SECACTUALAVAILABILITY": "Float32",
+        "RAISE1SECACTUALAVAILABILITY": "Float32",
+        "RAISE60SECACTUALAVAILABILITY": "Float32",
+        "RAISE5MINACTUALAVAILABILITY": "Float32",
+        "RAISEREGACTUALAVAILABILITY": "Float32",
+        "LOWER6SECACTUALAVAILABILITY": "Float32",
+        "LOWER1SECACTUALAVAILABILITY": "Float32",
+        "LOWER60SECACTUALAVAILABILITY": "Float32",
+        "LOWER5MINACTUALAVAILABILITY": "Float32",
+        "LOWERREGACTUALAVAILABILITY": "Float32",
+        "UIGF": "Float32",
+        "RAISE6SECFLAGS": "Int32",
+        "RAISE60SECFLAGS": "Int32",
+        "RAISE5MINFLAGS": "Int32",
+        "RAISEREGFLAGS": "Int32",
+        "LOWER6SECFLAGS": "Int32",
+        "LOWER60SECFLAGS": "Int32",
+        "LOWER5MINFLAGS": "Int32",
+        "LOWERREGFLAGS": "Int32"
+      },
+      "source_columns": [
+        "SETTLEMENTDATE",
+        "DUID",
+        "DISPATCHMODE",
+        "AGCSTATUS",
+        "INITIALMW",
+        "TOTALCLEARED",
+        "RAMPDOWNRATE",
+        "RAMPUPRATE",
+        "AVAILABILITY",
+        "RAISEREGENABLEMENTMAX",
+        "RAISEREGENABLEMENTMIN",
+        "LOWERREGENABLEMENTMAX",
+        "LOWERREGENABLEMENTMIN",
+        "SEMIDISPATCHCAP",
+        "LOWER5MIN",
+        "LOWER60SEC",
+        "LOWER6SEC",
+        "LOWER1SEC",
+        "RAISE5MIN",
+        "RAISE60SEC",
+        "RAISE6SEC",
+        "RAISE1SEC",
+        "LOWERREG",
+        "RAISEREG",
+        "RAISEREGAVAILABILITY",
+        "RAISE6SECACTUALAVAILABILITY",
+        "RAISE1SECACTUALAVAILABILITY",
+        "RAISE60SECACTUALAVAILABILITY",
+        "RAISE5MINACTUALAVAILABILITY",
+        "RAISEREGACTUALAVAILABILITY",
+        "LOWER6SECACTUALAVAILABILITY",
+        "LOWER1SECACTUALAVAILABILITY",
+        "UIGF"
+      ]
+    },
+    "DISPATCHPRICE": {
+      "columns": {
+        "SETTLEMENTDATE": "Datetime",
+        "RUNNO": "Int32",
+        "INTERVENTION": "Int8",
+        "REGIONID": "String",
+        "RRP": "Float32",
+        "ROP": "Float32",
+        "APCFLAG": "Int32",
+        "RAISE6SECRRP": "Float32",
+        "RAISE1SECRRP": "Float32",
+        "RAISE60SECRRP": "Float32",
+        "RAISE5MINRRP": "Float32",
+        "RAISEREGRRP": "Float32",
+        "LOWER6SECRRP": "Float32",
+        "LOWER1SECRRP": "Float32",
+        "LOWER60SECRRP": "Float32",
+        "LOWER5MINRRP": "Float32",
+        "LOWERREGRRP": "Float32",
+        "RAISE6SECROP": "Float32",
+        "RAISE1SECROP": "Float32",
+        "RAISE60SECROP": "Float32",
+        "RAISE5MINROP": "Float32",
+        "RAISEREGROP": "Float32",
+        "LOWER6SECROP": "Float32",
+        "LOWER1SECROP": "Float32",
+        "LOWER60SECROP": "Float32",
+        "LOWER5MINROP": "Float32",
+        "LOWERREGROP": "Float32",
+        "RAISE6SECAPCFLAG": "Int32",
+        "RAISE1SECAPCFLAG": "Int32",
+        "RAISE60SECAPCFLAG": "Int32",
+        "RAISE5MINAPCFLAG": "Int32",
+        "RAISEREGAPCFLAG": "Int32",
+        "LOWER6SECAPCFLAG": "Int32",
+        "LOWER1SECAPCFLAG": "Int32",
+        "LOWER60SECAPCFLAG": "Int32",
+        "LOWER5MINAPCFLAG": "Int32",
+        "LOWERREGAPCFLAG": "Int32"
+      },
+      "source_columns": [
+        "SETTLEMENTDATE",
+        "REGIONID",
+        "RRP",
+        "ROP",
+        "RAISE6SECROP",
+        "RAISE1SECROP",
+        "RAISE60SECROP",
+        "RAISE5MINROP",
+        "RAISEREGROP",
+        "LOWER6SECROP",
+        "LOWER1SECROP",
+        "LOWER60SECROP",
+        "LOWER5MINROP",
+        "LOWERREGROP"
+      ]
+    },
+    "DISPATCHREGIONSUM": {
+      "columns": {
+        "SETTLEMENTDATE": "Datetime",
+        "RUNNO": "Int32",
+        "INTERVENTION": "Int8",
+        "REGIONID": "String",
+        "TOTALDEMAND": "Float32",
+        "DEMANDFORECAST": "Float32",
+        "DISPATCHABLELOAD": "Float32",
+        "INITIALSUPPLY": "Float32",
+        "SS_SOLAR_AVAILABILITY": "Float32",
+        "SS_WIND_AVAILABILITY": "Float32",
+        "AVAILABLEGENERATION": "Float32",
+        "AVAILABLELOAD": "Float32"
+      },
+      "source_columns": [
+        "SETTLEMENTDATE",
+        "REGIONID",
+        "TOTALDEMAND",
+        "DEMANDFORECAST",
+        "DISPATCHABLELOAD",
+        "INITIALSUPPLY",
+        "SS_SOLAR_AVAILABILITY",
+        "SS_WIND_AVAILABILITY",
+        "AVAILABLEGENERATION",
+        "AVAILABLELOAD"
+      ]
+    },
+    "DISPATCH_FCAS_REQ": {
+      "columns": {
+        "SETTLEMENTDATE": "Datetime",
+        "RUNNO": "Int32",
+        "INTERVENTION": "Int8",
+        "GENCONID": "String",
+        "REGIONID": "String",
+        "BIDTYPE": "String",
+        "GENCONEFFECTIVEDATE": "Date",
+        "GENCONVERSIONNO": "Int32",
+        "MARGINALVALUE": "Float32",
+        "LASTCHANGED": "Datetime",
+        "BASE_COST": "Float32",
+        "ADJUSTED_COST": "Float32",
+        "ESTIMATED_CMPF": "Float32",
+        "ESTIMATED_CRMPF": "Float32",
+        "RECOVERY_FACTOR_CMPF": "Float32",
+        "RECOVERY_FACTOR_CRMPF": "Float32"
+      },
+      "source_columns": [
+        "SETTLEMENTDATE",
+        "RUNNO",
+        "INTERVENTION",
+        "GENCONID",
+        "REGIONID",
+        "BIDTYPE",
+        "GENCONEFFECTIVEDATE",
+        "GENCONVERSIONNO",
+        "MARGINALVALUE",
+        "LASTCHANGED",
+        "BASE_COST",
+        "ADJUSTED_COST",
+        "ESTIMATED_CMPF",
+        "ESTIMATED_CRMPF",
+        "RECOVERY_FACTOR_CMPF",
+        "RECOVERY_FACTOR_CRMPF"
+      ]
+    },
+    "DISPATCH_FCAS_REQ_CONSTRAINT": {
+      "columns": {
+        "RUN_DATETIME": "Datetime",
+        "RUNNO": "Int32",
+        "INTERVAL_DATETIME": "Datetime",
+        "CONSTRAINTID": "String",
+        "REGIONID": "String",
+        "BIDTYPE": "String",
+        "LHS": "Float32",
+        "RHS": "Float32",
+        "MARGINALVALUE": "Float32",
+        "RRP": "Float32",
+        "REGIONAL_ENABLEMENT": "Float32",
+        "CONSTRAINT_ENABLEMENT": "Float32",
+        "REGION_BASE_COST": "Float32",
+        "BASE_COST": "Float32",
+        "ADJUSTED_COST": "Float32",
+        "P_REGULATION": "Float32"
+      },
+      "source_columns": [
+        "RUN_DATETIME",
+        "RUNNO",
+        "INTERVAL_DATETIME",
+        "CONSTRAINTID",
+        "REGIONID",
+        "BIDTYPE",
+        "LHS",
+        "RHS",
+        "MARGINALVALUE",
+        "RRP",
+        "REGIONAL_ENABLEMENT",
+        "CONSTRAINT_ENABLEMENT",
+        "REGION_BASE_COST",
+        "BASE_COST",
+        "ADJUSTED_COST",
+        "P_REGULATION"
+      ]
+    },
+    "DISPATCH_FCAS_REQ_RUN": {
+      "columns": {
+        "RUN_DATETIME": "Datetime",
+        "RUNNO": "Int32",
+        "LASTCHANGED": "Datetime"
+      },
+      "source_columns": [
+        "RUN_DATETIME",
+        "RUNNO",
+        "LASTCHANGED"
+      ]
+    },
+    "DISPATCH_UNIT_SCADA": {
+      "columns": {
+        "SETTLEMENTDATE": "Datetime",
+        "DUID": "String",
+        "SCADAVALUE": "Float32"
+      },
+      "source_columns": [
+        "SETTLEMENTDATE",
+        "DUID",
+        "SCADAVALUE"
+      ]
+    },
+    "DUALLOC": {
+      "columns": {
+        "DUID": "String",
+        "GENSETID": "String",
+        "LASTCHANGED": "Datetime",
+        "VERSIONNO": "Int32"
+      },
+      "source_columns": [
+        "DUID",
+        "GENSETID",
+        "LASTCHANGED",
+        "VERSIONNO"
+      ]
+    },
+    "DUDETAIL": {
+      "columns": {
+        "DUID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "CONNECTIONPOINTID": "String",
+        "VOLTLEVEL": "Float32",
+        "REGISTEREDCAPACITY": "Float32",
+        "AGCCAPABILITY": "String",
+        "DISPATCHTYPE": "String",
+        "MAXCAPACITY": "Float32",
+        "STARTTYPE": "String",
+        "NORMALLYONFLAG": "String",
+        "SPINNINGRESERVEFLAG": "String",
+        "INTERMITTENTFLAG": "String",
+        "SEMISCHEDULE_FLAG": "String",
+        "MAXRATEOFCHANGEUP": "Float32",
+        "MAXRATEOFCHANGEDOWN": "Float32",
+        "ADG_ID": "String",
+        "MINCAPACITY": "Float32",
+        "REGISTEREDMINCAPACITY": "Float32",
+        "MAXRATEOFCHANGEUP_LOAD": "Float32",
+        "MAXRATEOFCHANGEDOWN_LOAD": "Float32",
+        "MAXSTORAGECAPACITY": "Float32",
+        "STORAGEIMPORTEFFICIENCYFACTOR": "Float32",
+        "STORAGEEXPORTEFFICIENCYFACTOR": "Float32",
+        "MIN_RAMP_RATE_UP": "Float32",
+        "MIN_RAMP_RATE_DOWN": "Float32",
+        "LOAD_MIN_RAMP_RATE_UP": "Float32",
+        "LOAD_MIN_RAMP_RATE_DOWN": "Float32",
+        "AGGREGATED": "Int32"
+      },
+      "source_columns": [
+        "DUID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "CONNECTIONPOINTID",
+        "VOLTLEVEL",
+        "REGISTEREDCAPACITY",
+        "AGCCAPABILITY",
+        "DISPATCHTYPE",
+        "MAXCAPACITY",
+        "STARTTYPE",
+        "NORMALLYONFLAG",
+        "SPINNINGRESERVEFLAG",
+        "INTERMITTENTFLAG",
+        "SEMISCHEDULE_FLAG",
+        "MAXRATEOFCHANGEUP",
+        "MAXRATEOFCHANGEDOWN",
+        "ADG_ID",
+        "MINCAPACITY",
+        "REGISTEREDMINCAPACITY",
+        "MAXRATEOFCHANGEUP_LOAD",
+        "MAXRATEOFCHANGEDOWN_LOAD",
+        "MAXSTORAGECAPACITY",
+        "STORAGEIMPORTEFFICIENCYFACTOR",
+        "STORAGEEXPORTEFFICIENCYFACTOR",
+        "MIN_RAMP_RATE_UP",
+        "MIN_RAMP_RATE_DOWN",
+        "LOAD_MIN_RAMP_RATE_UP",
+        "LOAD_MIN_RAMP_RATE_DOWN",
+        "AGGREGATED"
+      ]
+    },
+    "DUDETAILSUMMARY": {
+      "columns": {
+        "DUID": "String",
+        "START_DATE": "Date",
+        "END_DATE": "Date",
+        "DISPATCHTYPE": "String",
+        "CONNECTIONPOINTID": "String",
+        "REGIONID": "String",
+        "STATIONID": "String",
+        "TRANSMISSIONLOSSFACTOR": "Float32",
+        "STARTTYPE": "String",
+        "DISTRIBUTIONLOSSFACTOR": "Float32",
+        "MINIMUM_ENERGY_PRICE": "Float32",
+        "MAXIMUM_ENERGY_PRICE": "Float32",
+        "SCHEDULE_TYPE": "String",
+        "MIN_RAMP_RATE_UP": "Float32",
+        "MIN_RAMP_RATE_DOWN": "Float32",
+        "MAX_RAMP_RATE_UP": "Float32",
+        "MAX_RAMP_RATE_DOWN": "Float32",
+        "IS_AGGREGATED": "Boolean",
+        "LOAD_MINIMUM_ENERGY_PRICE": "Float32",
+        "LOAD_MAXIMUM_ENERGY_PRICE": "Float32",
+        "LOAD_MIN_RAMP_RATE_UP": "Float32",
+        "LOAD_MIN_RAMP_RATE_DOWN": "Float32",
+        "LOAD_MAX_RAMP_RATE_UP": "Float32",
+        "LOAD_MAX_RAMP_RATE_DOWN": "Float32",
+        "SECONDARY_TLF": "Float32"
+      },
+      "source_columns": [
+        "DUID",
+        "START_DATE",
+        "END_DATE",
+        "DISPATCHTYPE",
+        "CONNECTIONPOINTID",
+        "REGIONID",
+        "STATIONID",
+        "TRANSMISSIONLOSSFACTOR",
+        "STARTTYPE",
+        "DISTRIBUTIONLOSSFACTOR",
+        "MINIMUM_ENERGY_PRICE",
+        "MAXIMUM_ENERGY_PRICE",
+        "SCHEDULE_TYPE",
+        "MIN_RAMP_RATE_UP",
+        "MIN_RAMP_RATE_DOWN",
+        "MAX_RAMP_RATE_UP",
+        "MAX_RAMP_RATE_DOWN",
+        "IS_AGGREGATED",
+        "LOAD_MINIMUM_ENERGY_PRICE",
+        "LOAD_MAXIMUM_ENERGY_PRICE",
+        "LOAD_MIN_RAMP_RATE_UP",
+        "LOAD_MIN_RAMP_RATE_DOWN",
+        "LOAD_MAX_RAMP_RATE_UP",
+        "LOAD_MAX_RAMP_RATE_DOWN",
+        "SECONDARY_TLF"
+      ]
+    },
+    "GENCONDATA": {
+      "columns": {
+        "GENCONID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "DESCRIPTION": "String",
+        "GENERICCONSTRAINTWEIGHT": "Float32",
+        "CONSTRAINTTYPE": "String",
+        "LASTCHANGED": "Datetime",
+        "CONSTRAINTVALUE": "String",
+        "STATUS": "String",
+        "AUTHORISEDDATE": "Datetime",
+        "AUTHORISEDBY": "String",
+        "DYNAMICRHS": "String",
+        "DISPATCH": "String",
+        "PREDISPATCH": "String",
+        "STPASA": "String",
+        "MTPASA": "String",
+        "IMPACT": "String",
+        "SOURCE": "String",
+        "LIMITTYPE": "String",
+        "REASON": "String",
+        "MODIFICATIONS": "String",
+        "ADDITIONALNOTES": "String",
+        "P5MIN_SCOPE_OVERRIDE": "String",
+        "LRC": "String",
+        "LOR": "String",
+        "FORCE_SCADA": "String",
+        "SYSTEMSECURITY": "String",
+        "SSM_REGIONID": "String",
+        "SSM_GROUPID": "String"
+      },
+      "source_columns": [
+        "GENCONID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "DESCRIPTION",
+        "GENERICCONSTRAINTWEIGHT",
+        "CONSTRAINTTYPE",
+        "LASTCHANGED"
+      ]
+    },
+    "GENCONSET": {
+      "columns": {
+        "GENCONSETID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "GENCONID": "String",
+        "GENCONEFFDATE": "Date",
+        "GENCONVERSIONNO": "Int32",
+        "LASTCHANGED": "Datetime"
+      },
+      "source_columns": [
+        "GENCONSETID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "GENCONID",
+        "LASTCHANGED"
+      ]
+    },
+    "GENCONSETINVOKE": {
+      "columns": {
+        "INVOCATION_ID": "Int32",
+        "STARTDATE": "Datetime",
+        "STARTPERIOD": "Int32",
+        "GENCONSETID": "String",
+        "ENDDATE": "Datetime",
+        "ENDPERIOD": "Int32",
+        "STARTAUTHORISEDBY": "String",
+        "ENDAUTHORISEDBY": "String",
+        "INTERVENTION": "Int8",
+        "ASCONSTRAINTTYPE": "String",
+        "LASTCHANGED": "Datetime",
+        "STARTINTERVALDATETIME": "Datetime",
+        "ENDINTERVALDATETIME": "Datetime",
+        "SYSTEMNORMAL": "String"
+      },
+      "source_columns": [
+        "INVOCATION_ID",
+        "STARTDATE",
+        "STARTPERIOD",
+        "GENCONSETID",
+        "ENDDATE",
+        "ENDPERIOD",
+        "STARTAUTHORISEDBY",
+        "ENDAUTHORISEDBY",
+        "INTERVENTION",
+        "ASCONSTRAINTTYPE",
+        "LASTCHANGED",
+        "STARTINTERVALDATETIME",
+        "ENDINTERVALDATETIME",
+        "SYSTEMNORMAL"
+      ]
+    },
+    "GENCONSETTRK": {
+      "columns": {
+        "GENCONSETID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "DESCRIPTION": "String",
+        "AUTHORISEDBY": "String",
+        "AUTHORISEDDATE": "Datetime",
+        "LASTCHANGED": "Datetime",
+        "COVERAGE": "String",
+        "MODIFICATIONS": "String",
+        "SYSTEMNORMAL": "String",
+        "OUTAGE": "String"
+      },
+      "source_columns": [
+        "GENCONSETID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "DESCRIPTION",
+        "AUTHORISEDBY",
+        "AUTHORISEDDATE",
+        "LASTCHANGED",
+        "COVERAGE",
+        "SYSTEMNORMAL",
+        "OUTAGE"
+      ]
+    },
+    "GENUNITS": {
+      "columns": {
+        "GENSETID": "String",
+        "STATIONID": "String",
+        "VOLTLEVEL": "Float32",
+        "DISPATCHTYPE": "String",
+        "STARTTYPE": "String",
+        "NORMALSTATUS": "String",
+        "MAXCAPACITY": "Float32",
+        "GENSETTYPE": "String",
+        "GENSETNAME": "String",
+        "CO2E_EMISSIONS_FACTOR": "Float32",
+        "CO2E_ENERGY_SOURCE": "String",
+        "CO2E_DATA_SOURCE": "String",
+        "MINCAPACITY": "Float32",
+        "REGISTEREDMINCAPACITY": "Float32",
+        "LASTCHANGED": "Datetime",
+        "LOWERREG": "Float32"
+      },
+      "source_columns": [
+        "GENSETID",
+        "STATIONID",
+        "VOLTLEVEL",
+        "DISPATCHTYPE",
+        "STARTTYPE",
+        "NORMALSTATUS",
+        "MAXCAPACITY",
+        "GENSETTYPE",
+        "GENSETNAME",
+        "LOWERREG",
+        "CO2E_EMISSIONS_FACTOR",
+        "CO2E_ENERGY_SOURCE",
+        "CO2E_DATA_SOURCE",
+        "MINCAPACITY",
+        "REGISTEREDMINCAPACITY",
+        "LASTCHANGED"
+      ]
+    },
+    "INTERCONNECTOR": {
+      "columns": {
+        "INTERCONNECTORID": "String",
+        "REGIONFROM": "String",
+        "REGIONTO": "String"
+      },
+      "source_columns": [
+        "INTERCONNECTORID",
+        "REGIONFROM",
+        "REGIONTO"
+      ]
+    },
+    "INTERCONNECTORCONSTRAINT": {
+      "columns": {
+        "INTERCONNECTORID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "FROMREGIONLOSSSHARE": "Float32",
+        "ICTYPE": "String",
+        "LOSSCONSTANT": "Float32",
+        "LOSSFLOWCOEFFICIENT": "Float32",
+        "IMPORTLIMIT": "Float32",
+        "EXPORTLIMIT": "Float32",
+        "MAXMWIN": "Float32",
+        "MAXMWOUT": "Float32"
+      },
+      "source_columns": [
+        "INTERCONNECTORID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "FROMREGIONLOSSSHARE",
+        "ICTYPE",
+        "LOSSCONSTANT",
+        "LOSSFLOWCOEFFICIENT",
+        "IMPORTLIMIT",
+        "EXPORTLIMIT",
+        "MAXMWIN",
+        "MAXMWOUT"
+      ]
+    },
+    "LOSSFACTORMODEL": {
+      "columns": {
+        "INTERCONNECTORID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "REGIONID": "String",
+        "DEMANDCOEFFICIENT": "Float32"
+      },
+      "source_columns": [
+        "INTERCONNECTORID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "REGIONID",
+        "DEMANDCOEFFICIENT"
+      ]
+    },
+    "LOSSMODEL": {
+      "columns": {
+        "INTERCONNECTORID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "LOSSSEGMENT": "Int32",
+        "MWBREAKPOINT": "Float32"
+      },
+      "source_columns": [
+        "INTERCONNECTORID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "LOSSSEGMENT",
+        "MWBREAKPOINT"
+      ]
+    },
+    "MNSP_INTERCONNECTOR": {
+      "columns": {
+        "INTERCONNECTORID": "String",
+        "LINKID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "FROMREGION": "String",
+        "TOREGION": "String",
+        "FROM_REGION_TLF": "Float32",
+        "TO_REGION_TLF": "Float32",
+        "LHSFACTOR": "Float32",
+        "MAXCAPACITY": "Float32"
+      },
+      "source_columns": [
+        "INTERCONNECTORID",
+        "LINKID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "FROMREGION",
+        "TOREGION",
+        "FROM_REGION_TLF",
+        "TO_REGION_TLF",
+        "LHSFACTOR",
+        "MAXCAPACITY"
+      ]
+    },
+    "PARTICIPANT": {
+      "columns": {
+        "PARTICIPANTID": "String",
+        "PARTICIPANTCLASSID": "String",
+        "NAME": "String",
+        "DESCRIPTION": "String",
+        "ACN": "String",
+        "PRIMARYBUSINESS": "String",
+        "LASTCHANGED": "Datetime"
+      },
+      "source_columns": [
+        "PARTICIPANTID",
+        "PARTICIPANTCLASSID",
+        "NAME",
+        "DESCRIPTION",
+        "ACN",
+        "PRIMARYBUSINESS",
+        "LASTCHANGED"
+      ]
+    },
+    "RESERVE": {
+      "columns": {
+        "SETTLEMENTDATE": "Datetime",
+        "VERSIONNO": "Int32",
+        "REGIONID": "String",
+        "PERIODID": "Int32",
+        "LOWER5MIN": "Float32",
+        "RAISE5MIN": "Float32",
+        "RAISEREG": "Float32",
+        "LOWERREG": "Float32"
+      },
+      "source_columns": [
+        "SETTLEMENTDATE",
+        "VERSIONNO",
+        "REGIONID",
+        "PERIODID",
+        "LOWER5MIN",
+        "RAISE5MIN",
+        "RAISEREG",
+        "LOWERREG"
+      ]
+    },
+    "SPDCONNECTIONPOINTCONSTRAINT": {
+      "columns": {
+        "CONNECTIONPOINTID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "GENCONID": "String",
+        "FACTOR": "Float32",
+        "BIDTYPE": "String",
+        "LASTCHANGED": "Datetime",
+        "PERIODID": "Int32"
+      },
+      "source_columns": [
+        "CONNECTIONPOINTID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "GENCONID",
+        "PERIODID",
+        "FACTOR",
+        "BIDTYPE",
+        "LASTCHANGED"
+      ]
+    },
+    "SPDINTERCONNECTORCONSTRAINT": {
+      "columns": {
+        "INTERCONNECTORID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "GENCONID": "String",
+        "FACTOR": "Float32",
+        "LASTCHANGED": "Datetime"
+      },
+      "source_columns": [
+        "INTERCONNECTORID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "GENCONID",
+        "FACTOR",
+        "LASTCHANGED"
+      ]
+    },
+    "SPDREGIONCONSTRAINT": {
+      "columns": {
+        "REGIONID": "String",
+        "EFFECTIVEDATE": "Date",
+        "VERSIONNO": "Int32",
+        "GENCONID": "String",
+        "BIDTYPE": "String",
+        "FACTOR": "Float32",
+        "LASTCHANGED": "Datetime"
+      },
+      "source_columns": [
+        "REGIONID",
+        "EFFECTIVEDATE",
+        "VERSIONNO",
+        "GENCONID",
+        "BIDTYPE",
+        "FACTOR",
+        "LASTCHANGED"
+      ]
+    },
+    "STADUALLOC": {
+      "columns": {
+        "DUID": "String",
+        "EFFECTIVEDATE": "Date",
+        "STATIONID": "String",
+        "VERSIONNO": "Int32"
+      },
+      "source_columns": [
+        "DUID",
+        "EFFECTIVEDATE",
+        "STATIONID",
+        "VERSIONNO"
+      ]
+    },
+    "STATION": {
+      "columns": {
+        "STATIONID": "String",
+        "STATIONNAME": "String",
+        "ADDRESS1": "String",
+        "ADDRESS2": "String",
+        "ADDRESS3": "String",
+        "ADDRESS4": "String",
+        "CITY": "String",
+        "STATE": "String",
+        "POSTCODE": "String"
+      },
+      "source_columns": [
+        "STATIONID",
+        "STATIONNAME",
+        "ADDRESS1",
+        "ADDRESS2",
+        "ADDRESS3",
+        "ADDRESS4",
+        "CITY",
+        "STATE",
+        "POSTCODE"
+      ]
+    },
+    "STATIONOPERATINGSTATUS": {
+      "columns": {
+        "EFFECTIVEDATE": "Date",
+        "STATIONID": "String",
+        "VERSIONNO": "Int32",
+        "STATUS": "String"
+      },
+      "source_columns": [
+        "EFFECTIVEDATE",
+        "STATIONID",
+        "VERSIONNO",
+        "STATUS"
+      ]
+    },
+    "STATIONOWNER": {
+      "columns": {
+        "EFFECTIVEDATE": "Date",
+        "PARTICIPANTID": "String",
+        "STATIONID": "String",
+        "VERSIONNO": "Int32"
+      },
+      "source_columns": [
+        "EFFECTIVEDATE",
+        "PARTICIPANTID",
+        "STATIONID",
+        "VERSIONNO"
+      ]
+    }
+  }
+}

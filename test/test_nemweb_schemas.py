@@ -297,7 +297,7 @@ def test_validate_against_schema_valid_data():
     ).cast(
         {
             "SETTLEMENTDATE": pl.Datetime,
-            "REGIONID": pl.Categorical,
+            "REGIONID": pl.String,
             "TOTALDEMAND": pl.Float32,
             "DEMANDFORECAST": pl.Float32,
             "DISPATCHABLELOAD": pl.Float32,
@@ -357,7 +357,7 @@ def test_schema_to_dtypes():
     assert dtypes["SETTLEMENTDATE"] == pl.Datetime  # required field, no union
     assert "TOTALDEMAND" in dtypes
     assert dtypes["TOTALDEMAND"] == pl.Float32  # optional field, union unwrapped
-    assert dtypes["REGIONID"] == pl.Categorical
+    assert dtypes["REGIONID"] == pl.String
 
     # Should have exactly the expected schema fields
     expected_fields = {

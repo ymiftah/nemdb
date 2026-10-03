@@ -395,6 +395,7 @@ class NEMWEBManager:
         self.DISPATCH_FCAS_REQ_CONSTRAINT = ByIntervalDate(
             table_name="DISPATCH_FCAS_REQ_CONSTRAINT",
             table_primary_keys=[
+                "RUN_DATETIME",
                 "INTERVAL_DATETIME",
                 "RUNNO",
                 "REGIONID",
@@ -404,7 +405,7 @@ class NEMWEBManager:
             schema_class=DispatchFcasReqConstraintSchema,
         )
         # Keyed by RUN_DATETIME/RUNNO (no SETTLEMENTDATE/INTERVAL_DATETIME).
-        # Use base DataSource so .scan() works; nemo pipeline never calls .get_data().
+        # Use base DataSource for unfiltered reads of run metadata.
         self.DISPATCH_FCAS_REQ_RUN = DataSource(
             table_name="DISPATCH_FCAS_REQ_RUN",
             table_primary_keys=["RUN_DATETIME", "RUNNO"],
@@ -733,8 +734,9 @@ class DataSource:
         """
         self.table_name = table_name
         self.schema_class = schema_class
-        # Derive table_columns from schema
-        self.table_columns = list(schema_class.empty().columns)
+        # Resolve concrete types (including Datetime's microsecond unit) once.
+        self._scan_schema = schema_class.empty().schema
+        self.table_columns = list(self._scan_schema)
         # Extract types from schema (unwrapping X | None unions to bare types)
         self._dtypes = _schema_to_dtypes(schema_class)
         self.table_primary_keys = table_primary_keys if table_primary_keys is not None else []
@@ -753,7 +755,15 @@ class DataSource:
         Returns:
             pl.LazyFrame: A LazyFrame representing the scanned dataset.
         """
-        kwargs_ = {"hive_partitioning": True, "missing_columns": "insert"}
+        # Use the declared storage schema rather than the first file's schema:
+        # older Julia partitions can contain fewer columns. Legacy Python files
+        # may have categorical identifiers; normalize those to Julia's strings.
+        kwargs_ = {
+            "hive_partitioning": True,
+            "missing_columns": "insert",
+            "schema": self._scan_schema,
+            "cast_options": pl.ScanCastOptions(categorical_to_string="allow"),
+        }
         if kwargs:
             kwargs_.update(kwargs)
         return pl.scan_parquet(self.path, *args, **kwargs_)  # type: ignore[arg-type]
@@ -768,7 +778,7 @@ class DataSource:
         Returns:
             pl.DataFrame: A DataFrame containing the dataset.
         """
-        return self.scan(self, *args, **kwargs).collect()
+        return self.scan(*args, **kwargs).collect()
 
     def populate(self, date_slice: slice, force_new: bool = False):
         """Adds data to the parquet dataset from a date range.
