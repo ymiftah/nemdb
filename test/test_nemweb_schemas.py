@@ -200,9 +200,10 @@ def test_sample_dispatch_region_sum_data():
 
 
 def test_schema_map_exists_and_is_complete():
-    """Test that SCHEMA_MAP registry exists and contains all 28 schemas."""
-    # Should have 31 entries
-    assert len(SCHEMA_MAP) == 31, f"SCHEMA_MAP has {len(SCHEMA_MAP)} entries, expected 31"
+    """Test that SCHEMA_MAP registry exists and contains all schemas."""
+    # Should have 34 entries (includes DISPATCH_FCAS_REQ, DISPATCH_FCAS_REQ_CONSTRAINT,
+    # DISPATCH_FCAS_REQ_RUN alongside the original 31)
+    assert len(SCHEMA_MAP) == 34, f"SCHEMA_MAP has {len(SCHEMA_MAP)} entries, expected 34"
 
     # All values should be schema classes
     for table_name, schema_class in SCHEMA_MAP.items():
@@ -296,7 +297,7 @@ def test_validate_against_schema_valid_data():
     ).cast(
         {
             "SETTLEMENTDATE": pl.Datetime,
-            "REGIONID": pl.Categorical,
+            "REGIONID": pl.String,
             "TOTALDEMAND": pl.Float32,
             "DEMANDFORECAST": pl.Float32,
             "DISPATCHABLELOAD": pl.Float32,
@@ -356,11 +357,13 @@ def test_schema_to_dtypes():
     assert dtypes["SETTLEMENTDATE"] == pl.Datetime  # required field, no union
     assert "TOTALDEMAND" in dtypes
     assert dtypes["TOTALDEMAND"] == pl.Float32  # optional field, union unwrapped
-    assert dtypes["REGIONID"] == pl.Categorical
+    assert dtypes["REGIONID"] == pl.String
 
     # Should have exactly the expected schema fields
     expected_fields = {
         "SETTLEMENTDATE",
+        "RUNNO",
+        "INTERVENTION",
         "REGIONID",
         "TOTALDEMAND",
         "DEMANDFORECAST",
