@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-03
+
+### Fixed
+
+- Corrected the package version in `pyproject.toml` and `uv.lock` to `0.5.1`.
+  The v0.5.0 release still declared `0.4.1` in its package metadata.
+- Refreshed the stale dependency lockfile to match the existing pandapower 3.5.4
+  requirement and its dependencies.
+
 ## [0.4.0] - 2026-03-07
 
 ### Added
