@@ -1,0 +1,3338 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Island Visualization Implementation Plan - nemdb</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#island-visualization-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="nemdb" class="md-header__button md-logo" aria-label="nemdb" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            nemdb
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Island Visualization Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ymiftah/nemdb" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="nemdb" class="md-nav__button md-logo" aria-label="nemdb" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    nemdb
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ymiftah/nemdb" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/build-network-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build a Network Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../how-to/fetch-nemweb-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fetch NEMWEB Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../how-to/work-with-geodata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Work with Geodata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../how-to/use-dnsp-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use DNSP Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../how-to/use-isp-assumptions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use ISP Assumptions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../how-to/use-opennem-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use OpenNEM API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Explanation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Explanation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../explanation/transmission-line-cleaning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transmission Line Cleaning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../explanation/island-connectivity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connectivity & Electrical Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nemdb
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    nemdb
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dnsp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    dnsp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/ausgrid/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ausgrid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/ausnet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ausnet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/cppal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    cppal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/dnsp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dnsp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/endeavour/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    endeavour
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/energex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    energex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/ergon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ergon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/essential_energy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    essential_energy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/jemena/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jemena
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/sapn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sapn
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/tasnetworks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    tasnetworks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/dnsp/united_energy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    united_energy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_3" id="__nav_6_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    geodata
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    geodata
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/geodata/geodata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    geodata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/geodata/matching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    matching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/geodata/transformations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    transformations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_4" id="__nav_6_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    isp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    isp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/isp/isp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    isp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/isp/isp2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    isp2025
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/isp/schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/logger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logger
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/main/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    main
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_7" id="__nav_6_1_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_7_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_7_1" id="__nav_6_1_7_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pandapower
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_6_1_7_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_7_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    pandapower
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/pandapower/connectivity_fallback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    connectivity_fallback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/pandapower/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/pandapower/electrical_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    electrical_model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/pandapower/geo_utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    geo_utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/pandapower/line_params/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    line_params
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/pandapower/network_builder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    network_builder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/pandapower/topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    topology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_7_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_7_2" id="__nav_6_1_7_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    visualize
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_6_1_7_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    visualize
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/visualize/common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/visualize/island_view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    island_view
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/models/visualize/network_view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    network_view
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/near/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    near
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_9" id="__nav_6_1_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nemweb
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    nemweb
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/nemweb/dbloader/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dbloader
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/nemweb/der_register/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    der_register
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/nemweb/nemweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nemweb
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/nemweb/schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/nemweb/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_10" id="__nav_6_1_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    opennem
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    opennem
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/opennem/opennemapi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    opennemapi
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../autoapi/nemdb/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-1-tests-for-_compute_island_assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Tests for _compute_island_assignment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-2-implement-_compute_island_assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Implement _compute_island_assignment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-3-tests-for-visualize_islands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Tests for visualize_islands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-4-implement-visualize_islands-and-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: Implement visualize_islands and helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-5-lint-type-check-and-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: Lint, type-check, and commit
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="island-visualization-implementation-plan">Island Visualization Implementation Plan</h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Add <code>visualize_islands(model)</code> to <code>src/nemdb/models/visualize.py</code> that colors all network elements by connected island (networkx connected component), with one toggleable legend entry per island.</p>
+<p><strong>Architecture:</strong> Build a networkx graph from <code>lines["from_bus"]</code>/<code>["to_bus"]</code>, find connected components sorted by size, assign each a color from <code>plotly.colors.qualitative.Dark24</code>. For each island, filter all five element types and add traces that share a <code>legendgroup</code>; only the first non-empty trace per island gets <code>showlegend=True</code>.</p>
+<p><strong>Tech Stack:</strong> Python, pandas, plotly (Scattermap), networkx, shapely</p>
+<hr />
+<h2 id="files">Files</h2>
+<ul>
+<li><strong>Modify:</strong> <code>src/nemdb/models/visualize.py</code> — add imports, <code>_ISLAND_COLORS</code> constant, <code>_compute_island_assignment</code>, <code>_apply_map_layout</code> (extracted helper), <code>_add_island_lines/buses/trafos/loads/gens</code>, <code>visualize_islands</code>; also update <code>visualize_network</code> to call <code>_apply_map_layout</code></li>
+<li><strong>Modify:</strong> <code>test/test_visualize.py</code> — add imports, fixtures, and two new test classes</li>
+</ul>
+<hr />
+<h2 id="task-1-tests-for-_compute_island_assignment">Task 1: Tests for <code>_compute_island_assignment</code></h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>
+<p>Modify: <code>test/test_visualize.py</code></p>
+</li>
+<li>
+<p>[ ] <strong>Step 1: Add import for <code>_compute_island_assignment</code> to the test file</strong></p>
+</li>
+</ul>
+<p>In <code>test/test_visualize.py</code>, update the import block (currently lines 10–19) to add <code>_compute_island_assignment</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">nemdb.models.visualize</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FUEL_COLORS</span><span class="p">,</span>
+    <span class="n">VOLTAGE_COLORS</span><span class="p">,</span>
+    <span class="n">_add_buses_to_figure</span><span class="p">,</span>
+    <span class="n">_add_generators_to_figure</span><span class="p">,</span>
+    <span class="n">_add_lines_to_figure</span><span class="p">,</span>
+    <span class="n">_add_loads_to_figure</span><span class="p">,</span>
+    <span class="n">_add_transformers_to_figure</span><span class="p">,</span>
+    <span class="n">_compute_island_assignment</span><span class="p">,</span>
+    <span class="n">visualize_network</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Write failing tests for <code>_compute_island_assignment</code></strong></li>
+</ul>
+<p>Append this class at the end of <code>test/test_visualize.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestComputeIslandAssignment</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tests for island assignment computation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_two_disconnected_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Two disconnected line groups produce two distinct island indices.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;from_bus&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bus_A_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_C_132kv&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;to_bus&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bus_B_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_D_132kv&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_compute_island_assignment</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bus_A_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_B_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_C_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_D_132kv&quot;</span><span class="p">}</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_A_132kv&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_B_132kv&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_C_132kv&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_D_132kv&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_A_132kv&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_C_132kv&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_single_connected_component</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;All buses in a chain get the same island index.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;from_bus&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bus_A_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_B_132kv&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;to_bus&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bus_B_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_C_132kv&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_compute_island_assignment</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_A_132kv&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_B_132kv&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_C_132kv&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_largest_component_gets_index_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The largest connected component is assigned island index 0.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;from_bus&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bus_A&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_B&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_X&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;to_bus&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bus_B&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_C&quot;</span><span class="p">,</span> <span class="s2">&quot;bus_Y&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_compute_island_assignment</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="c1"># {A, B, C} has 3 nodes → island 0; {X, Y} has 2 nodes → island 1</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_A&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_B&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_C&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_X&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;bus_Y&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_empty_lines_returns_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Empty lines DataFrame returns empty dict.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_compute_island_assignment</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;from_bus&quot;</span><span class="p">,</span> <span class="s2">&quot;to_bus&quot;</span><span class="p">]))</span>
+        <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="p">{}</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Run tests to confirm they fail</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>test/test_visualize.py::TestComputeIslandAssignment<span class="w"> </span>-v
+</code></pre></div>
+<p>Expected: <code>ImportError</code> or <code>AttributeError</code> — <code>_compute_island_assignment</code> does not exist yet.</p>
+<hr />
+<h2 id="task-2-implement-_compute_island_assignment">Task 2: Implement <code>_compute_island_assignment</code></h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>
+<p>Modify: <code>src/nemdb/models/visualize.py</code></p>
+</li>
+<li>
+<p>[ ] <strong>Step 1: Add <code>networkx</code> and <code>plotly.colors</code> imports</strong></p>
+</li>
+</ul>
+<p>In <code>src/nemdb/models/visualize.py</code>, after <code>import math</code> (line 10), add:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.colors</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Add <code>_ISLAND_COLORS</code> constant after <code>DEFAULT_FUEL_COLOR</code> (line 65)</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># Island color palette (cycles for &gt;24 islands)</span>
+<span class="n">_ISLAND_COLORS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">plotly</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">qualitative</span><span class="o">.</span><span class="n">Dark24</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Add <code>_compute_island_assignment</code> function after <code>_ISLAND_COLORS</code></strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_compute_island_assignment</span><span class="p">(</span><span class="n">lines_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Assign each bus to a connected island index.</span>
+
+<span class="sd">    Builds an undirected graph from line from_bus/to_bus edges, finds connected</span>
+<span class="sd">    components sorted by size (largest first), and returns a mapping from bus_id</span>
+<span class="sd">    to island index (0 = largest island).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lines_df: DataFrame with &#39;from_bus&#39; and &#39;to_bus&#39; columns.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict mapping bus_id to island index.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">lines_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="n">G</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">lines_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;from_bus&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;to_bus&quot;</span><span class="p">])</span>
+
+    <span class="n">components</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">G</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">bus</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">)</span> <span class="k">for</span> <span class="n">bus</span> <span class="ow">in</span> <span class="n">component</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Run tests to confirm they pass</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>test/test_visualize.py::TestComputeIslandAssignment<span class="w"> </span>-v
+</code></pre></div>
+<p>Expected: 4 tests PASSED.</p>
+<hr />
+<h2 id="task-3-tests-for-visualize_islands">Task 3: Tests for <code>visualize_islands</code></h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>
+<p>Modify: <code>test/test_visualize.py</code></p>
+</li>
+<li>
+<p>[ ] <strong>Step 1: Add <code>visualize_islands</code> to the import block</strong></p>
+</li>
+</ul>
+<p>Replace the import block (updated in Task 1):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">nemdb.models.visualize</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FUEL_COLORS</span><span class="p">,</span>
+    <span class="n">VOLTAGE_COLORS</span><span class="p">,</span>
+    <span class="n">_add_buses_to_figure</span><span class="p">,</span>
+    <span class="n">_add_generators_to_figure</span><span class="p">,</span>
+    <span class="n">_add_lines_to_figure</span><span class="p">,</span>
+    <span class="n">_add_loads_to_figure</span><span class="p">,</span>
+    <span class="n">_add_transformers_to_figure</span><span class="p">,</span>
+    <span class="n">_compute_island_assignment</span><span class="p">,</span>
+    <span class="n">visualize_islands</span><span class="p">,</span>
+    <span class="n">visualize_network</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Add fixtures for a two-island model</strong></li>
+</ul>
+<p>Append these fixtures after <code>sample_model</code> (before the first test class):</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">two_island_lines_df</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lines forming two disconnected islands: A-B-C (island 0) and D-E (island 1).&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Line AB&quot;</span><span class="p">,</span> <span class="s2">&quot;Line BC&quot;</span><span class="p">,</span> <span class="s2">&quot;Line DE&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;from_bus&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;isl1_bus_A_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;isl1_bus_B_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;isl2_bus_D_132kv&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;to_bus&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;isl1_bus_B_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;isl1_bus_C_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;isl2_bus_E_132kv&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;length_km&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="mf">40.0</span><span class="p">],</span>
+            <span class="s2">&quot;in_service&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Transmission Line&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;geodata&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">[(</span><span class="mf">151.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">151.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.1</span><span class="p">)],</span>
+                <span class="p">[(</span><span class="mf">151.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.1</span><span class="p">),</span> <span class="p">(</span><span class="mf">151.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.2</span><span class="p">)],</span>
+                <span class="p">[(</span><span class="mf">153.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">28.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">153.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">28.1</span><span class="p">)],</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;voltagekv&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">132</span><span class="p">,</span> <span class="mi">132</span><span class="p">,</span> <span class="mi">132</span><span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">two_island_buses_df</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;bus_id&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;isl1_bus_A_132kv&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;isl1_bus_B_132kv&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;isl1_bus_C_132kv&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;isl2_bus_D_132kv&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;isl2_bus_E_132kv&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;vn_kv&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">132</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s2">&quot;in_service&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s2">&quot;geodata&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">151.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.0</span><span class="p">),</span>
+                <span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">151.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.1</span><span class="p">),</span>
+                <span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">151.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.2</span><span class="p">),</span>
+                <span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">153.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">28.0</span><span class="p">),</span>
+                <span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">153.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">28.1</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">two_island_gens_df</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;bus_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;isl1_bus_A_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;isl2_bus_D_132kv&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Gen Island 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Gen Island 2&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;p_mw&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">50.0</span><span class="p">],</span>
+            <span class="s2">&quot;max_p_mw&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">200.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Thermal&quot;</span><span class="p">,</span> <span class="s2">&quot;Wind&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;in_service&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+            <span class="s2">&quot;owner&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Company A&quot;</span><span class="p">,</span> <span class="s2">&quot;Company B&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;fueltype&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Black Coal&quot;</span><span class="p">,</span> <span class="s2">&quot;Wind&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;vn_kv&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">132</span><span class="p">,</span> <span class="mi">132</span><span class="p">],</span>
+            <span class="s2">&quot;geodata&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">151.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.0</span><span class="p">),</span> <span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">153.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">28.0</span><span class="p">)],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">two_island_loads_df</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;bus_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;isl1_bus_B_132kv&quot;</span><span class="p">,</span> <span class="s2">&quot;isl2_bus_E_132kv&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Load Island 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Load Island 2&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Zone Substation&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;vn_kv&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">132</span><span class="p">,</span> <span class="mi">132</span><span class="p">],</span>
+            <span class="s2">&quot;in_service&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+            <span class="s2">&quot;locality&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Sydney&quot;</span><span class="p">,</span> <span class="s2">&quot;Brisbane&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NSW&quot;</span><span class="p">,</span> <span class="s2">&quot;QLD&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;geodata&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">151.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.1</span><span class="p">),</span> <span class="n">shp</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="mf">153.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">28.1</span><span class="p">)],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">two_island_model</span><span class="p">(</span><span class="n">two_island_lines_df</span><span class="p">,</span> <span class="n">two_island_buses_df</span><span class="p">,</span> <span class="n">two_island_gens_df</span><span class="p">,</span> <span class="n">two_island_loads_df</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;lines&quot;</span><span class="p">:</span> <span class="n">two_island_lines_df</span><span class="p">,</span>
+        <span class="s2">&quot;buses&quot;</span><span class="p">:</span> <span class="n">two_island_buses_df</span><span class="p">,</span>
+        <span class="s2">&quot;gens&quot;</span><span class="p">:</span> <span class="n">two_island_gens_df</span><span class="p">,</span>
+        <span class="s2">&quot;loads&quot;</span><span class="p">:</span> <span class="n">two_island_loads_df</span><span class="p">,</span>
+        <span class="s2">&quot;trafos&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(),</span>
+    <span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Write failing tests for <code>visualize_islands</code></strong></li>
+</ul>
+<p>Append this class at the end of <code>test/test_visualize.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestVisualizeIslands</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tests for island visualization function.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_returns_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_island_model</span><span class="p">):</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">(</span><span class="n">two_island_model</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_one_legend_entry_per_island</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_island_model</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exactly one trace per island has showlegend=True.&quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">(</span><span class="n">two_island_model</span><span class="p">)</span>
+        <span class="n">legend_entries</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">showlegend</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">legend_entries</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_island_legend_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_island_model</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Legend entry names follow &#39;Island N&#39; pattern.&quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">(</span><span class="n">two_island_model</span><span class="p">)</span>
+        <span class="n">legend_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">showlegend</span><span class="p">}</span>
+        <span class="k">assert</span> <span class="n">legend_names</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;Island 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Island 2&quot;</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_all_traces_in_island_share_legendgroup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_island_model</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Every trace for an island uses that island&#39;s legendgroup.&quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">(</span><span class="n">two_island_model</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">island_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Island 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Island 2&quot;</span><span class="p">):</span>
+            <span class="n">traces</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">legendgroup</span> <span class="o">==</span> <span class="n">island_name</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">legendgroup</span> <span class="o">==</span> <span class="n">island_name</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">traces</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_only_first_trace_per_island_shows_legend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_island_model</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Only one trace per island has showlegend=True; the rest are False.&quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">(</span><span class="n">two_island_model</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">island_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Island 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Island 2&quot;</span><span class="p">):</span>
+            <span class="n">traces</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">legendgroup</span> <span class="o">==</span> <span class="n">island_name</span><span class="p">]</span>
+            <span class="n">shown</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">traces</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">showlegend</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">shown</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_islands_have_distinct_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_island_model</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Island 1 and Island 2 use different colors.&quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">(</span><span class="n">two_island_model</span><span class="p">)</span>
+        <span class="n">island1_first</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">legendgroup</span> <span class="o">==</span> <span class="s2">&quot;Island 1&quot;</span><span class="p">)</span>
+        <span class="n">island2_first</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">legendgroup</span> <span class="o">==</span> <span class="s2">&quot;Island 2&quot;</span><span class="p">)</span>
+        <span class="n">color1</span> <span class="o">=</span> <span class="n">island1_first</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">color</span> <span class="k">if</span> <span class="n">island1_first</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;lines&quot;</span> <span class="k">else</span> <span class="n">island1_first</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">color</span>
+        <span class="n">color2</span> <span class="o">=</span> <span class="n">island2_first</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">color</span> <span class="k">if</span> <span class="n">island2_first</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;lines&quot;</span> <span class="k">else</span> <span class="n">island2_first</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">color</span>
+        <span class="k">assert</span> <span class="n">color1</span> <span class="o">!=</span> <span class="n">color2</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_custom_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_island_model</span><span class="p">):</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">(</span><span class="n">two_island_model</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;My Islands&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;My Islands&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_empty_model_returns_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">({})</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_map_layout_configured</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_island_model</span><span class="p">):</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualize_islands</span><span class="p">(</span><span class="n">two_island_model</span><span class="p">,</span> <span class="n">center_lat</span><span class="o">=-</span><span class="mf">33.0</span><span class="p">,</span> <span class="n">center_lon</span><span class="o">=</span><span class="mf">150.0</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">mapbox</span><span class="o">.</span><span class="n">center</span><span class="o">.</span><span class="n">lat</span> <span class="o">==</span> <span class="o">-</span><span class="mf">33.0</span>
+        <span class="k">assert</span> <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">mapbox</span><span class="o">.</span><span class="n">center</span><span class="o">.</span><span class="n">lon</span> <span class="o">==</span> <span class="mf">150.0</span>
+        <span class="k">assert</span> <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">mapbox</span><span class="o">.</span><span class="n">zoom</span> <span class="o">==</span> <span class="mi">6</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Run tests to confirm they fail</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>test/test_visualize.py::TestVisualizeIslands<span class="w"> </span>-v
+</code></pre></div>
+<p>Expected: <code>ImportError</code> — <code>visualize_islands</code> does not exist yet.</p>
+<hr />
+<h2 id="task-4-implement-visualize_islands-and-helpers">Task 4: Implement <code>visualize_islands</code> and helpers</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>
+<p>Modify: <code>src/nemdb/models/visualize.py</code></p>
+</li>
+<li>
+<p>[ ] <strong>Step 1: Extract <code>_apply_map_layout</code> and update <code>visualize_network</code></strong></p>
+</li>
+</ul>
+<p>Add this function immediately before <code>visualize_network</code> (before line 68):</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_apply_map_layout</span><span class="p">(</span>
+    <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span>
+    <span class="n">mapbox_style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">center_lat</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">center_lon</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">zoom</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply standard map layout settings to a figure.&quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+        <span class="n">mapbox</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="n">mapbox_style</span><span class="p">,</span>
+            <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;lat&quot;</span><span class="p">:</span> <span class="n">center_lat</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">:</span> <span class="n">center_lon</span><span class="p">},</span>
+            <span class="s2">&quot;zoom&quot;</span><span class="p">:</span> <span class="n">zoom</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+        <span class="n">margin</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;l&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+        <span class="n">hovermode</span><span class="o">=</span><span class="s2">&quot;closest&quot;</span><span class="p">,</span>
+        <span class="n">showlegend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">legend</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span>
+            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">,</span>
+            <span class="s2">&quot;bgcolor&quot;</span><span class="p">:</span> <span class="s2">&quot;rgba(255, 255, 255, 0.8)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;bordercolor&quot;</span><span class="p">:</span> <span class="s2">&quot;rgba(0, 0, 0, 0.2)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;borderwidth&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>Replace the <code>fig.update_layout(...)</code> block in <code>visualize_network</code> (lines 148–166) with:</p>
+<div class="highlight"><pre><span></span><code>    <span class="n">_apply_map_layout</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">mapbox_style</span><span class="p">,</span> <span class="n">center_lat</span><span class="p">,</span> <span class="n">center_lon</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Add <code>_add_island_lines</code></strong></li>
+</ul>
+<p>Append after <code>_add_generators_to_figure</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_add_island_lines</span><span class="p">(</span>
+    <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span>
+    <span class="n">lines_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">island_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add all lines for one island as a single trace. Returns True if a trace was added.&quot;&quot;&quot;</span>
+    <span class="n">lats_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lons_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">hover_text</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">lines_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">geodata</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;geodata&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">geodata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">geodata</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">geodata</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">geodata</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">coords</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">lons</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
+        <span class="n">lats</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
+        <span class="n">lats_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="o">*</span><span class="n">lats</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+        <span class="n">lons_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="o">*</span><span class="n">lons</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+        <span class="n">voltage</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;voltagekv&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;length_km&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">from_bus</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;from_bus&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">to_bus</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;to_bus&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">in_svc</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;in_service&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&lt;b&gt;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/b&gt;&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;From Bus: </span><span class="si">{</span><span class="n">from_bus</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;To Bus: </span><span class="si">{</span><span class="n">to_bus</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Length: </span><span class="si">{</span><span class="n">length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> km&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Voltage: </span><span class="si">{</span><span class="n">voltage</span><span class="si">}</span><span class="s2"> kV&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Class: </span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;In Service: </span><span class="si">{</span><span class="n">in_svc</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">hover_text</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">text</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">lats</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lats_list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scattermap</span><span class="p">(</span>
+            <span class="n">lon</span><span class="o">=</span><span class="n">lons_list</span><span class="p">,</span>
+            <span class="n">lat</span><span class="o">=</span><span class="n">lats_list</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+            <span class="n">line</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">},</span>
+            <span class="n">hovertext</span><span class="o">=</span><span class="n">hover_text</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
+            <span class="n">legendgroup</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Add <code>_add_island_buses</code></strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_add_island_buses</span><span class="p">(</span>
+    <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span>
+    <span class="n">buses_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">island_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add all buses for one island as a single trace. Returns True if a trace was added.&quot;&quot;&quot;</span>
+    <span class="n">lats</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lons</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">hover_text</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">buses_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">geodata</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;geodata&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">geodata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">geodata</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">geodata</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="n">geodata</span><span class="o">.</span><span class="n">x</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="n">geodata</span><span class="o">.</span><span class="n">y</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">lats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+        <span class="n">lons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+        <span class="n">bus_id</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bus_id&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+        <span class="n">vn_kv</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vn_kv&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">in_svc</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;in_service&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">hover_text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;b&gt;</span><span class="si">{</span><span class="n">bus_id</span><span class="si">}</span><span class="s2">&lt;/b&gt;&lt;br&gt;Voltage: </span><span class="si">{</span><span class="n">vn_kv</span><span class="si">}</span><span class="s2"> kV&lt;br&gt;In Service: </span><span class="si">{</span><span class="n">in_svc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lats</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scattermap</span><span class="p">(</span>
+            <span class="n">lon</span><span class="o">=</span><span class="n">lons</span><span class="p">,</span>
+            <span class="n">lat</span><span class="o">=</span><span class="n">lats</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers&quot;</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span> <span class="s2">&quot;opacity&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">},</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+            <span class="n">hovertext</span><span class="o">=</span><span class="n">hover_text</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
+            <span class="n">legendgroup</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Add <code>_add_island_trafos</code></strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_add_island_trafos</span><span class="p">(</span>
+    <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span>
+    <span class="n">trafos_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">buses_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">island_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add all transformers for one island as a single trace. Returns True if a trace was added.&quot;&quot;&quot;</span>
+    <span class="n">bus_locations</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">buses_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">geodata</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;geodata&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">geodata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">geodata</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">geodata</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">bus_locations</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bus_id&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="n">geodata</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">geodata</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+    <span class="n">lats</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lons</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">hover_text</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">trafos_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">hv_bus</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hv_bus&quot;</span><span class="p">)</span>
+        <span class="n">lv_bus</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lv_bus&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hv_bus</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bus_locations</span> <span class="ow">or</span> <span class="n">lv_bus</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bus_locations</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">hv_lon</span><span class="p">,</span> <span class="n">hv_lat</span> <span class="o">=</span> <span class="n">bus_locations</span><span class="p">[</span><span class="n">hv_bus</span><span class="p">]</span>
+        <span class="n">lv_lon</span><span class="p">,</span> <span class="n">lv_lat</span> <span class="o">=</span> <span class="n">bus_locations</span><span class="p">[</span><span class="n">lv_bus</span><span class="p">]</span>
+        <span class="n">lons</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">hv_lon</span> <span class="o">+</span> <span class="n">lv_lon</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">lats</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">hv_lat</span> <span class="o">+</span> <span class="n">lv_lat</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown Trafo&quot;</span><span class="p">)</span>
+        <span class="n">sn_mva</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sn_mva&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">vk_pct</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vk_percent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">vkr_pct</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vkr_percent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">in_svc</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;in_service&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">hover_text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&lt;b&gt;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/b&gt;&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;HV Bus: </span><span class="si">{</span><span class="n">hv_bus</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;LV Bus: </span><span class="si">{</span><span class="n">lv_bus</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Power Rating (MVA): </span><span class="si">{</span><span class="n">sn_mva</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Impedance (Vk %): </span><span class="si">{</span><span class="n">vk_pct</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Resistance (Vkr %): </span><span class="si">{</span><span class="n">vkr_pct</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;In Service: </span><span class="si">{</span><span class="n">in_svc</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lats</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scattermap</span><span class="p">(</span>
+            <span class="n">lon</span><span class="o">=</span><span class="n">lons</span><span class="p">,</span>
+            <span class="n">lat</span><span class="o">=</span><span class="n">lats</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers&quot;</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span> <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;star&quot;</span><span class="p">,</span> <span class="s2">&quot;opacity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">},</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+            <span class="n">hovertext</span><span class="o">=</span><span class="n">hover_text</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
+            <span class="n">legendgroup</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 5: Add <code>_add_island_loads</code></strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_add_island_loads</span><span class="p">(</span>
+    <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span>
+    <span class="n">loads_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">island_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add all loads for one island as a single trace. Returns True if a trace was added.&quot;&quot;&quot;</span>
+    <span class="n">lats</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lons</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">hover_text</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">loads_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">geodata</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;geodata&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">geodata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">geodata</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">geodata</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="n">geodata</span><span class="o">.</span><span class="n">x</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="n">geodata</span><span class="o">.</span><span class="n">y</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">lats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+        <span class="n">lons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+        <span class="n">ltype</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">voltage</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vn_kv&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">locality</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;locality&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">in_svc</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;in_service&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">hover_text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&lt;b&gt;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/b&gt;&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="n">ltype</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Voltage: </span><span class="si">{</span><span class="n">voltage</span><span class="si">}</span><span class="s2"> kV&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Locality: </span><span class="si">{</span><span class="n">locality</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;State: </span><span class="si">{</span><span class="n">state</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;In Service: </span><span class="si">{</span><span class="n">in_svc</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lats</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scattermap</span><span class="p">(</span>
+            <span class="n">lon</span><span class="o">=</span><span class="n">lons</span><span class="p">,</span>
+            <span class="n">lat</span><span class="o">=</span><span class="n">lats</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers&quot;</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span> <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;triangle-down&quot;</span><span class="p">,</span> <span class="s2">&quot;opacity&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">},</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+            <span class="n">hovertext</span><span class="o">=</span><span class="n">hover_text</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
+            <span class="n">legendgroup</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 6: Add <code>_add_island_gens</code></strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_add_island_gens</span><span class="p">(</span>
+    <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span>
+    <span class="n">gens_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">island_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add all generators for one island as a single trace. Returns True if a trace was added.&quot;&quot;&quot;</span>
+    <span class="n">lats</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lons</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sizes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">hover_text</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">fuel_type_col</span> <span class="o">=</span> <span class="s2">&quot;type&quot;</span> <span class="k">if</span> <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">gens_df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="s2">&quot;fueltype&quot;</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">gens_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">geodata</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;geodata&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">geodata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">geodata</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">geodata</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="n">geodata</span><span class="o">.</span><span class="n">x</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="n">geodata</span><span class="o">.</span><span class="n">y</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">lats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+        <span class="n">lons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+        <span class="n">cap</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_p_mw&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">5</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cap</span><span class="p">))</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)))</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+        <span class="n">fuel_type</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fuel_type_col</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">gtype</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">p_mw</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;p_mw&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">owner</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;owner&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;code&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;Unknown&quot;</span>
+        <span class="n">in_svc</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;in_service&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">hover_text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&lt;b&gt;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/b&gt;&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Fuel Type: </span><span class="si">{</span><span class="n">fuel_type</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="n">gtype</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Capacity: </span><span class="si">{</span><span class="n">cap</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> MW&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Output: </span><span class="si">{</span><span class="n">p_mw</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> MW&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Owner: </span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">&lt;br&gt;&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;In Service: </span><span class="si">{</span><span class="n">in_svc</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lats</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scattermap</span><span class="p">(</span>
+            <span class="n">lon</span><span class="o">=</span><span class="n">lons</span><span class="p">,</span>
+            <span class="n">lat</span><span class="o">=</span><span class="n">lats</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers&quot;</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="n">sizes</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span> <span class="s2">&quot;opacity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">},</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+            <span class="n">hovertext</span><span class="o">=</span><span class="n">hover_text</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
+            <span class="n">legendgroup</span><span class="o">=</span><span class="n">island_name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 7: Add <code>visualize_islands</code></strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">visualize_islands</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mapbox_style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;carto-positron&quot;</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">800</span><span class="p">,</span>
+    <span class="n">center_lat</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">27.0</span><span class="p">,</span>
+    <span class="n">center_lon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">133.0</span><span class="p">,</span>
+    <span class="n">zoom</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;NEM Network Islands&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an interactive Plotly map visualization colored by network island.</span>
+
+<span class="sd">    Each connected component (island) in the transmission network is shown in a</span>
+<span class="sd">    distinct color. All element types (buses, lines, generators, loads,</span>
+<span class="sd">    transformers) share the same color per island. Clicking an island legend</span>
+<span class="sd">    entry toggles all of its elements.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: Dict returned by get_pandapower_model() with keys:</span>
+<span class="sd">            - &#39;buses&#39;, &#39;lines&#39;, &#39;gens&#39;, &#39;loads&#39;, &#39;trafos&#39;</span>
+<span class="sd">        mapbox_style: Carto style (&#39;carto-positron&#39;, &#39;carto-darkmatter&#39;, &#39;open-street-map&#39;)</span>
+<span class="sd">        height: Map height in pixels</span>
+<span class="sd">        center_lat: Center latitude (default: Australia center)</span>
+<span class="sd">        center_lon: Center longitude (default: Australia center)</span>
+<span class="sd">        zoom: Initial zoom level (4 = Australia-wide view)</span>
+<span class="sd">        title: Figure title</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Figure: Interactive map with one legend entry per island.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from nemdb.models.pandapower import get_pandapower_model</span>
+<span class="sd">        &gt;&gt;&gt; from nemdb.models.visualize import visualize_islands</span>
+<span class="sd">        &gt;&gt;&gt; model = get_pandapower_model()</span>
+<span class="sd">        &gt;&gt;&gt; fig = visualize_islands(model)</span>
+<span class="sd">        &gt;&gt;&gt; fig.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+
+    <span class="n">lines_df</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">())</span>
+    <span class="n">buses_df</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;buses&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">())</span>
+    <span class="n">gens_df</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gens&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">())</span>
+    <span class="n">loads_df</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;loads&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">())</span>
+    <span class="n">trafos_df</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trafos&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lines_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">bus_to_island</span> <span class="o">=</span> <span class="n">_compute_island_assignment</span><span class="p">(</span><span class="n">lines_df</span><span class="p">)</span>
+
+        <span class="n">island_buses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">bus</span><span class="p">,</span> <span class="n">island_idx</span> <span class="ow">in</span> <span class="n">bus_to_island</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">island_buses</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">island_idx</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bus</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">island_idx</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">island_buses</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">buses_in_island</span> <span class="o">=</span> <span class="n">island_buses</span><span class="p">[</span><span class="n">island_idx</span><span class="p">]</span>
+            <span class="n">island_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Island </span><span class="si">{</span><span class="n">island_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">_ISLAND_COLORS</span><span class="p">[</span><span class="n">island_idx</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_ISLAND_COLORS</span><span class="p">)]</span>
+            <span class="n">legend_added</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="n">island_lines_df</span> <span class="o">=</span> <span class="n">lines_df</span><span class="p">[</span><span class="n">lines_df</span><span class="p">[</span><span class="s2">&quot;from_bus&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">buses_in_island</span><span class="p">)]</span>
+            <span class="n">island_buses_df</span> <span class="o">=</span> <span class="n">buses_df</span><span class="p">[</span><span class="n">buses_df</span><span class="p">[</span><span class="s2">&quot;bus_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">buses_in_island</span><span class="p">)]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">buses_df</span><span class="o">.</span><span class="n">empty</span> <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            <span class="n">island_trafos_df</span> <span class="o">=</span> <span class="n">trafos_df</span><span class="p">[</span><span class="n">trafos_df</span><span class="p">[</span><span class="s2">&quot;hv_bus&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">buses_in_island</span><span class="p">)]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">trafos_df</span><span class="o">.</span><span class="n">empty</span> <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            <span class="n">island_loads_df</span> <span class="o">=</span> <span class="n">loads_df</span><span class="p">[</span><span class="n">loads_df</span><span class="p">[</span><span class="s2">&quot;bus_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">buses_in_island</span><span class="p">)]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">loads_df</span><span class="o">.</span><span class="n">empty</span> <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            <span class="n">island_gens_df</span> <span class="o">=</span> <span class="n">gens_df</span><span class="p">[</span><span class="n">gens_df</span><span class="p">[</span><span class="s2">&quot;bus_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">buses_in_island</span><span class="p">)]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">gens_df</span><span class="o">.</span><span class="n">empty</span> <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">island_lines_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">added</span> <span class="o">=</span> <span class="n">_add_island_lines</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">island_lines_df</span><span class="p">,</span> <span class="n">island_name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="ow">not</span> <span class="n">legend_added</span><span class="p">)</span>
+                <span class="n">legend_added</span> <span class="o">=</span> <span class="n">legend_added</span> <span class="ow">or</span> <span class="n">added</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">island_buses_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">added</span> <span class="o">=</span> <span class="n">_add_island_buses</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">island_buses_df</span><span class="p">,</span> <span class="n">island_name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="ow">not</span> <span class="n">legend_added</span><span class="p">)</span>
+                <span class="n">legend_added</span> <span class="o">=</span> <span class="n">legend_added</span> <span class="ow">or</span> <span class="n">added</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">island_trafos_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">added</span> <span class="o">=</span> <span class="n">_add_island_trafos</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">island_trafos_df</span><span class="p">,</span> <span class="n">buses_df</span><span class="p">,</span> <span class="n">island_name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="ow">not</span> <span class="n">legend_added</span><span class="p">)</span>
+                <span class="n">legend_added</span> <span class="o">=</span> <span class="n">legend_added</span> <span class="ow">or</span> <span class="n">added</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">island_loads_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">added</span> <span class="o">=</span> <span class="n">_add_island_loads</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">island_loads_df</span><span class="p">,</span> <span class="n">island_name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="ow">not</span> <span class="n">legend_added</span><span class="p">)</span>
+                <span class="n">legend_added</span> <span class="o">=</span> <span class="n">legend_added</span> <span class="ow">or</span> <span class="n">added</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">island_gens_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">added</span> <span class="o">=</span> <span class="n">_add_island_gens</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">island_gens_df</span><span class="p">,</span> <span class="n">island_name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="ow">not</span> <span class="n">legend_added</span><span class="p">)</span>
+                <span class="n">legend_added</span> <span class="o">=</span> <span class="n">legend_added</span> <span class="ow">or</span> <span class="n">added</span>
+
+    <span class="n">_apply_map_layout</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">mapbox_style</span><span class="p">,</span> <span class="n">center_lat</span><span class="p">,</span> <span class="n">center_lon</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 8: Run all visualize tests</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>test/test_visualize.py<span class="w"> </span>-v
+</code></pre></div>
+<p>Expected: All tests PASSED (including existing <code>TestVisualizeNetwork</code>, <code>TestAddLinesToFigure</code>, etc.).</p>
+<hr />
+<h2 id="task-5-lint-type-check-and-commit">Task 5: Lint, type-check, and commit</h2>
+<ul>
+<li>[ ] <strong>Step 1: Run ruff and mypy</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>src/nemdb/models/visualize.py<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>format<span class="w"> </span>src/nemdb/models/visualize.py
+uv<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>src/nemdb/models/visualize.py
+</code></pre></div>
+<p>Fix any issues before committing.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run full test suite</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>test/test_visualize.py<span class="w"> </span>-v
+</code></pre></div>
+<p>Expected: All tests PASSED.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>src/nemdb/models/visualize.py<span class="w"> </span>test/test_visualize.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add visualize_islands function with per-island color coding&quot;</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

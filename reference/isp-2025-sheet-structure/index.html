@@ -1,0 +1,3447 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>ISP 2025 Input Assumptions — Sheet Structure Reference - nemdb</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#isp-2025-input-assumptions-sheet-structure-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="nemdb" class="md-header__button md-logo" aria-label="nemdb" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            nemdb
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ISP 2025 Input Assumptions — Sheet Structure Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ymiftah/nemdb" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="nemdb" class="md-nav__button md-logo" aria-label="nemdb" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    nemdb
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ymiftah/nemdb" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/build-network-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build a Network Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/fetch-nemweb-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fetch NEMWEB Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/work-with-geodata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Work with Geodata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/use-dnsp-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use DNSP Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/use-isp-assumptions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use ISP Assumptions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/use-opennem-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use OpenNEM API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Explanation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Explanation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/transmission-line-cleaning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transmission Line Cleaning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/island-connectivity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connectivity & Electrical Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nemdb
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    nemdb
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dnsp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    dnsp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/ausgrid/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ausgrid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/ausnet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ausnet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/cppal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    cppal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/dnsp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dnsp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/endeavour/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    endeavour
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/energex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    energex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/ergon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ergon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/essential_energy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    essential_energy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/jemena/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jemena
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/sapn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sapn
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/tasnetworks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    tasnetworks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/dnsp/united_energy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    united_energy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_3" id="__nav_6_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    geodata
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    geodata
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/geodata/geodata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    geodata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/geodata/matching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    matching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/geodata/transformations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    transformations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_4" id="__nav_6_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    isp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    isp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/isp/isp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    isp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/isp/isp2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    isp2025
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/isp/schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/logger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logger
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/main/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    main
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_7" id="__nav_6_1_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_7_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_7_1" id="__nav_6_1_7_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pandapower
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_6_1_7_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_7_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    pandapower
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/pandapower/connectivity_fallback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    connectivity_fallback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/pandapower/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/pandapower/electrical_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    electrical_model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/pandapower/geo_utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    geo_utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/pandapower/line_params/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    line_params
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/pandapower/network_builder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    network_builder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/pandapower/topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    topology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_7_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_7_2" id="__nav_6_1_7_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    visualize
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_6_1_7_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    visualize
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/visualize/common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/visualize/island_view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    island_view
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/models/visualize/network_view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    network_view
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/near/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    near
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_9" id="__nav_6_1_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nemweb
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    nemweb
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/nemweb/dbloader/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dbloader
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/nemweb/der_register/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    der_register
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/nemweb/nemweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nemweb
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/nemweb/schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/nemweb/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_1_10" id="__nav_6_1_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    opennem
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    opennem
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/opennem/opennemapi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    opennemapi
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autoapi/nemdb/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#common-layout-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Layout Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sheet-inventory-by-pattern-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sheet Inventory by Pattern Type
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sheet Inventory by Pattern Type">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pattern-a-text-reference-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern A — Text / Reference Only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-b-version-changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern B — Version / Changelog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-c-scenario-comparison-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern C — Scenario Comparison Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-d-generator-technology-property-table-static-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern D — Generator / Technology Property Table (static columns)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pattern D — Generator / Technology Property Table (static columns)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#existing-gen-data-summary-selected-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Gen Data Summary — selected columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-e-time-series-wide-table-generatortechnology-year" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern E — Time-Series Wide Table (generator/technology × year)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-f-time-series-wide-multiple-scenarios-subregionstate-year-per-scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern F — Time-Series Wide, Multiple Scenarios (subregion/state × year per scenario)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-g-energy-policy-targets-carbon-budgets-multi-jurisdiction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern G — Energy Policy Targets / Carbon Budgets (multi-jurisdiction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-h-network-topology-simple-reference-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern H — Network Topology (simple reference tables)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-i-regional-build-costs-summary-viewcalculated-sheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern I — Regional Build Costs Summary (view/calculated sheet)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-j-summary-mapping-master-cross-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern J — Summary Mapping (master cross-reference)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sheet-groupings-by-thematic-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sheet Groupings by Thematic Domain
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="isp-2025-input-assumptions-sheet-structure-reference">ISP 2025 Input Assumptions — Sheet Structure Reference</h1>
+<p><strong>File:</strong> <code>src/nemdb/artefacts/ISP_2025.xlsm</code>
+<strong>Total sheets:</strong> 83
+<strong>Publisher:</strong> AEMO (Australian Energy Market Operator)
+<strong>Context:</strong> Modelling assumptions for the 2025 Integrated System Plan (ISP)</p>
+<hr />
+<h2 id="common-layout-conventions">Common Layout Conventions</h2>
+<p>Almost every data sheet shares this preamble structure:</p>
+<table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>"Go to Assumptions Summary" (navigation link)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Sheet title</td>
+</tr>
+<tr>
+<td>2–N</td>
+<td>Notes and caveats (free text)</td>
+</tr>
+<tr>
+<td>N+1</td>
+<td>(sometimes) Scenario selector or consultant mapping sub-table</td>
+</tr>
+<tr>
+<td>N+2</td>
+<td>Section label (e.g. "Existing generators") — only on multi-section sheets</td>
+</tr>
+<tr>
+<td>N+3</td>
+<td>Column header row</td>
+</tr>
+<tr>
+<td>N+4+</td>
+<td>Data rows</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Year columns:</strong> Time-series sheets use financial year labels as column headers spanning <strong>2025-26 to 2054-55</strong> (30 years), read as strings like <code>"2025-26"</code>.</p>
+<p><strong>Scenarios:</strong> Three modelling scenarios appear throughout:</p>
+<ul>
+<li><code>Slower Growth</code></li>
+<li><code>Step Change</code></li>
+<li><code>Accelerated Transition</code></li>
+</ul>
+<hr />
+<h2 id="sheet-inventory-by-pattern-type">Sheet Inventory by Pattern Type</h2>
+<h3 id="pattern-a-text-reference-only">Pattern A — Text / Reference Only</h3>
+<p>No tabular data to extract.</p>
+<table>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Rows×Cols</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Disclaimer</td>
+<td>37×1</td>
+<td>Legal disclaimer text</td>
+</tr>
+<tr>
+<td>Demand and Energy Forecasts</td>
+<td>7×4</td>
+<td>Pointer to external AEMO Forecasting Portal</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="pattern-b-version-changelog">Pattern B — Version / Changelog</h3>
+<p>Single simple 3-column table: Version Number, Date, Description.</p>
+<table>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Rows×Cols</th>
+<th>Header row</th>
+<th>Key columns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Change Log</td>
+<td>606×4</td>
+<td>row 1</td>
+<td><code>Version Number</code>, <code>Date</code>, <code>Description</code></td>
+</tr>
+<tr>
+<td>Assumptions Summary</td>
+<td>141×4</td>
+<td>row 5</td>
+<td><code>Version Number</code>, <code>Date</code>, <code>Description</code> — plus links to other sheets</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="pattern-c-scenario-comparison-table">Pattern C — Scenario Comparison Table</h3>
+<p>Narrow table with one row per parameter, columns = scenario names.</p>
+<table>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Rows×Cols</th>
+<th>Header row</th>
+<th>Columns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scenarios</td>
+<td>202×4</td>
+<td>row 4</td>
+<td><code>Parameter</code>, <code>Slower Growth</code>, <code>Step Change</code>, <code>Accelerated Transition</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="pattern-d-generator-technology-property-table-static-columns">Pattern D — Generator / Technology Property Table (static columns)</h3>
+<p>One row per generator or technology. No year columns. Key identifier column in col 0.</p>
+<table>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Rows×Cols</th>
+<th>Data starts row</th>
+<th>Key identifier</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Existing Gen Data Summary</td>
+<td>655×45</td>
+<td>~10</td>
+<td>IASR ID</td>
+<td>Summary of existing, committed &amp; anticipated generators — see below for column list</td>
+</tr>
+<tr>
+<td>New Entrant Data Summary</td>
+<td>528×53</td>
+<td>~10</td>
+<td>IASR ID</td>
+<td>Summary of new entrant technologies</td>
+</tr>
+<tr>
+<td>New Electrolyser Data Summary</td>
+<td>158×42</td>
+<td>~4</td>
+<td>IASR ID</td>
+<td>New electrolysers</td>
+</tr>
+<tr>
+<td>Storage properties</td>
+<td>43×9</td>
+<td>~6</td>
+<td>Technology</td>
+<td>Charge/discharge efficiency, round-trip efficiency</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td>32×8</td>
+<td>~5</td>
+<td>Unit</td>
+<td>Planned maintenance rates per season</td>
+</tr>
+<tr>
+<td>Generator Reliability Settings</td>
+<td>90×12</td>
+<td>~8</td>
+<td>IASR ID</td>
+<td>Multiple sub-tables: unplanned long/short outages</td>
+</tr>
+<tr>
+<td>Retirement</td>
+<td>656×9</td>
+<td>~8</td>
+<td>IASR ID</td>
+<td>Expected closure years by scenario</td>
+</tr>
+<tr>
+<td>Heat rates</td>
+<td>657×8</td>
+<td>~7</td>
+<td>IASR ID</td>
+<td><code>send-out heat rate (GJ/MWh)</code></td>
+</tr>
+<tr>
+<td>Auxiliary</td>
+<td>653×7</td>
+<td>~6</td>
+<td>IASR ID</td>
+<td>Auxiliary load factor</td>
+</tr>
+<tr>
+<td>Emissions intensity</td>
+<td>660×7</td>
+<td>~6</td>
+<td>IASR ID</td>
+<td>Emissions intensity (tCO2-e/MWh)</td>
+</tr>
+<tr>
+<td>Fixed OPEX</td>
+<td>654×8</td>
+<td>~6</td>
+<td>IASR ID</td>
+<td>Fixed operating cost ($/kW/year)</td>
+</tr>
+<tr>
+<td>Variable OPEX</td>
+<td>654×7</td>
+<td>~6</td>
+<td>IASR ID</td>
+<td>Variable operating cost ($/MWh)</td>
+</tr>
+<tr>
+<td>Affine Heat rates</td>
+<td>190×10</td>
+<td>~7</td>
+<td>IASR ID</td>
+<td>Piecewise heat rate coefficients</td>
+</tr>
+<tr>
+<td>Max Ramp Rates</td>
+<td>189×9</td>
+<td>~7</td>
+<td>IASR ID</td>
+<td>Ramp rates (MW/min) by direction and condition</td>
+</tr>
+<tr>
+<td>Coal Min Stable Level</td>
+<td>63×6</td>
+<td>~7</td>
+<td>IASR ID</td>
+<td>Minimum stable generation level</td>
+</tr>
+<tr>
+<td>GPG Min Stable Level</td>
+<td>148×7</td>
+<td>~7</td>
+<td>IASR ID</td>
+<td>Minimum stable level for gas peakers</td>
+</tr>
+<tr>
+<td>First-of-a-kind premium</td>
+<td>11×3</td>
+<td>~6</td>
+<td>Technology</td>
+<td>FOAK cost premium (%)</td>
+</tr>
+<tr>
+<td>Lead time and project life</td>
+<td>35×7</td>
+<td>~6</td>
+<td>Technology</td>
+<td>Lead time (years), economic life, technical life</td>
+</tr>
+<tr>
+<td>Financial parameters</td>
+<td>90×6</td>
+<td>~8</td>
+<td>Parameter</td>
+<td>WACC and other financial settings by scenario</td>
+</tr>
+<tr>
+<td>Gas System Properties</td>
+<td>191×7</td>
+<td>~6</td>
+<td>Gas node</td>
+<td>Gas system node properties</td>
+</tr>
+<tr>
+<td>Reserves</td>
+<td>14×2</td>
+<td>~5</td>
+<td>Reserve type</td>
+<td>Reserve margins</td>
+</tr>
+<tr>
+<td>Transmission Reliability</td>
+<td>13×4</td>
+<td>~5</td>
+<td>Flow path</td>
+<td>Reliability limits</td>
+</tr>
+</tbody>
+</table>
+<h4 id="existing-gen-data-summary-selected-columns">Existing Gen Data Summary — selected columns</h4>
+<p><code>IASR ID</code>, <code>Power Station</code>, <code>Technology Type</code>, <code>Fuel Type</code>, <code>Region</code>, <code>Sub-region</code>, <code>REZ Location</code>, <code>REZ ID</code>, <code>Status</code>, <code>REZ</code>, <code>Max capacity (MW)</code>, <code>Seasonal rating summer peak (MW)</code>, <code>Heat rate (GJ/MWh)</code>, <code>Fuel cost ($/GJ)</code>, <code>MLF</code>, <code>Auxiliary (%)</code>, <code>Fixed OPEX ($/kW/year)</code>, <code>Variable OPEX ($/MWh)</code>, <code>Emissions intensity (tCO2-e/MWh)</code>, <code>Expected retirement year</code>, <code>Connection cost ($)</code>, <code>SRMC ($/MWh)</code></p>
+<hr />
+<h3 id="pattern-e-time-series-wide-table-generatortechnology-year">Pattern E — Time-Series Wide Table (generator/technology × year)</h3>
+<p>One row per entity, year columns from 2025-26 to 2054-55. Header row immediately precedes data.</p>
+<table>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Rows×Cols</th>
+<th>Data start row</th>
+<th>Row key</th>
+<th>Sub-sections</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fuel Price Summary</td>
+<td>1178×36</td>
+<td>row 11 (existing), row 660 (new entrant)</td>
+<td>Generator</td>
+<td>2 sub-tables: <code>Existing generators</code> (rows 11–658) + <code>New entrant generators</code> (rows 660–1177)</td>
+</tr>
+<tr>
+<td>Coal and Biomass price</td>
+<td>61×32</td>
+<td>~6</td>
+<td>Coal basin/scenario</td>
+<td>Single table</td>
+</tr>
+<tr>
+<td>Gas, Liquid fuel, H2 price</td>
+<td>386×33</td>
+<td>varies</td>
+<td>Fuel node</td>
+<td>Multiple sub-tables by fuel type</td>
+</tr>
+<tr>
+<td>Build costs</td>
+<td>76×34</td>
+<td>~8</td>
+<td>Technology</td>
+<td>Single table with technology + year cols</td>
+</tr>
+<tr>
+<td>Connection cost forecasts</td>
+<td>385×35</td>
+<td>varies</td>
+<td>REZ ID</td>
+<td>Time-series of connection costs</td>
+</tr>
+<tr>
+<td>Flow path cost forecasts</td>
+<td>335×34</td>
+<td>varies</td>
+<td>Flow path</td>
+<td>Time-series of augmentation costs</td>
+</tr>
+<tr>
+<td>REZ cost forecasts</td>
+<td>316×35</td>
+<td>varies</td>
+<td>REZ ID</td>
+<td>Time-series of REZ augmentation costs</td>
+</tr>
+<tr>
+<td>Distribution cost forecasts</td>
+<td>84×35</td>
+<td>varies</td>
+<td>Sub-region</td>
+<td>Time-series</td>
+</tr>
+<tr>
+<td>Seasonal ratings</td>
+<td>687×34</td>
+<td>~8</td>
+<td>IASR ID</td>
+<td>4 season columns × ... — see note below</td>
+</tr>
+<tr>
+<td>Marginal Loss Factors</td>
+<td>663×18</td>
+<td>varies</td>
+<td>IASR ID</td>
+<td>Multiple sub-tables by generator type/scenario</td>
+</tr>
+<tr>
+<td>Locational Cost Factors</td>
+<td>225×23</td>
+<td>varies</td>
+<td>Region/Technology</td>
+<td>Cost scaling factors</td>
+</tr>
+<tr>
+<td>GPG emissions reduction - BioM</td>
+<td>12×31</td>
+<td>~6</td>
+<td>Technology</td>
+<td>Single small table with year cols</td>
+</tr>
+<tr>
+<td>Power System Security</td>
+<td>94×30</td>
+<td>~3</td>
+<td>DUID</td>
+<td>Multiple sub-tables: coal retirement costs + security constraint costs</td>
+</tr>
+<tr>
+<td>H2 as fuel for GPG Limit</td>
+<td>21×32</td>
+<td>~5</td>
+<td>Sub-region</td>
+<td>Year columns</td>
+</tr>
+<tr>
+<td>Build Cost - Hydrogen pipeline</td>
+<td>157×35</td>
+<td>varies</td>
+<td>Route</td>
+<td>Time-series pipeline costs</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Seasonal ratings note:</strong> Columns are <code>Summer Peak</code>, <code>Summer Typical</code>, <code>Shoulder</code>, <code>Winter</code> — not year-labelled; instead years are represented by <code>Year</code> selector. Raw data has these 4 season columns, per generator row.</p>
+</blockquote>
+<hr />
+<h3 id="pattern-f-time-series-wide-multiple-scenarios-subregionstate-year-per-scenario">Pattern F — Time-Series Wide, Multiple Scenarios (subregion/state × year per scenario)</h3>
+<p>The most common pattern for demand-side and DER forecasts. Each sheet has <strong>multiple tables</strong> stacked vertically, one per scenario (and sometimes per metric). The scenario label appears as a row above the header row for each sub-table.</p>
+<p><strong>General layout:</strong></p>
+<div class="highlight"><pre><span></span><code>row 0:  &quot;Go to Assumptions Summary&quot;
+row 1:  Sheet title
+row 2-N: Notes
+row N+1: Consultant mapping table (optional)
+row N+K:      [Section label, e.g. &quot;Gross State Product ($ millions)&quot;]
+row N+K+1:    [Scenario label, e.g. &quot;Slower Growth&quot;]
+row N+K+2:    [blank]
+row N+K+3:    [Column header: key-col | 2025-26 | 2026-27 | ... | 2054-55]
+row N+K+4+:   Data rows (one per subregion/state)
+...repeated for each scenario and metric...
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Rows×Cols</th>
+<th>Metrics</th>
+<th>Scenarios</th>
+<th>Row key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Economic Growth Forecasts</td>
+<td>66×32</td>
+<td>GSP, HDI</td>
+<td>3</td>
+<td>State</td>
+</tr>
+<tr>
+<td>End use fuel consumption data</td>
+<td>39×31</td>
+<td>1 (fuel cons.)</td>
+<td>3</td>
+<td>Fuel sector</td>
+</tr>
+<tr>
+<td>Appliance Uptake Forecasts</td>
+<td>39×32</td>
+<td>1</td>
+<td>3</td>
+<td>Appliance type</td>
+</tr>
+<tr>
+<td>Elec. Retail Price Indices</td>
+<td>13×32</td>
+<td>1</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Connections Forecasts</td>
+<td>40×33</td>
+<td>1</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Energy Efficiency</td>
+<td>77×32</td>
+<td>multiple</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Rooftop PV</td>
+<td>116×33</td>
+<td>Capacity (MW), Energy (GWh)</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>PVNSG</td>
+<td>116×33</td>
+<td>Capacity, Energy</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>ONSG</td>
+<td>74×33</td>
+<td>Capacity, Energy</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Battery &amp; Plug-in EVs</td>
+<td>115×33</td>
+<td>multiple</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Fuel cell EVs</td>
+<td>62×33</td>
+<td>multiple</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>EV V2G</td>
+<td>115×33</td>
+<td>multiple</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>DSP</td>
+<td>164×34</td>
+<td>multiple</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Data Centre Forecasts</td>
+<td>32×31</td>
+<td>1</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Electrification</td>
+<td>37×31</td>
+<td>1</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Embedded energy storages</td>
+<td>116×33</td>
+<td>Capacity, Energy</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Aggregated energy storages</td>
+<td>115×33</td>
+<td>Capacity, Energy</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Hydrogen demand - Domestic</td>
+<td>53×33</td>
+<td>1 (Mt/year)</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Hydrogen demand-Export&amp;Commod</td>
+<td>156×33</td>
+<td>multiple</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Water for Hydrogen</td>
+<td>52×33</td>
+<td>1</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Desalination demand for H2</td>
+<td>52×33</td>
+<td>1</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Other hydrogen assumptions</td>
+<td>35×31</td>
+<td>multiple</td>
+<td>3</td>
+<td>Sub-region</td>
+</tr>
+<tr>
+<td>Coal and Biomass price</td>
+<td>61×32</td>
+<td>1</td>
+<td>varies</td>
+<td>Coal basin</td>
+</tr>
+<tr>
+<td>Hydrogen monthly profiles</td>
+<td>44×32</td>
+<td>1</td>
+<td>3</td>
+<td>Month</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="pattern-g-energy-policy-targets-carbon-budgets-multi-jurisdiction">Pattern G — Energy Policy Targets / Carbon Budgets (multi-jurisdiction)</h3>
+<p>Similar to Pattern F but split by jurisdiction rather than scenario.</p>
+<table>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Rows×Cols</th>
+<th>Sections</th>
+<th>Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Energy Policy Targets</td>
+<td>310×6</td>
+<td>Australia, NSW, QLD, SA, TAS, VIC</td>
+<td>Target type × year</td>
+</tr>
+<tr>
+<td>Carbon Budgets</td>
+<td>31×6</td>
+<td>NEM-wide + state budgets</td>
+<td>State</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Energy Policy Targets structure:</strong></p>
+<ul>
+<li>Rows 12–112: National (Australia) targets</li>
+<li>Rows 113–194: NSW</li>
+<li>Rows 195–202: QLD</li>
+<li>Rows 203–219: SA</li>
+<li>Rows 220–250: TAS</li>
+<li>Rows 251+: VIC</li>
+</ul>
+<hr />
+<h3 id="pattern-h-network-topology-simple-reference-tables">Pattern H — Network Topology (simple reference tables)</h3>
+<table>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Rows×Cols</th>
+<th>Header row</th>
+<th>Key columns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network representation</td>
+<td>82×4</td>
+<td>~4</td>
+<td><code>Flow path definition</code>, <code>Definition</code></td>
+</tr>
+<tr>
+<td>Renewable energy zones</td>
+<td>61×7</td>
+<td>~5</td>
+<td><code>REZ ID</code>, <code>REZ Name</code>, <code>State</code>, <code>NEM Region</code>, <code>Sub-region</code>, <code>Zone type</code></td>
+</tr>
+<tr>
+<td>Network capability</td>
+<td>151×21</td>
+<td>~5</td>
+<td><code>Flow Paths</code> + multiple capability columns</td>
+</tr>
+<tr>
+<td>Network losses</td>
+<td>88×9</td>
+<td>~6</td>
+<td><code>Flow Path</code>, <code>Interconnector Name</code>, loss coefficients</td>
+</tr>
+<tr>
+<td>Distribution network</td>
+<td>52×7</td>
+<td>~6</td>
+<td><code>Sub-region</code>, <code>NEM Region</code>, network characteristics</td>
+</tr>
+<tr>
+<td>Connection cost</td>
+<td>71×17</td>
+<td>~6</td>
+<td><code>REZ ID</code>, <code>REZ names</code> + technology cost columns</td>
+</tr>
+<tr>
+<td>Flow path augmentation options</td>
+<td>134×16</td>
+<td>~9</td>
+<td><code>Option ID</code>, <code>Flow path</code>, <code>Transfer level increase</code>, cost estimates</td>
+</tr>
+<tr>
+<td>REZ augmentations options</td>
+<td>133×14</td>
+<td>~7</td>
+<td><code>REZ ID</code>, <code>REZ Name</code>, <code>Technology</code>, capacity</td>
+</tr>
+<tr>
+<td>Maximum capacity</td>
+<td>667×14</td>
+<td>~8</td>
+<td><code>IASR ID</code>, <code>Power Station</code>, <code>Technology</code>, <code>Max capacity (MW)</code></td>
+</tr>
+<tr>
+<td>Hydro Scheme Inflows</td>
+<td>162×19</td>
+<td>~8</td>
+<td>Reference year + monthly columns</td>
+</tr>
+<tr>
+<td>Capacity Factors</td>
+<td>210×21</td>
+<td>~6</td>
+<td><code>REZ ID / Subregion</code>, <code>REZ Name</code> + technology capacity factor columns</td>
+</tr>
+<tr>
+<td>Build limits - REZs</td>
+<td>257×14</td>
+<td>~5</td>
+<td><code>REZ ID</code>, <code>REZ Name</code> + technology build limit columns</td>
+</tr>
+<tr>
+<td>Build limits - PHES</td>
+<td>27×22</td>
+<td>~5</td>
+<td><code>PHES site</code> + multiple duration/location columns</td>
+</tr>
+<tr>
+<td>Hydrogen consumption locations</td>
+<td>57×7</td>
+<td>~6</td>
+<td><code>Sub-region</code>, <code>Region</code>, location attributes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="pattern-i-regional-build-costs-summary-viewcalculated-sheet">Pattern I — Regional Build Costs Summary (view/calculated sheet)</h3>
+<p><strong>Regional Build Costs Summary</strong> (74×48) is a dynamic view sheet that applies locational cost factors to baseline technology costs. It has scenario and technology dropdown selectors in the preamble, so it is not a primary source — raw data should be extracted from <code>Build costs</code> + <code>Locational Cost Factors</code> instead.</p>
+<hr />
+<h3 id="pattern-j-summary-mapping-master-cross-reference">Pattern J — Summary Mapping (master cross-reference)</h3>
+<p><strong>Summary Mapping</strong> (1384×31) is the most comprehensive sheet. Starting at row 3, it contains one row per generator/technology across all categories (existing, committed, anticipated, new entrant) and provides cross-references to values in all other sheets.</p>
+<p>Key columns: <code>RowID</code>, <code>IASR ID / DLT names</code>, <code>Power Station</code>, <code>Technology Type</code>, <code>Region</code>, <code>Sub-region</code>, <code>REZ Location</code>, <code>REZ ID</code>, <code>Status</code>, <code>MLF</code>, <code>Auxiliary load (%)</code>, <code>Connection cost</code>, <code>Build limit</code>, <code>Total lead time</code></p>
+<hr />
+<h2 id="sheet-groupings-by-thematic-domain">Sheet Groupings by Thematic Domain</h2>
+<table>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Sheets</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Administrative</strong></td>
+<td>Disclaimer, Change Log, Assumptions Summary, Scenarios</td>
+</tr>
+<tr>
+<td><strong>Generator Registry</strong></td>
+<td>Summary Mapping, Existing Gen Data Summary, New Entrant Data Summary, New Electrolyser Data Summary, Retirement</td>
+</tr>
+<tr>
+<td><strong>Generator Technical</strong></td>
+<td>Maximum capacity, Seasonal ratings, Heat rates, Affine Heat rates, Auxiliary, Emissions intensity, Storage properties, Max Ramp Rates, Coal Min Stable Level, GPG Min Stable Level, Maintenance, Generator Reliability Settings, Hydro Scheme Inflows, Capacity Factors</td>
+</tr>
+<tr>
+<td><strong>Generator Costs</strong></td>
+<td>Build costs, Regional Build Costs Summary, Fixed OPEX, Variable OPEX, Locational Cost Factors, First-of-a-kind premium, Lead time and project life, Financial parameters</td>
+</tr>
+<tr>
+<td><strong>Fuel Prices</strong></td>
+<td>Fuel Price Summary, Coal and Biomass price, Gas Liquid fuel H2 price, Gas System Properties, GPG emissions reduction - BioM</td>
+</tr>
+<tr>
+<td><strong>Network</strong></td>
+<td>Network representation, Renewable energy zones, Network capability, Network losses, Transmission Reliability, Distribution network, Marginal Loss Factors, Connection cost, Connection cost forecasts</td>
+</tr>
+<tr>
+<td><strong>Network Development</strong></td>
+<td>Flow path augmentation options, Flow path cost forecasts, REZ augmentations options, REZ cost forecasts, Distribution cost forecasts, Build limits - REZs, Build limits - PHES</td>
+</tr>
+<tr>
+<td><strong>Demand &amp; DER Forecasts</strong></td>
+<td>Demand and Energy Forecasts, Economic Growth Forecasts, End use fuel consumption data, Appliance Uptake Forecasts, Elec. Retail Price Indices, Connections Forecasts, Energy Efficiency, Rooftop PV, PVNSG, ONSG, Battery &amp; Plug-in EVs, Fuel cell EVs, EV V2G, DSP, Data Centre Forecasts, Electrification, Embedded energy storages, Aggregated energy storages</td>
+</tr>
+<tr>
+<td><strong>Energy Policy</strong></td>
+<td>Energy Policy Targets, Carbon Budgets, Power System Security, Reserves</td>
+</tr>
+<tr>
+<td><strong>Hydrogen</strong></td>
+<td>Hydrogen demand - Domestic, Hydrogen monthly profiles, Hydrogen demand-Export&amp;Commod, Hydrogen consumption locations, Water for Hydrogen, Desalination demand for H2, H2 as fuel for GPG Limit, Build Cost - Hydrogen pipeline, Other hydrogen assumptions</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
